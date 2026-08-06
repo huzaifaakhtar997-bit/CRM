@@ -1,0 +1,720 @@
+// =============================================================================
+// CRM MVP – Prisma Schema
+// Database: PostgreSQL
+// ORM: Prisma
+// =============================================================================
+// Models (17 total):
+//   User, Company, Contact, Lead, PipelineStage, Deal, Task, Activity, Notification
+//   Conversation, Message, Campaign, CampaignRecipient, Template,
+//   IntegrationConnection, SyncLog, ImportJob
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+/// Roles a CRM team member can hold. Controls access level in the application.
+enum UserRole {
+  ADMIN          // Full system access, can manage users and settings
+  MANAGER        // Can view all team data, assign deals, run reports
+  SALES_REP      // Can manage their own contacts, deals, tasks
+  MARKETING      // Access to campaigns and contact lists
+  SUPPORT        // Read-only access + inbox management
+}
+
+/// Whether a user account is active or deactivated.
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+/// Lifecycle stage of a contact in the sales funnel.
+/// Progresses from initial capture (LEAD) through to active customer.
+enum LifecycleStage {
+  LEAD           // First captured, unverified
+  MQL            // Marketing Qualified Lead – engaged with marketing content
+  SQL            // Sales Qualified Lead – vetted and ready for sales outreach
+  OPPORTUNITY    // Actively in a sales conversation
+  CUSTOMER       // Converted – has purchased
+  CHURNED        // Was a customer but has left
+}
+
+/// Where a contact or lead originally came from.
+enum LeadSource {
+  ORGANIC_SEARCH
+  PAID_ADS
+  REFERRAL
+  COLD_OUTREACH
+  SOCIAL_MEDIA
+  WEB_FORM
+  EVENT
+  OTHER
+}
+
+/// Status of a lead in the qualification workflow.
+enum LeadStatus {
+  NEW                // Just captured, not yet reviewed
+  CONTACTED          // First outreach made
+  QUALIFIED          // Confirmed as a good fit
+  DISQUALIFIED       // Determined not a good fit
+  CONVERTED          // Promoted to a Contact + Deal
+}
+
+/// Priority level for deals and tasks.
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/// Type of task a sales rep needs to complete.
+enum TaskType {
+  CALL
+  EMAIL
+  MEETING
+  OTHER
+}
+
+/// Type of activity recorded in the activity log.
+enum ActivityType {
+  NOTE              // A free-text note added manually
+  CALL              // A phone call that took place
+  EMAIL             // An email sent or received
+  MEETING           // A meeting that occurred
+  STAGE_CHANGE      // A deal moved from one pipeline stage to another
+  TASK_COMPLETED    // A task was marked as completed
+  CONTACT_CREATED   // A new contact was created
+  DEAL_CREATED      // A new deal was created
+  LEAD_CONVERTED    // A lead was converted to a contact
+}
+
+// =============================================================================
+// MODEL: User
+// Purpose: Represents a CRM team member (sales rep, manager, admin, etc.)
+// =============================================================================
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String     // bcrypt-hashed password, never stored plain
+  role         UserRole   @default(SALES_REP)
+  phone        String?    // Optional direct phone number
+  avatarUrl    String?    // Profile picture URL
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations: A user owns many records across the system
+  contacts      Contact[]      @relation("AssignedContacts")
+  leads         Lead[]         @relation("AssignedLeads")
+  deals         Deal[]         @relation("AssignedDeals")
+  tasks         Task[]         @relation("AssignedTasks")
+  activities    Activity[]     @relation("CreatedActivities")
+  notifications Notification[]
+  conversations Conversation[] @relation("AssignedConversations")
+  campaigns     Campaign[]     @relation("OwnedCampaigns")
+  templates     Template[]     @relation("CreatedTemplates")
+  importJobs    ImportJob[]    @relation("CreatedImports")
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+// =============================================================================
+// MODEL: Company
+// Purpose: Represents a client organization. Parent entity for contacts and deals.
+// =============================================================================
+
+model Company {
+  id            String   @id @default(cuid())
+  name          String
+  website       String?  // e.g. https://acmecloud.io
+  industry      String?  // e.g. "Software & Technology", "Financial Services"
+  size          String?  // Headcount range: "1-10", "11-50", "51-200", "201-500", "500+"
+  phone         String?
+  email         String?  // General company email
+  address       String?  // Free-text postal address
+  logoUrl       String?  // Company logo image URL
+  annualRevenue Float?   // Revenue in USD — used for account sizing/scoring
+  description   String?  // Short company description
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations: A company has many contacts and deals
+  contacts Contact[]
+  deals    Deal[]
+
+  @@index([name])
+  @@index([industry])
+  @@map("companies")
+}
+
+// =============================================================================
+// MODEL: Contact
+// Purpose: Represents an individual person. Central entity in the CRM.
+//          Contacts belong to companies and are assigned to sales reps.
+// =============================================================================
+
+model Contact {
+  id             String         @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?        @unique // Optional but unique when provided
+  phone          String?
+  jobTitle       String?
+  avatarUrl      String?
+  notes          String?        // Quick internal notes field
+  tags           String[]       @default([]) // PostgreSQL string array – flexible labels
+  leadSource     LeadSource?
+  lifecycleStage LifecycleStage @default(LEAD)
+  status         String?        // e.g. "In Progress", "Contacted", "Attempted to Contact"
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Foreign keys
+  companyId      String?        // Optional – contact may not be linked to a company yet
+  assignedUserId String?        // Optional – contact may not be assigned yet
+
+  // Relations
+  company        Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  assignedUser   User?          @relation("AssignedContacts", fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  // A contact can be linked to many deals, tasks, activities
+  deals              Deal[]
+  tasks              Task[]
+  activities         Activity[]
+  lead               Lead?               // If this contact was converted from a lead
+  conversations      Conversation[]
+  campaignRecipients CampaignRecipient[]
+
+  @@index([email])
+  @@index([companyId])
+  @@index([assignedUserId])
+  @@index([lifecycleStage])
+  @@index([createdAt])
+  @@map("contacts")
+}
+
+// =============================================================================
+// MODEL: Lead
+// Purpose: Represents an early-stage unqualified prospect.
+//          Can be converted into a Contact + Deal.
+// =============================================================================
+
+model Lead {
+  id                 String     @id @default(cuid())
+  firstName          String
+  lastName           String?
+  email              String     @unique // Primary identifier for a lead
+  phone              String?
+  company            String?    // Free text – not a FK until they are qualified
+  jobTitle           String?
+  source             LeadSource?
+  status             LeadStatus @default(NEW)
+  notes              String?    // Qualification notes
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  // Foreign keys
+  assignedUserId     String?    // Which rep is working this lead
+  convertedContactId String?    @unique // Set when lead is converted to a Contact
+
+  // Relations
+  assignedUser       User?      @relation("AssignedLeads", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  convertedContact   Contact?   @relation(fields: [convertedContactId], references: [id], onDelete: SetNull)
+  activities         Activity[]
+
+  @@index([email])
+  @@index([status])
+  @@index([assignedUserId])
+  @@map("leads")
+}
+
+// =============================================================================
+// MODEL: PipelineStage
+// Purpose: Defines the ordered stages in the sales Kanban pipeline.
+//          Seeded with 6 default stages (Lead → Won/Lost).
+// =============================================================================
+
+model PipelineStage {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g. "Lead", "Qualified", "Proposal Sent", "Negotiation", "Won", "Lost"
+  order       Int      @unique // Kanban column position (1 = leftmost)
+  probability Int      // Win probability 0–100. Default from mockup: Won=100, Lost=0
+  color       String?  // Hex color for the Kanban column header, e.g. "#4ade80"
+  description String?  // What does it mean for a deal to be in this stage?
+  isWon       Boolean  @default(false) // Terminal stage – deal was won
+  isLost      Boolean  @default(false) // Terminal stage – deal was lost
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  deals Deal[]
+
+  @@index([order])
+  @@map("pipeline_stages")
+}
+
+// =============================================================================
+// MODEL: Deal
+// Purpose: Represents a sales opportunity being actively pursued.
+//          Core revenue entity. Drives the Kanban board and reports.
+// =============================================================================
+
+model Deal {
+  id                 String   @id @default(cuid())
+  title              String   // e.g. "Acme Cloud – Enterprise License (150 seats)"
+  value              Float    @default(0) // Deal value in the specified currency
+  currency           String   @default("USD")
+  probability        Int      @default(0) // Win probability 0–100, defaults from pipeline stage
+  expectedCloseDate  DateTime // Forecasted close date
+  closedAt           DateTime? // Actual date closed (set when Won or Lost)
+  priority           Priority  @default(MEDIUM)
+  notes              String?   // Internal deal notes
+  lostReason         String?   // Why the deal was lost – set when moved to Lost stage
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Foreign keys
+  stageId        String  // Required – every deal must be in a stage
+  contactId      String? // Optional – the primary person at the company
+  companyId      String? // Optional – the organization being sold to
+  assignedUserId String? // Optional – which rep owns this deal
+
+  // Relations
+  stage        PipelineStage @relation(fields: [stageId], references: [id])
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  assignedUser User?         @relation("AssignedDeals", fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  // A deal spawns many tasks and activity log entries
+  tasks      Task[]
+  activities Activity[]
+
+  @@index([stageId])
+  @@index([companyId])
+  @@index([contactId])
+  @@index([assignedUserId])
+  @@index([expectedCloseDate])
+  @@index([closedAt])
+  @@map("deals")
+}
+
+// =============================================================================
+// MODEL: Task
+// Purpose: A to-do action item for a sales rep.
+//          Can be linked to a contact, a deal, or both.
+// =============================================================================
+
+model Task {
+  id           String    @id @default(cuid())
+  title        String    // Short summary of what needs to be done
+  description  String?   // Additional context or detail
+  taskType     TaskType  @default(CALL)
+  dueDate      DateTime  // When the task must be completed
+  dueTime      String?   // Time string "HH:MM", e.g. "14:00"
+  priority     Priority  @default(MEDIUM)
+  completed    Boolean   @default(false)
+  completedAt  DateTime? // Timestamp when task was completed
+  companyName  String?   // Denormalized for quick display without joining
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Foreign keys
+  assignedUserId String? // Who needs to complete this task
+  contactId      String? // The contact this task relates to
+  dealId         String? // The deal this task relates to
+
+  // Relations
+  assignedUser User?    @relation("AssignedTasks", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  contact      Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal         Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([assignedUserId])
+  @@index([contactId])
+  @@index([dealId])
+  @@index([dueDate])
+  @@index([completed])
+  @@map("tasks")
+}
+
+// =============================================================================
+// MODEL: Activity
+// Purpose: Immutable audit log of all CRM events.
+//          Drives the activity timeline on contact and deal detail pages.
+//
+// Design note: Activities are APPEND-ONLY. They are never updated or deleted.
+//              This is why there is no updatedAt field.
+// =============================================================================
+
+model Activity {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  title     String?      // Short summary, e.g. "Moved deal to Negotiation"
+  content   String?      // Full text – note body, call summary, email body
+  metadata  Json?        // Flexible extra context, e.g. { "from": "Qualified", "to": "Negotiation" }
+  createdAt DateTime     @default(now()) // Immutable – no updatedAt
+
+  // Foreign keys – polymorphic via separate nullable FKs
+  // Only one of contactId, dealId, or leadId is typically set per activity.
+  // Separate nullable FKs preserve referential integrity in PostgreSQL.
+  userId    String       // Required – who performed the action
+  contactId String?      // Set if this activity is on a contact's timeline
+  dealId    String?      // Set if this activity is on a deal's timeline
+  leadId    String?      // Set if this activity is on a lead's timeline
+
+  // Relations
+  user    User     @relation("CreatedActivities", fields: [userId], references: [id])
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  deal    Deal?    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  lead    Lead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([contactId])
+  @@index([dealId])
+  @@index([leadId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+// =============================================================================
+// MODEL: Notification
+// Purpose: In-app user notifications for CRM events.
+//          Drives the notification bell badge in the header.
+// =============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String   // Short heading, e.g. "New Lead Assigned"
+  message   String   // Full notification body text
+  type      String   // Loose type string: "lead", "deal", "task", "inbox", "system"
+  read      Boolean  @default(false)
+  link      String?  // Relative URL to navigate to on click, e.g. "/deals"
+  createdAt DateTime @default(now())
+
+  // Foreign key
+  userId String // Recipient of the notification
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// =============================================================================
+// NEW ENUMS (added for Inbox, Campaigns, Integrations, Imports)
+// =============================================================================
+
+/// Channel a conversation came through. EMAIL only for MVP.
+enum ConversationChannel {
+  EMAIL
+}
+
+/// Status of a support/inbox conversation thread.
+enum ConversationStatus {
+  OPEN
+  PENDING
+  RESOLVED
+  CLOSED
+}
+
+/// Who sent a message inside a conversation.
+enum SenderType {
+  CUSTOMER // Inbound from the contact
+  USER     // Outbound from a CRM team member
+}
+
+/// Lifecycle status of a marketing campaign.
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  PAUSED
+}
+
+/// Delivery/engagement status of a campaign recipient.
+enum CampaignRecipientStatus {
+  PENDING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  REPLIED
+  BOUNCED
+  FAILED
+}
+
+/// What the template is used for.
+enum TemplateType {
+  EMAIL_REPLY // Quick reply template in Unified Inbox
+  CAMPAIGN    // Full campaign body template
+}
+
+/// Which external service is being integrated.
+enum IntegrationProvider {
+  HUBSPOT
+}
+
+/// Current state of an integration connection.
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+}
+
+/// Outcome of a single sync log record.
+enum SyncLogStatus {
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+/// Status of a CSV/Excel import job.
+enum ImportJobStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// =============================================================================
+// MODEL: Conversation
+// Purpose: A thread of messages from a contact, received via email or other
+//          channels. Drives the Unified Inbox page.
+// =============================================================================
+
+model Conversation {
+  id            String              @id @default(cuid())
+  subject       String?             // Email subject line or thread title
+  channel       ConversationChannel @default(EMAIL)
+  status        ConversationStatus  @default(OPEN)
+  lastMessageAt DateTime            @default(now()) // Updated on each new message
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  // Foreign keys
+  contactId      String? // The contact who initiated the conversation
+  assignedUserId String? // The CRM user responsible for this thread
+
+  // Relations
+  contact      Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  assignedUser User?     @relation("AssignedConversations", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  messages     Message[]
+
+  @@index([contactId])
+  @@index([assignedUserId])
+  @@index([status])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+// =============================================================================
+// MODEL: Message
+// Purpose: An individual message inside a Conversation thread.
+//          Can be an inbound customer message or an outbound CRM reply.
+//          Also supports internal notes visible only to the team.
+// =============================================================================
+
+model Message {
+  id             String     @id @default(cuid())
+  content        String     // The message body text
+  senderType     SenderType // CUSTOMER (inbound) or USER (outbound)
+  senderName     String?    // Display name of the sender
+  senderEmail    String?    // Email address of the sender
+  isInternalNote Boolean    @default(false) // True = visible to team only
+  createdAt      DateTime   @default(now()) // Immutable - no updatedAt on messages
+
+  // Foreign key
+  conversationId String
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderType])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// =============================================================================
+// MODEL: Campaign
+// Purpose: A marketing email campaign sent to a list of contacts.
+//          Drives the Campaigns module.
+// =============================================================================
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String         // e.g. "Q3 Product Launch Announcement"
+  objective   String?        // Free-text campaign goal description
+  status      CampaignStatus @default(DRAFT)
+  subject     String?        // Email subject line
+  previewText String?        // Short preview text shown in email clients
+  content     String?        // Full email body HTML/text
+  scheduledAt DateTime?      // When the campaign is scheduled to send
+  sentAt      DateTime?      // When the campaign was actually sent
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Foreign key
+  ownerId String // The user who created/owns this campaign
+
+  // Relations
+  owner      User                @relation("OwnedCampaigns", fields: [ownerId], references: [id])
+  recipients CampaignRecipient[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("campaigns")
+}
+
+// =============================================================================
+// MODEL: CampaignRecipient
+// Purpose: Join table tracking which contacts received a campaign and their
+//          engagement status (sent, delivered, opened, clicked, replied).
+// =============================================================================
+
+model CampaignRecipient {
+  id          String                  @id @default(cuid())
+  status      CampaignRecipientStatus @default(PENDING)
+  sentAt      DateTime?   // When the email was dispatched
+  deliveredAt DateTime?   // When delivery was confirmed
+  openedAt    DateTime?   // When the contact opened the email
+  clickedAt   DateTime?   // When the contact clicked a link
+  repliedAt   DateTime?   // When the contact replied
+
+  // Foreign keys
+  campaignId String
+  contactId  String
+
+  // Relations
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact  Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, contactId]) // A contact appears once per campaign
+  @@index([campaignId])
+  @@index([contactId])
+  @@index([status])
+  @@map("campaign_recipients")
+}
+
+// =============================================================================
+// MODEL: Template
+// Purpose: Reusable email templates for quick inbox replies or campaign bodies.
+// =============================================================================
+
+model Template {
+  id        String       @id @default(cuid())
+  name      String       // Template name for selection in UI
+  type      TemplateType // EMAIL_REPLY or CAMPAIGN
+  subject   String?      // Email subject (required for CAMPAIGN type)
+  content   String       // Template body text/HTML
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Foreign key
+  createdById String // The user who created this template
+
+  // Relations
+  createdBy User @relation("CreatedTemplates", fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([type])
+  @@map("templates")
+}
+
+// =============================================================================
+// MODEL: IntegrationConnection
+// Purpose: Stores credentials and status for external integrations (HubSpot).
+//          One record per integration provider.
+// =============================================================================
+
+model IntegrationConnection {
+  id           String              @id @default(cuid())
+  provider     IntegrationProvider @default(HUBSPOT)
+  status       IntegrationStatus   @default(DISCONNECTED)
+  accessToken  String?             // Encrypted OAuth/API access token
+  refreshToken String?             // Encrypted OAuth refresh token
+  lastSyncAt   DateTime?           // When the last successful sync ran
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  // Relations
+  syncLogs SyncLog[]
+
+  @@unique([provider]) // Only one connection per provider
+  @@index([provider])
+  @@index([status])
+  @@map("integration_connections")
+}
+
+// =============================================================================
+// MODEL: SyncLog
+// Purpose: Immutable audit log of every sync operation between the CRM and
+//          an external integration. Drives the sync history table in the UI.
+// =============================================================================
+
+model SyncLog {
+  id            String        @id @default(cuid())
+  entityType    String        // e.g. "contact", "deal" - which type was synced
+  entityId      String?       // The CRM record ID that was synced
+  status        SyncLogStatus // SUCCESS, FAILED, SKIPPED
+  message       String?       // Details or error message
+  createdAt     DateTime      @default(now()) // Immutable - no updatedAt
+
+  // Foreign key
+  integrationId String
+
+  // Relations
+  integration IntegrationConnection @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId])
+  @@index([status])
+  @@index([entityType])
+  @@index([createdAt])
+  @@map("sync_logs")
+}
+
+// =============================================================================
+// MODEL: ImportJob
+// Purpose: Tracks the status and outcome of a CSV/Excel file import.
+//          One record per upload. Drives the import history UI.
+// =============================================================================
+
+model ImportJob {
+  id                String          @id @default(cuid())
+  fileName          String          // Original uploaded file name
+  status            ImportJobStatus @default(PROCESSING)
+  totalRecords      Int             @default(0) // Total rows found in file
+  successfulRecords Int             @default(0) // Rows imported without error
+  failedRecords     Int             @default(0) // Rows that failed validation
+  errorLog          Json?           // Array of row-level errors for reporting
+  createdAt         DateTime        @default(now())
+
+  // Foreign key
+  createdById String // Who uploaded the file
+
+  // Relations
+  createdBy User @relation("CreatedImports", fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([status])
+  @@index([createdAt])
+  @@map("import_jobs")
+}
