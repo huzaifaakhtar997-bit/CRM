@@ -2,7 +2,7 @@ node_modules/
 .env
 dist/
 build/
-.vscode/# Dependencies
+.vscode/*.exe# Dependencies
 node_modules
 .pnp
 .pnp.js
