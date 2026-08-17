@@ -3,6 +3,7 @@ import { dealRepository, DealRepository, DealListResult } from "../repositories/
 import { prisma } from "../config/database";
 import { CreateDealInput, UpdateDealInput, QueryDealInput } from "../validators/deal.validator";
 import { AppError } from "../types/auth.types";
+import { notificationService } from "./notification.service";
 
 export class DealService {
   constructor(private dealRepo: DealRepository) {}
@@ -70,6 +71,17 @@ export class DealService {
 
       return newDeal;
     });
+
+    const assignedUserId = input.assignedUserId || currentUserId;
+    if (assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Deal Assigned",
+        message: `You have been assigned a new deal: "${deal.title}"`,
+        type: "deal",
+        link: `/deals/${deal.id}`,
+      });
+    }
 
     return deal;
   }
@@ -161,6 +173,16 @@ export class DealService {
 
       return updated;
     });
+
+    if (input.assignedUserId && input.assignedUserId !== (existing as any).assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Deal Reassigned",
+        message: `You have been assigned the deal: "${updatedDeal.title}"`,
+        type: "deal",
+        link: `/deals/${updatedDeal.id}`,
+      });
+    }
 
     return updatedDeal;
   }

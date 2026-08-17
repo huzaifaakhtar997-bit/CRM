@@ -149,6 +149,7 @@ model Company {
   logoUrl       String?  // Company logo image URL
   annualRevenue Float?   // Revenue in USD — used for account sizing/scoring
   description   String?  // Short company description
+  hubspotId     String?  @unique // HubSpot external reference ID
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -180,6 +181,7 @@ model Contact {
   leadSource     LeadSource?
   lifecycleStage LifecycleStage @default(LEAD)
   status         String?        // e.g. "In Progress", "Contacted", "Attempted to Contact"
+  hubspotId      String?        @unique // HubSpot external reference ID
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -284,6 +286,7 @@ model Deal {
   priority           Priority  @default(MEDIUM)
   notes              String?   // Internal deal notes
   lostReason         String?   // Why the deal was lost – set when moved to Lost stage
+  hubspotId          String?   @unique // HubSpot external reference ID
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
@@ -310,6 +313,7 @@ model Deal {
   @@index([expectedCloseDate])
   @@index([closedAt])
   @@map("deals")
+
 }
 
 // =============================================================================
@@ -532,13 +536,15 @@ model Conversation {
 // =============================================================================
 
 model Message {
-  id             String     @id @default(cuid())
-  content        String     // The message body text
-  senderType     SenderType // CUSTOMER (inbound) or USER (outbound)
-  senderName     String?    // Display name of the sender
-  senderEmail    String?    // Email address of the sender
-  isInternalNote Boolean    @default(false) // True = visible to team only
-  createdAt      DateTime   @default(now()) // Immutable - no updatedAt on messages
+  id                String     @id @default(cuid())
+  content           String     // The message body text
+  senderType        SenderType // CUSTOMER (inbound) or USER (outbound)
+  senderName        String?    // Display name of the sender
+  senderEmail       String?    // Email address of the sender
+  isInternalNote    Boolean    @default(false) // True = visible to team only
+  providerMessageId String?    // ID returned by the email provider (e.g. Resend). Null for internal notes and inbound messages.
+  providerEventId   String?    @unique // Unique Webhook Event ID for idempotency (e.g. Svix Event ID)
+  createdAt         DateTime   @default(now()) // Immutable - no updatedAt on messages
 
   // Foreign key
   conversationId String
@@ -591,13 +597,15 @@ model Campaign {
 // =============================================================================
 
 model CampaignRecipient {
-  id          String                  @id @default(cuid())
-  status      CampaignRecipientStatus @default(PENDING)
-  sentAt      DateTime?   // When the email was dispatched
-  deliveredAt DateTime?   // When delivery was confirmed
-  openedAt    DateTime?   // When the contact opened the email
-  clickedAt   DateTime?   // When the contact clicked a link
-  repliedAt   DateTime?   // When the contact replied
+  id                String                  @id @default(cuid())
+  status            CampaignRecipientStatus @default(PENDING)
+  providerMessageId String?                 @unique // Provider ID from Resend
+  errorMessage      String?                 // Failure reason if status is FAILED
+  sentAt            DateTime?   // When the email was dispatched
+  deliveredAt       DateTime?   // When delivery was confirmed
+  openedAt          DateTime?   // When the contact opened the email
+  clickedAt         DateTime?   // When the contact clicked a link
+  repliedAt         DateTime?   // When the contact replied
 
   // Foreign keys
   campaignId String
@@ -700,11 +708,14 @@ model SyncLog {
 model ImportJob {
   id                String          @id @default(cuid())
   fileName          String          // Original uploaded file name
+  importType        String          // "contacts" or "companies"
   status            ImportJobStatus @default(PROCESSING)
   totalRecords      Int             @default(0) // Total rows found in file
   successfulRecords Int             @default(0) // Rows imported without error
   failedRecords     Int             @default(0) // Rows that failed validation
+  skippedRecords    Int             @default(0) // Rows skipped (duplicates)
   errorLog          Json?           // Array of row-level errors for reporting
+  completedAt       DateTime?       // Timestamp when import finished
   createdAt         DateTime        @default(now())
 
   // Foreign key
@@ -716,5 +727,39 @@ model ImportJob {
   @@index([createdById])
   @@index([status])
   @@index([createdAt])
+  @@index([importType])
   @@map("import_jobs")
 }
+
+// =============================================================================
+// MODEL: IntegrationFieldMapping
+// Purpose: Stores configurable field mappings for HubSpot integration entities.
+// =============================================================================
+model IntegrationFieldMapping {
+  id              String   @id @default(cuid())
+  entityType      String   // "contact", "company", "deal"
+  crmField        String
+  hubspotProperty String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([entityType, crmField])
+  @@map("integration_field_mappings")
+}
+
+// =============================================================================
+// MODEL: IntegrationStageMapping
+// Purpose: Stores configurable pipeline stage mappings for HubSpot deals.
+// =============================================================================
+model IntegrationStageMapping {
+  id           String   @id @default(cuid())
+  pipelineStageName String @unique // Local CRM PipelineStage name (e.g. "Lead", "Won")
+  hubspotStage String   @unique // HubSpot dealstage value (e.g. "appointmentscheduled", "closedwon")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("integration_stage_mappings")
+}
+

@@ -1,6 +1,8 @@
 import app from "./app";
 import { config } from "./config/env";
 import { prisma } from "./config/database";
+import http from "http";
+import { socketService } from "./services/socket.service";
 
 const startServer = async () => {
   try {
@@ -8,7 +10,12 @@ const startServer = async () => {
     await prisma.$connect();
     console.log("✅ Successfully connected to PostgreSQL database via Prisma");
 
-    app.listen(config.port, () => {
+    const server = http.createServer(app);
+    
+    // Initialize Socket.IO
+    socketService.initialize(server);
+
+    server.listen(config.port, () => {
       console.log(`🚀 CRM Backend Server running in ${config.env} mode on http://localhost:${config.port}`);
       console.log(`📍 API Base URL: http://localhost:${config.port}/api/v1`);
     });

@@ -3,6 +3,7 @@ import { taskRepository, TaskRepository, TaskListResult } from "../repositories/
 import { prisma } from "../config/database";
 import { CreateTaskInput, UpdateTaskInput, QueryTaskInput } from "../validators/task.validator";
 import { AppError } from "../types/auth.types";
+import { notificationService } from "./notification.service";
 
 export class TaskService {
   constructor(private taskRepo: TaskRepository) {}
@@ -72,6 +73,17 @@ export class TaskService {
 
       return newTask;
     });
+
+    // Notify assigned user if they are not the creator
+    if (assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Task Assigned",
+        message: `You have been assigned a new task: "${task.title}"`,
+        type: "task",
+        link: `/tasks/${task.id}`,
+      });
+    }
 
     return task;
   }
@@ -169,6 +181,17 @@ export class TaskService {
 
       return updated;
     });
+
+    // Notify newly assigned user if it changed and it's not the current user
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Task Reassigned",
+        message: `You have been assigned the task: "${updatedTask.title}"`,
+        type: "task",
+        link: `/tasks/${updatedTask.id}`,
+      });
+    }
 
     return updatedTask;
   }

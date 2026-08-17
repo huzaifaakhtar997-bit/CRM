@@ -1,42 +1,150 @@
-import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Building2, Kanban } from "lucide-react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { SocketProvider } from "./context/SocketContext";
+import PublicRoute from "./routes/PublicRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import DashboardLayout from "./components/layout/DashboardLayout";
+
+// Pages
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Contacts from "./pages/Contacts";
+import Companies from "./pages/Companies";
+import Leads from "./pages/Leads";
+import Deals from "./pages/Deals";
+import Tasks from "./pages/Tasks";
+import Inbox from "./pages/Inbox";
+import Campaigns from "./pages/Campaigns";
+import Reports from "./pages/Reports";
+import Integrations from "./pages/Integrations";
+import Imports from "./pages/Imports";
+import Settings from "./pages/Settings";
 
 export function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6">
-      <div className="max-w-xl w-full border rounded-xl p-8 bg-card shadow-sm space-y-6 text-center">
-        <div className="inline-flex items-center justify-center p-3 bg-primary/10 text-primary rounded-full">
-          <LayoutDashboard className="w-8 h-8" />
-        </div>
-        
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">HubSpot CRM MVP</h1>
-          <p className="text-muted-foreground text-sm">
-            Phase 1 Foundation Setup Complete. Client running with React, TypeScript, Tailwind CSS & Shadcn UI.
-          </p>
-        </div>
+    <AuthProvider>
+      <SocketProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<PublicRoute />}>
+            <Route path="/login" element={<Login />} />
+          </Route>
 
-        <div className="grid grid-cols-3 gap-3 text-sm py-4 border-y">
-          <div className="flex flex-col items-center space-y-1">
-            <Users className="w-5 h-5 text-primary" />
-            <span className="font-medium">Contacts</span>
-          </div>
-          <div className="flex flex-col items-center space-y-1">
-            <Building2 className="w-5 h-5 text-primary" />
-            <span className="font-medium">Companies</span>
-          </div>
-          <div className="flex flex-col items-center space-y-1">
-            <Kanban className="w-5 h-5 text-primary" />
-            <span className="font-medium">Deals Board</span>
-          </div>
-        </div>
+          {/* Protected CRM Application Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/"
+              element={
+                <DashboardLayout>
+                  <Navigate to="/dashboard" replace />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <DashboardLayout>
+                  <Dashboard />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/contacts"
+              element={
+                <DashboardLayout>
+                  <Contacts />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/companies"
+              element={
+                <DashboardLayout>
+                  <Companies />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/leads"
+              element={
+                <DashboardLayout>
+                  <Leads />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/deals"
+              element={
+                <DashboardLayout>
+                  <Deals />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <DashboardLayout>
+                  <Tasks />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/inbox"
+              element={
+                <DashboardLayout>
+                  <Inbox />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/campaigns"
+              element={
+                <DashboardLayout>
+                  <Campaigns />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <DashboardLayout>
+                  <Reports />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/integrations"
+              element={
+                <DashboardLayout>
+                  <Integrations />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/imports"
+              element={
+                <DashboardLayout>
+                  <Imports />
+                </DashboardLayout>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <DashboardLayout>
+                  <Settings />
+                </DashboardLayout>
+              }
+            />
+          </Route>
 
-        <div className="flex justify-center gap-3">
-          <Button variant="default">Frontend Active</Button>
-          <Button variant="outline">Backend Ready</Button>
-        </div>
-      </div>
-    </div>
+          {/* Fallback Catch-all Route */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
+      </SocketProvider>
+    </AuthProvider>
   );
 }
 

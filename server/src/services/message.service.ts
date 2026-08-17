@@ -3,6 +3,8 @@ import { messageRepository, MessageRepository, MessageListResult } from "../repo
 import { prisma } from "../config/database";
 import { CreateMessageInput, UpdateMessageInput, QueryMessageInput } from "../validators/message.validator";
 import { AppError } from "../types/auth.types";
+import { emailService } from "./email.service";
+import { config } from "../config/env";
 
 export class MessageService {
   constructor(private messageRepo: MessageRepository) {}
@@ -15,10 +17,28 @@ export class MessageService {
     // Validate conversation existence
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
+      include: { contact: true },
     });
 
     if (!conversation) {
       throw new AppError(`Conversation with ID '${conversationId}' not found.`, 404);
+    }
+
+    let providerMessageId: string | null = null;
+
+    // Send real outbound email if it's from a user and not an internal note
+    if (input.senderType === "USER" && !input.isInternalNote) {
+      if (!conversation.contact?.email) {
+        throw new AppError("Cannot send email: Contact has no email address.", 400);
+      }
+
+      const sendResult = await emailService.sendEmail({
+        from: config.emailFromAddress,
+        to: conversation.contact.email,
+        subject: conversation.subject || "Re: Your Conversation",
+        html: input.content, // Treating content as HTML as per standard email compose
+      });
+      providerMessageId = sendResult.id;
     }
 
     const message = await prisma.$transaction(async (tx) => {
@@ -30,6 +50,7 @@ export class MessageService {
           senderName: input.senderName,
           senderEmail: input.senderEmail,
           isInternalNote: input.isInternalNote,
+          providerMessageId,
           conversationId,
         },
       });
@@ -54,6 +75,7 @@ export class MessageService {
           metadata: {
             conversationId,
             messageId: newMessage.id,
+            providerMessageId,
             senderType: input.senderType,
             isInternalNote: input.isInternalNote,
           },

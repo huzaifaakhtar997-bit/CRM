@@ -3,6 +3,7 @@ import { contactRepository, ContactRepository, ContactListResult } from "../repo
 import { prisma } from "../config/database";
 import { CreateContactInput, UpdateContactInput, QueryContactInput } from "../validators/contact.validator";
 import { AppError } from "../types/auth.types";
+import { notificationService } from "./notification.service";
 
 export class ContactService {
   constructor(private contactRepo: ContactRepository) {}
@@ -59,6 +60,17 @@ export class ContactService {
 
       return newContact;
     });
+
+    const assignedUserId = input.assignedUserId || currentUserId;
+    if (assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Lead Assigned",
+        message: `You have been assigned a new lead: ${contact.firstName} ${contact.lastName}`,
+        type: "lead",
+        link: `/contacts/${contact.id}`,
+      });
+    }
 
     return contact;
   }
@@ -121,6 +133,16 @@ export class ContactService {
 
       return updated;
     });
+
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Lead Reassigned",
+        message: `You have been assigned the lead: ${updatedContact.firstName} ${updatedContact.lastName}`,
+        type: "lead",
+        link: `/contacts/${updatedContact.id}`,
+      });
+    }
 
     return updatedContact;
   }
