@@ -37,4 +37,9 @@ export const usersApi = {
     const res = await api.patch<{ success: boolean; data: { user: CRMUser } }>(`/users/${id}/role`, { role });
     return res.data.data.user;
   },
+
+  updateUserPassword: async (id: string, password: string) => {
+    const res = await api.patch<{ success: boolean; data: { user: CRMUser } }>(`/users/${id}/password`, { password });
+    return res.data.data.user;
+  },
 };

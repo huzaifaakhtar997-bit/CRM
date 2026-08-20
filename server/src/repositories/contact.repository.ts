@@ -85,6 +85,29 @@ export class ContactRepository {
     };
   }
 
+  async findAllForExport(query: QueryContactInput): Promise<any[]> {
+    const where: Prisma.ContactWhereInput = {};
+
+    if (query.search) {
+      where.OR = [
+        { firstName: { contains: query.search, mode: "insensitive" } },
+        { lastName: { contains: query.search, mode: "insensitive" } },
+        { email: { contains: query.search, mode: "insensitive" } },
+      ];
+    }
+    if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
+    if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
+
+    return prisma.contact.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        company: { select: { name: true } },
+        assignedUser: { select: { name: true, email: true } },
+      },
+    });
+  }
+
   async create(data: Prisma.ContactCreateInput): Promise<Contact> {
     return prisma.contact.create({
       data,

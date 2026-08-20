@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usersApi, CRMUser } from "../../api/users.api";
 import { useAuth } from "../../context/AuthContext";
-import { Loader2, Shield, ChevronDown } from "lucide-react";
+import { Loader2, Shield, ChevronDown, Key } from "lucide-react";
 
 const ROLES = ["ADMIN", "MANAGER", "SALES_REP", "MARKETING", "SUPPORT"] as const;
 const STATUSES = ["ACTIVE", "INACTIVE"] as const;
@@ -26,6 +26,12 @@ export const UsersSettings: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetTargetUser, setResetTargetUser] = useState<CRMUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -68,6 +74,34 @@ export const UsersSettings: React.FC = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAdmin || !resetTargetUser) return;
+    if (newPassword !== confirmPassword) {
+      setResetError("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setResetError("Password must be at least 6 characters");
+      return;
+    }
+
+    setUpdatingId(resetTargetUser.id);
+    setResetError(null);
+    try {
+      await usersApi.updateUserPassword(resetTargetUser.id, newPassword);
+      setResetModalOpen(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setResetTargetUser(null);
+      alert("Password updated successfully.");
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || "Failed to reset password.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   if (!isManagerOrAdmin) {
     return (
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-sm text-amber-800">
@@ -101,6 +135,7 @@ export const UsersSettings: React.FC = () => {
                 <th className="px-5 py-3 font-semibold">Role</th>
                 <th className="px-5 py-3 font-semibold">Status</th>
                 <th className="px-5 py-3 font-semibold hidden lg:table-cell">Joined</th>
+                {isAdmin && <th className="px-5 py-3 font-semibold text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -155,6 +190,22 @@ export const UsersSettings: React.FC = () => {
                   <td className="px-5 py-3 hidden lg:table-cell text-muted-foreground text-xs">
                     {new Date(u.createdAt).toLocaleDateString()}
                   </td>
+                  {isAdmin && (
+                    <td className="px-5 py-3 text-right">
+                      {u.id !== currentUser?.id && (
+                        <button
+                          onClick={() => {
+                            setResetTargetUser(u);
+                            setResetModalOpen(true);
+                          }}
+                          className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center justify-end gap-1 ml-auto"
+                        >
+                          <Key className="w-3 h-3" />
+                          Reset Password
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -162,6 +213,76 @@ export const UsersSettings: React.FC = () => {
           {users.length === 0 && (
             <div className="p-10 text-center text-muted-foreground text-sm">No users found.</div>
           )}
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {resetModalOpen && resetTargetUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-card w-full max-w-md rounded-xl shadow-lg border overflow-hidden">
+            <div className="p-5 border-b">
+              <h3 className="text-lg font-bold">Reset Password</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Changing password for <span className="font-semibold text-foreground">{resetTargetUser.name}</span> ({resetTargetUser.email})
+              </p>
+            </div>
+            
+            <form onSubmit={handlePasswordReset} className="p-5 space-y-4">
+              {resetError && (
+                <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg">
+                  {resetError}
+                </div>
+              )}
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background"
+                  required
+                  minLength={6}
+                />
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg text-sm bg-background"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetModalOpen(false);
+                    setResetTargetUser(null);
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setResetError(null);
+                  }}
+                  className="px-4 py-2 text-sm font-medium border rounded-lg hover:bg-accent"
+                  disabled={updatingId !== null}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatingId !== null || newPassword.length < 6 || newPassword !== confirmPassword}
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {updatingId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Password"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

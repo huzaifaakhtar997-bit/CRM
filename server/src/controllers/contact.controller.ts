@@ -115,6 +115,29 @@ export class ContactController {
       next(error);
     }
   };
+
+  exportContacts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validationResult = queryContactSchema.safeParse(req.query);
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ");
+        throw new AppError(`Query validation failed: ${errors}`, 400);
+      }
+
+      const csvData = await this.contactServ.exportContacts(validationResult.data);
+
+      const dateStr = new Date().toISOString().split("T")[0];
+      const filename = `contacts-${dateStr}.csv`;
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.status(200).send(csvData);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export const contactController = new ContactController(contactService);

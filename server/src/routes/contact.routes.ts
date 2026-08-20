@@ -16,6 +16,13 @@ router.get(
   contactController.getContacts
 );
 
+// GET /api/v1/contacts/export - Accessible by ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT
+router.get(
+  "/export",
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
+  contactController.exportContacts
+);
+
 // GET /api/v1/contacts/:id - Accessible by ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT
 router.get(
   "/:id",

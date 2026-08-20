@@ -147,6 +147,58 @@ export class ContactService {
     return updatedContact;
   }
 
+  async exportContacts(query: QueryContactInput): Promise<string> {
+    const contacts = await this.contactRepo.findAllForExport(query);
+
+    const headers = [
+      "ID",
+      "First Name",
+      "Last Name",
+      "Email",
+      "Phone",
+      "Job Title",
+      "Lead Source",
+      "Lifecycle Stage",
+      "Status",
+      "Company",
+      "Assigned User",
+      "Created At",
+      "Updated At"
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return "";
+      const str = String(val);
+      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = contacts.map(c => [
+      c.id,
+      c.firstName,
+      c.lastName,
+      c.email,
+      c.phone,
+      c.jobTitle,
+      c.leadSource,
+      c.lifecycleStage,
+      c.status,
+      c.company?.name || "",
+      c.assignedUser ? `${c.assignedUser.name} (${c.assignedUser.email})` : "",
+      c.createdAt.toISOString(),
+      c.updatedAt.toISOString(),
+    ]);
+
+    const csvLines = [
+      headers.map(escapeCsv).join(","),
+      ...rows.map(row => row.map(escapeCsv).join(","))
+    ];
+
+    return csvLines.join("\n");
+  }
+
   async deleteContact(id: string): Promise<{ id: string }> {
     const existing = await this.contactRepo.findById(id);
     if (!existing) {

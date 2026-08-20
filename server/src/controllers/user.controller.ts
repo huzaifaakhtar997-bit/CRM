@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { userService, UserService } from "../services/user.service";
-import { updateUserSchema, updateStatusSchema, updateRoleSchema } from "../validators/user.validator";
+import { updateUserSchema, updateStatusSchema, updateRoleSchema, updatePasswordSchema } from "../validators/user.validator";
 import { AppError } from "../types/auth.types";
 
 export class UserController {
@@ -96,6 +96,29 @@ export class UserController {
       res.status(200).json({
         success: true,
         message: "User role updated successfully.",
+        data: { user: updated },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updatePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const validationResult = updatePasswordSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ");
+        throw new AppError(`Validation failed: ${errors}`, 400);
+      }
+
+      const updated = await this.userServ.updateUserPassword(id, validationResult.data.password);
+      res.status(200).json({
+        success: true,
+        message: "User password updated successfully.",
         data: { user: updated },
         timestamp: new Date().toISOString(),
       });

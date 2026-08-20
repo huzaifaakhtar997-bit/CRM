@@ -6,7 +6,7 @@ import { ContactForm } from "../components/contacts/ContactForm";
 import { ContactDetails } from "../components/contacts/ContactDetails";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
-import { Plus, Search, AlertCircle } from "lucide-react";
+import { Plus, Search, AlertCircle, Download } from "lucide-react";
 
 export default function Contacts() {
   const { user } = useAuth();
@@ -27,6 +27,7 @@ export default function Contacts() {
 
   // Modals/Drawers State
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [formMode, setFormMode] = useState<"CREATE" | "EDIT">("CREATE");
@@ -67,6 +68,25 @@ export default function Contacts() {
     setSelectedContact(null);
     setFormMode("CREATE");
     setIsFormOpen(true);
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await contactsApi.exportContacts({ search: debouncedSearch || undefined });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError("Failed to export contacts. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleEdit = (contact: Contact) => {
@@ -111,12 +131,23 @@ export default function Contacts() {
             Manage your CRM contacts, customers, and leads.
           </p>
         </div>
-        {canCreate && (
-          <Button onClick={handleCreateNew} className="flex-shrink-0">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Contact
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex-shrink-0"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            {isExporting ? "Exporting..." : "Export CSV"}
           </Button>
-        )}
+          {canCreate && (
+            <Button onClick={handleCreateNew} className="flex-shrink-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}

@@ -2,6 +2,7 @@ import { User, UserRole, UserStatus } from "@prisma/client";
 import { userRepository, UserRepository } from "../repositories/user.repository";
 import { AppError, UserResponse } from "../types/auth.types";
 import { UpdateUserInput } from "../validators/user.validator";
+import { hashPassword } from "../utils/jwt";
 
 export class UserService {
   constructor(private userRepo: UserRepository) {}
@@ -51,6 +52,17 @@ export class UserService {
     }
 
     const updated = await this.userRepo.updateRole(id, role);
+    return this.sanitizeUser(updated);
+  }
+
+  async updateUserPassword(id: string, passwordPlain: string): Promise<UserResponse> {
+    const existing = await this.userRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+
+    const hashedPassword = await hashPassword(passwordPlain);
+    const updated = await this.userRepo.update(id, { passwordHash: hashedPassword });
     return this.sanitizeUser(updated);
   }
 }

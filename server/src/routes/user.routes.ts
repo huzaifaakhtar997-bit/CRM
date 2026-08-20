@@ -24,4 +24,7 @@ router.patch("/:id/status", authorize(UserRole.ADMIN), userController.updateStat
 // PATCH /api/v1/users/:id/role - Admin only
 router.patch("/:id/role", authorize(UserRole.ADMIN), userController.updateRole);
 
+// PATCH /api/v1/users/:id/password - Admin only
+router.patch("/:id/password", authorize(UserRole.ADMIN), userController.updatePassword);
+
 export default router;

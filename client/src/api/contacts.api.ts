@@ -31,6 +31,14 @@ export const contactsApi = {
     return res.data.data.contact;
   },
 
+  exportContacts: async (params?: QueryContactInput): Promise<Blob> => {
+    const res = await api.get("/contacts/export", {
+      params,
+      responseType: "blob",
+    });
+    return res.data;
+  },
+
   deleteContact: async (id: string): Promise<void> => {
     await api.delete(`/contacts/${id}`);
   }
