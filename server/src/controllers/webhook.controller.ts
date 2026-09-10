@@ -4,7 +4,15 @@ import { config } from "../config/env";
 import { prisma } from "../config/database";
 import { SenderType, Prisma } from "@prisma/client";
 import { socketService } from "../services/socket.service";
-import sanitizeHtml from "sanitize-html";
+
+// Inline HTML sanitizer — zero dependencies, no ESM issues in serverless
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "")
+    .replace(/on\w+='[^']*'/gi, "");
+}
 
 export class WebhookController {
   async handleResendWebhook(req: Request, res: Response): Promise<void> {
