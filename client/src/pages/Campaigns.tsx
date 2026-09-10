@@ -61,10 +61,13 @@ export const Campaigns: React.FC = () => {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  const handleFilterChange = (newFilters: { search: string; status: CampaignStatus | "" }) => {
-    setFilters(newFilters);
-    setPage(1); // Reset to first page on filter change
-  };
+  const handleFilterChange = useCallback(
+    (newFilters: { search: string; status: CampaignStatus | "" }) => {
+      setFilters(newFilters);
+      setPage(1); // Reset to first page on filter change
+    },
+    []
+  );
 
   const handleCreateOrUpdate = async (data: Partial<Campaign>) => {
     if (editingCampaign) {

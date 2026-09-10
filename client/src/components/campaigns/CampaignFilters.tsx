@@ -10,13 +10,16 @@ export const CampaignFilters: React.FC<CampaignFiltersProps> = ({ onFilterChange
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<CampaignStatus | "">("");
 
-  // Debounce search
+  const onFilterChangeRef = React.useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
+
+  // Debounce search and filter updates
   useEffect(() => {
     const timer = setTimeout(() => {
-      onFilterChange({ search, status });
+      onFilterChangeRef.current({ search, status });
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, status, onFilterChange]);
+  }, [search, status]);
 
   const clearFilters = () => {
     setSearch("");
