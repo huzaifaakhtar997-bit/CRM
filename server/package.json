@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "npx ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npx prisma generate && npx prisma migrate deploy && tsc",
+    "build": "npm install --include=dev && npx prisma generate && npx prisma migrate deploy && ./node_modules/.bin/tsc",
     "start": "node dist/index.js",
     "prisma:generate": "npx prisma generate",
     "prisma:seed": "npx ts-node prisma/seed.ts"
