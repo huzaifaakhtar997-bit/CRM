@@ -63,10 +63,13 @@ export const Leads: React.FC = () => {
     fetchLeads();
   }, [fetchLeads]);
 
-  const handleFilterChange = (newFilters: { search: string; status: LeadStatus | ""; source: LeadSource | "" }) => {
-    setFilters(newFilters);
-    setPage(1); // Reset to first page on filter change
-  };
+  const handleFilterChange = useCallback(
+    (newFilters: { search: string; status: LeadStatus | ""; source: LeadSource | "" }) => {
+      setFilters(newFilters);
+      setPage(1); // Reset to first page on filter change
+    },
+    []
+  );
 
   const handleCreateOrUpdate = async (data: Partial<Lead>) => {
     if (editingLead) {

@@ -112031,16 +112031,22 @@ var companyService = new CompanyService(companyRepository);
 // src/validators/company.validator.ts
 var createCompanySchema = external_exports.object({
   name: external_exports.string().min(1, "Company name is required"),
-  website: external_exports.string().url("Invalid URL format").nullable().optional(),
-  industry: external_exports.string().nullable().optional(),
-  size: external_exports.string().nullable().optional(),
-  // Headcount range e.g. "51-200"
-  phone: external_exports.string().nullable().optional(),
-  email: external_exports.string().email("Invalid email format").nullable().optional(),
-  address: external_exports.string().nullable().optional(),
-  logoUrl: external_exports.string().url("Invalid logo URL format").nullable().optional(),
-  annualRevenue: external_exports.number().nonnegative().nullable().optional(),
-  description: external_exports.string().nullable().optional()
+  website: external_exports.string().optional().nullable().transform((val) => {
+    if (!val || val.trim() === "") return null;
+    const trimmed = val.trim();
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }),
+  industry: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  size: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  phone: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  email: external_exports.string().optional().nullable().transform((val) => !val || val.trim() === "" ? null : val.trim()).refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+    message: "Invalid email format"
+  }),
+  address: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  logoUrl: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  annualRevenue: external_exports.union([external_exports.number(), external_exports.string().transform((v) => v.trim() === "" ? null : Number(v))]).optional().nullable(),
+  description: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim())
 });
 var updateCompanySchema = createCompanySchema.partial();
 var queryCompanySchema = external_exports.object({

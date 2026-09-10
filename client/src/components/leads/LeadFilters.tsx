@@ -11,13 +11,16 @@ export const LeadFilters: React.FC<LeadFiltersProps> = ({ onFilterChange }) => {
   const [status, setStatus] = useState<LeadStatus | "">("");
   const [source, setSource] = useState<LeadSource | "">("");
 
-  // Debounce search
+  const onFilterChangeRef = React.useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
+
+  // Debounce search and filter updates
   useEffect(() => {
     const timer = setTimeout(() => {
-      onFilterChange({ search, status, source });
+      onFilterChangeRef.current({ search, status, source });
     }, 300);
     return () => clearTimeout(timer);
-  }, [search, status, source, onFilterChange]);
+  }, [search, status, source]);
 
   const clearFilters = () => {
     setSearch("");

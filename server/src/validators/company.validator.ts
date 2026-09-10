@@ -2,15 +2,34 @@ import { z } from "zod";
 
 export const createCompanySchema = z.object({
   name: z.string().min(1, "Company name is required"),
-  website: z.string().url("Invalid URL format").nullable().optional(),
-  industry: z.string().nullable().optional(),
-  size: z.string().nullable().optional(), // Headcount range e.g. "51-200"
-  phone: z.string().nullable().optional(),
-  email: z.string().email("Invalid email format").nullable().optional(),
-  address: z.string().nullable().optional(),
-  logoUrl: z.string().url("Invalid logo URL format").nullable().optional(),
-  annualRevenue: z.number().nonnegative().nullable().optional(),
-  description: z.string().nullable().optional(),
+  website: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => {
+      if (!val || val.trim() === "") return null;
+      const trimmed = val.trim();
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      return `https://${trimmed}`;
+    }),
+  industry: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
+  size: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
+  phone: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
+  email: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (!val || val.trim() === "" ? null : val.trim()))
+    .refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: "Invalid email format",
+    }),
+  address: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
+  logoUrl: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
+  annualRevenue: z
+    .union([z.number(), z.string().transform((v) => (v.trim() === "" ? null : Number(v)))])
+    .optional()
+    .nullable(),
+  description: z.string().optional().nullable().transform((v) => (!v || v.trim() === "" ? null : v.trim())),
 });
 
 export const updateCompanySchema = createCompanySchema.partial();
