@@ -1,0 +1,3 @@
+First Name,Last Name,Email,Phone,Job Title,Lead Source,Lifecycle Stage
+TestDemo,User1,demo1@example.com,123-456-7890,CEO,WEB_FORM,LEAD
+TestDemo,User2,demo2@example.com,098-765-4321,CTO,REFERRAL,OPPORTUNITY
