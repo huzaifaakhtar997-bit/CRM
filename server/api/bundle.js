@@ -129854,7 +129854,10 @@ var ImportController = class {
         res.status(200).json({
           success: true,
           message: "Import job history retrieved successfully.",
-          data: result,
+          data: {
+            ...result,
+            importJobs: result.jobs
+          },
           timestamp: (/* @__PURE__ */ new Date()).toISOString()
         });
       } catch (error51) {

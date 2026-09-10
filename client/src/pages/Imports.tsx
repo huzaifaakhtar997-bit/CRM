@@ -19,8 +19,8 @@ export default function Imports() {
   const loadHistory = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await importsApi.getImportJobs({ limit: 50 });
-      setJobs(data.importJobs || []);
+      const data: any = await importsApi.getImportJobs({ limit: 50 });
+      setJobs(data?.jobs || data?.importJobs || []);
     } catch (error) {
       console.error("Failed to load import history", error);
     } finally {
