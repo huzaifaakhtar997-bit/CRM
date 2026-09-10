@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "npx ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npx prisma generate && npx prisma migrate deploy",
+    "build": "npx prisma generate && npx prisma migrate deploy && npx esbuild api/index.ts --bundle --platform=node --target=node20 --outfile=api/bundle.js --format=cjs --external:@prisma/client",
     "postinstall": "prisma generate",
     "start": "node dist/index.js",
     "prisma:generate": "npx prisma generate",
@@ -40,6 +40,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@types/socket.io": "^3.0.1",
     "axios": "^1.19.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.16.0",
     "prettier": "^3.4.2",
     "prisma": "^5.22.0",
