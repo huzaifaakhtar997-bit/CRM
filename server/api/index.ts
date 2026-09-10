@@ -1,15 +1,6 @@
 import app from "../src/app";
 
-// Disable Vercel's default body parser so Express can handle it natively.
-// This is critical for the Resend Svix webhook which relies on express.raw() 
-// to verify the exact bytes of the cryptographic signature.
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// In a serverless environment, we don't call app.listen().
-// We simply export the Express application instance, and Vercel routes incoming 
-// requests to it automatically.
+// Export the Express app for Vercel's serverless runtime.
+// Vercel compiles this file using its own bundler which correctly
+// handles ESM/CJS interop — do NOT pre-compile this with tsc.
 export default app;
