@@ -21,6 +21,19 @@ app.use(express.urlencoded({ extended: true }));
 // Register API Routes under /api/v1
 app.use("/api/v1", apiRoutes);
 
+// Root health & info route
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "CRM API server is operational and healthy",
+    data: {
+      status: "UP",
+      timestamp: new Date().toISOString(),
+      healthEndpoint: "/api/v1/health",
+    },
+  });
+});
+
 // Fallback for unmatched routes
 app.use((_req, res) => {
   res.status(404).json({
