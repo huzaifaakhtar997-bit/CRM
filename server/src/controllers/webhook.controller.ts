@@ -4,7 +4,7 @@ import { config } from "../config/env";
 import { prisma } from "../config/database";
 import { SenderType, Prisma } from "@prisma/client";
 import { socketService } from "../services/socket.service";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 export class WebhookController {
   async handleResendWebhook(req: Request, res: Response): Promise<void> {
@@ -64,7 +64,7 @@ export class WebhookController {
         }
 
         // Sanitize HTML
-        const safeHtml = html ? DOMPurify.sanitize(html) : text || "No content provided.";
+        const safeHtml = html ? sanitizeHtml(html) : text || "No content provided.";
 
         let matchedConversationId: string | null = null;
         let matchedContactId: string | null = null;
