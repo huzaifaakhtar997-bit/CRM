@@ -184,9 +184,9 @@ export default function Inbox() {
   const selectedConversation = conversations.find((c) => c.id === selectedId) || null;
 
   return (
-    <div className="h-[calc(100vh-4rem)] -m-6 flex overflow-hidden bg-background">
+    <div className="w-full max-w-full h-[calc(100vh-9rem)] min-h-[600px] flex rounded-xl border border-border overflow-hidden bg-background shadow-sm">
       {/* Left Pane: List */}
-      <div className="w-1/3 min-w-[300px] max-w-[400px] flex-shrink-0">
+      <div className="w-80 min-w-[260px] max-w-[340px] flex-shrink-0 border-r border-border flex flex-col">
         <ConversationList
           conversations={conversations}
           loading={loadingList}
@@ -200,15 +200,15 @@ export default function Inbox() {
       </div>
 
       {/* Middle Pane: Thread */}
-      <div className="flex-1 flex flex-col min-w-[400px]">
+      <div className="flex-1 min-w-0 flex flex-col">
         {selectedId ? (
           <>
             <div className="p-4 border-b border-border bg-card flex items-center justify-between shadow-sm z-10">
               <div>
-                <h3 className="font-semibold text-foreground">
+                <h3 className="font-semibold text-foreground truncate">
                   {selectedConversation?.subject || "Conversation"}
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground truncate">
                   {selectedConversation?.contact
                     ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
                     : "Unknown Contact"}
@@ -234,20 +234,20 @@ export default function Inbox() {
             )}
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50 text-muted-foreground">
-            <div className="w-16 h-16 bg-white border rounded-full flex items-center justify-center shadow-sm mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-border" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex-1 flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-6">
+            <div className="w-16 h-16 bg-card border rounded-full flex items-center justify-center shadow-sm mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
             <h3 className="text-lg font-medium text-foreground">Your Unified Inbox</h3>
-            <p className="text-sm">Select a conversation from the list to get started.</p>
+            <p className="text-sm text-center">Select a conversation from the list to get started.</p>
           </div>
         )}
       </div>
 
       {/* Right Pane: Details */}
-      <div className="w-72 flex-shrink-0 hidden lg:block">
+      <div className="w-72 flex-shrink-0 hidden xl:block border-l border-border">
         <ConversationDetails conversation={selectedConversation} />
       </div>
     </div>
