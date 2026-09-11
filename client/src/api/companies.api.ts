@@ -1,5 +1,5 @@
 import { api } from "./axios";
-import { Company, ListResponse } from "../types/api.types";
+import { Company, Contact, ListResponse } from "../types/api.types";
 
 export interface QueryCompanyInput {
   page?: number;
@@ -31,5 +31,10 @@ export const companiesApi = {
 
   deleteCompany: async (id: string): Promise<void> => {
     await api.delete(`/companies/${id}`);
-  }
+  },
+
+  getCompanyContacts: async (id: string): Promise<Contact[]> => {
+    const res = await api.get<{ success: boolean; data: { contacts: Contact[] } }>(`/companies/${id}/contacts`);
+    return res.data.data.contacts;
+  },
 };
