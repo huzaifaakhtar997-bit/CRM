@@ -7,12 +7,14 @@ interface ContactDetailsProps {
   contact: Contact | null;
   onClose: () => void;
   isOpen: boolean;
+  onSendEmail?: (contact: Contact) => void;
 }
 
 export const ContactDetails: React.FC<ContactDetailsProps> = ({
   contact,
   onClose,
   isOpen,
+  onSendEmail,
 }) => {
   if (!isOpen || !contact) return null;
 
@@ -26,7 +28,7 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Header Profile */}
           <div className="flex items-center space-x-4">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-semibold border border-primary/20">
@@ -42,6 +44,18 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
                 {contact.jobTitle || "No Title"}
               </div>
             </div>
+          </div>
+
+          {/* Quick Communication Action */}
+          <div>
+            <Button
+              onClick={() => onSendEmail?.(contact)}
+              className="w-full gap-2 shadow-sm font-medium"
+              disabled={!contact.email}
+            >
+              <Mail className="w-4 h-4" />
+              {contact.email ? "Send Email / Message" : "No Email Configured"}
+            </Button>
           </div>
 
           <div className="space-y-4">

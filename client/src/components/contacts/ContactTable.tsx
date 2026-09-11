@@ -10,6 +10,7 @@ interface ContactTableProps {
   onView: (contact: Contact) => void;
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
+  onSendEmail?: (contact: Contact) => void;
 }
 
 export const ContactTable: React.FC<ContactTableProps> = ({
@@ -18,6 +19,7 @@ export const ContactTable: React.FC<ContactTableProps> = ({
   onView,
   onEdit,
   onDelete,
+  onSendEmail,
 }) => {
   const { user } = useAuth();
   
@@ -133,6 +135,16 @@ export const ContactTable: React.FC<ContactTableProps> = ({
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onSendEmail?.(contact)}
+                      title={contact.email ? `Send Email to ${contact.email}` : "No email address"}
+                      disabled={!contact.email}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-primary disabled:opacity-30"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

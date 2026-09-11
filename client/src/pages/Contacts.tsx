@@ -4,6 +4,7 @@ import { Contact } from "../types/api.types";
 import { ContactTable } from "../components/contacts/ContactTable";
 import { ContactForm } from "../components/contacts/ContactForm";
 import { ContactDetails } from "../components/contacts/ContactDetails";
+import { SendEmailModal } from "../components/contacts/SendEmailModal";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { Plus, Search, AlertCircle, Download } from "lucide-react";
@@ -29,7 +30,9 @@ export default function Contacts() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isSendEmailOpen, setIsSendEmailOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [emailTargetContact, setEmailTargetContact] = useState<Contact | null>(null);
   const [formMode, setFormMode] = useState<"CREATE" | "EDIT">("CREATE");
 
   // Debounce search
@@ -98,6 +101,11 @@ export default function Contacts() {
   const handleView = (contact: Contact) => {
     setSelectedContact(contact);
     setIsDetailsOpen(true);
+  };
+
+  const handleOpenSendEmail = (contact: Contact) => {
+    setEmailTargetContact(contact);
+    setIsSendEmailOpen(true);
   };
 
   const handleDelete = async (contact: Contact) => {
@@ -185,6 +193,7 @@ export default function Contacts() {
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onSendEmail={handleOpenSendEmail}
         />
       </div>
 
@@ -227,6 +236,13 @@ export default function Contacts() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         contact={selectedContact}
+        onSendEmail={handleOpenSendEmail}
+      />
+
+      <SendEmailModal
+        isOpen={isSendEmailOpen}
+        onClose={() => setIsSendEmailOpen(false)}
+        contact={emailTargetContact}
       />
 
     </div>
