@@ -9,17 +9,17 @@ const router = Router();
 // All campaign audience routes require authentication
 router.use(authenticate);
 
-// ── READ — ADMIN, MANAGER, MARKETING, SUPPORT ─────────────────────────────
+// ── READ — ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT ──────────────────
 router.get(
   "/campaigns/:campaignId/audience",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignAudienceController.getAudience
 );
 
 // ── WRITE — ADMIN, MANAGER, MARKETING only (SALES_REP and SUPPORT forbidden) ──
 router.post(
   "/campaigns/:campaignId/audience/preview",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT), // Preview is read-only in nature, but can also be restricted. Let's allow SUPPORT to preview as well since it doesn't mutate.
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignAudienceController.previewAudience
 );
 

@@ -9,17 +9,17 @@ const router = Router();
 // All campaign routes require a valid JWT
 router.use(authenticate);
 
-// ── READ — ADMIN, MANAGER, MARKETING, SUPPORT ─────────────────────────────
+// ── READ — ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT ──────────────────
 
 router.get(
   "/",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignController.getCampaigns
 );
 
 router.get(
   "/:id",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignController.getCampaignById
 );
 

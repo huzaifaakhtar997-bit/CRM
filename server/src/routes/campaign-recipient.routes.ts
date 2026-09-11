@@ -9,16 +9,16 @@ const router = Router();
 // All campaign recipient routes require authentication
 router.use(authenticate);
 
-// ── READ — ADMIN, MANAGER, MARKETING, SUPPORT ─────────────────────────────
+// ── READ — ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT ──────────────────
 router.get(
   "/campaigns/:campaignId/recipients",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignRecipientController.getRecipients
 );
 
 router.get(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.MARKETING, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.MARKETING, UserRole.SUPPORT),
   campaignRecipientController.getRecipientDetails
 );
 

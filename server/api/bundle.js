@@ -120980,12 +120980,12 @@ var router16 = (0, import_express16.Router)();
 router16.use(authenticate);
 router16.get(
   "/",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
+  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.SALES_REP, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
   campaignController.getCampaigns
 );
 router16.get(
   "/:id",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
+  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.SALES_REP, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
   campaignController.getCampaignById
 );
 router16.post(
@@ -121363,13 +121363,12 @@ var router17 = (0, import_express17.Router)();
 router17.use(authenticate);
 router17.get(
   "/campaigns/:campaignId/audience",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
+  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.SALES_REP, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
   campaignAudienceController.getAudience
 );
 router17.post(
   "/campaigns/:campaignId/audience/preview",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
-  // Preview is read-only in nature, but can also be restricted. Let's allow SUPPORT to preview as well since it doesn't mutate.
+  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.SALES_REP, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
   campaignAudienceController.previewAudience
 );
 router17.post(
@@ -121759,12 +121758,12 @@ var router18 = (0, import_express18.Router)();
 router18.use(authenticate);
 router18.get(
   "/campaigns/:campaignId/recipients",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
+  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.SALES_REP, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
   campaignRecipientController.getRecipients
 );
 router18.get(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
+  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.SALES_REP, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
   campaignRecipientController.getRecipientDetails
 );
 router18.post(
@@ -122324,7 +122323,7 @@ var router21 = (0, import_express21.Router)();
 router21.use(authenticate);
 router21.get(
   "/campaigns/:campaignId/tracking",
-  authorize(import_client56.UserRole.ADMIN, import_client56.UserRole.MANAGER, import_client56.UserRole.MARKETING, import_client56.UserRole.SUPPORT),
+  authorize(import_client56.UserRole.ADMIN, import_client56.UserRole.MANAGER, import_client56.UserRole.SALES_REP, import_client56.UserRole.MARKETING, import_client56.UserRole.SUPPORT),
   campaignTrackingController.getSummary
 );
 router21.patch(
