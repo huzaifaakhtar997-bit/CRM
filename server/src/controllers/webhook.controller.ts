@@ -4,6 +4,7 @@ import { config } from "../config/env";
 import { prisma } from "../config/database";
 import { SenderType, Prisma } from "@prisma/client";
 import { socketService } from "../services/socket.service";
+import { emailService } from "../services/email.service";
 
 // Inline HTML sanitizer — zero dependencies, no ESM issues in serverless
 function sanitizeHtml(html: string): string {
@@ -26,7 +27,7 @@ export class WebhookController {
     // If rawBody middleware isn't present, we must stringify (though this can break signatures if formatting changes).
     // The safest approach for webhooks is passing raw body. Since we might not have rawBody, we do our best.
     // Resend's svix verification ideally expects the raw string payload.
-    const payload = (req as any).rawBody || JSON.stringify(req.body);
+    const payload = (req as any).rawBody || (Buffer.isBuffer(req.body) ? req.body.toString("utf8") : JSON.stringify(req.body));
     const headers = req.headers as Record<string, string>;
 
     const wh = new Webhook(config.resendWebhookSecret);
@@ -40,7 +41,8 @@ export class WebhookController {
       return;
     }
 
-    const providerEventId = headers["svix-id"];
+    const rawEventId = headers["svix-id"];
+    const providerEventId = Array.isArray(rawEventId) ? rawEventId[0] : rawEventId;
     if (!providerEventId) {
       res.status(400).json({ success: false, message: "Missing svix-id header." });
       return;
@@ -60,15 +62,36 @@ export class WebhookController {
 
       // Process "email.received"
       if (event.type === "email.received") {
-        const { from, subject, html, text, in_reply_to } = event.data;
+        let { from, subject, html, text, in_reply_to } = event.data || {};
+        const emailId = event.data?.email_id || event.data?.id;
+
+        // If body content is not directly in webhook payload, fetch it via Resend Receiving API
+        if ((!html && !text) && emailId) {
+          try {
+            const receivedData = await emailService.getReceivedEmail(emailId);
+            if (receivedData) {
+              if (receivedData.html) html = receivedData.html;
+              if (receivedData.text) text = receivedData.text;
+              if (receivedData.from && !from) from = receivedData.from;
+              if (receivedData.subject && !subject) subject = receivedData.subject;
+              if (!in_reply_to && receivedData.headers) {
+                in_reply_to = receivedData.headers["in-reply-to"] || receivedData.headers["In-Reply-To"];
+              }
+            }
+          } catch (fetchErr: any) {
+            console.warn(`[Webhook] Could not fetch received email ${emailId}:`, fetchErr?.message || fetchErr);
+          }
+        }
 
         // Parse sender email (extract from "Name <email@domain.com>" format if present)
-        let senderEmail = from;
-        const emailMatch = from.match(/<([^>]+)>/);
-        if (emailMatch && emailMatch[1]) {
-          senderEmail = emailMatch[1].trim().toLowerCase();
-        } else {
-          senderEmail = senderEmail.trim().toLowerCase();
+        let senderEmail = from || "";
+        if (from) {
+          const emailMatch = from.match(/<([^>]+)>/);
+          if (emailMatch && emailMatch[1]) {
+            senderEmail = emailMatch[1].trim().toLowerCase();
+          } else {
+            senderEmail = senderEmail.trim().toLowerCase();
+          }
         }
 
         // Sanitize HTML
@@ -79,10 +102,16 @@ export class WebhookController {
 
         // MATCHING STRATEGY 1: In-Reply-To
         if (in_reply_to) {
-          // Some providers wrap in_reply_to in angle brackets
-          const cleanInReplyTo = in_reply_to.replace(/^<|>$/g, "");
+          // Some providers wrap in_reply_to in angle brackets or include domain
+          const cleanInReplyTo = in_reply_to.replace(/^<|>$/g, "").trim();
+          const idWithoutDomain = cleanInReplyTo.split("@")[0];
           const originalMessage = await prisma.message.findFirst({
-            where: { providerMessageId: cleanInReplyTo },
+            where: {
+              OR: [
+                { providerMessageId: cleanInReplyTo },
+                { providerMessageId: idWithoutDomain },
+              ],
+            },
             include: { conversation: true },
           });
 
@@ -93,7 +122,7 @@ export class WebhookController {
         }
 
         // MATCHING STRATEGY 2: Find Contact -> Latest Conversation
-        if (!matchedConversationId) {
+        if (!matchedConversationId && senderEmail) {
           const contact = await prisma.contact.findFirst({
             where: { email: { equals: senderEmail, mode: "insensitive" } },
           });
@@ -132,7 +161,7 @@ export class WebhookController {
             data: {
               content: safeHtml,
               senderType: SenderType.CUSTOMER,
-              senderName: from,
+              senderName: (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail || "Customer",
               senderEmail,
               isInternalNote: false,
               providerEventId,

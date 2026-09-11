@@ -59,6 +59,29 @@ export class EmailService {
       throw new AppError(`Unexpected error communicating with email provider: ${err.message}`, 500);
     }
   }
+
+  async getReceivedEmail(emailId: string): Promise<any> {
+    if (!this.resend) {
+      if (config.emailProvider === "resend" && config.resendApiKey) {
+        this.resend = new Resend(config.resendApiKey);
+        this.isConfigured = true;
+      }
+    }
+    if (!this.resend) {
+      return null;
+    }
+    try {
+      const { data, error } = await this.resend.emails.receiving.get(emailId);
+      if (error) {
+        console.warn(`[EmailService] Failed to retrieve received email ${emailId}:`, error);
+        return null;
+      }
+      return data;
+    } catch (err: any) {
+      console.warn(`[EmailService] Error retrieving received email ${emailId}:`, err?.message || err);
+      return null;
+    }
+  }
 }
 
 export const emailService = new EmailService();

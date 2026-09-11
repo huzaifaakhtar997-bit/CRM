@@ -119203,6 +119203,28 @@ var EmailService = class {
       throw new AppError(`Unexpected error communicating with email provider: ${err.message}`, 500);
     }
   }
+  async getReceivedEmail(emailId) {
+    if (!this.resend) {
+      if (config.emailProvider === "resend" && config.resendApiKey) {
+        this.resend = new Resend(config.resendApiKey);
+        this.isConfigured = true;
+      }
+    }
+    if (!this.resend) {
+      return null;
+    }
+    try {
+      const { data, error: error51 } = await this.resend.emails.receiving.get(emailId);
+      if (error51) {
+        console.warn(`[EmailService] Failed to retrieve received email ${emailId}:`, error51);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn(`[EmailService] Error retrieving received email ${emailId}:`, err?.message || err);
+      return null;
+    }
+  }
 };
 var emailService = new EmailService();
 
@@ -130107,7 +130129,7 @@ var WebhookController = class {
       res.status(503).json({ success: false, message: "Webhook secret not configured." });
       return;
     }
-    const payload = req.rawBody || JSON.stringify(req.body);
+    const payload = req.rawBody || (Buffer.isBuffer(req.body) ? req.body.toString("utf8") : JSON.stringify(req.body));
     const headers = req.headers;
     const wh = new import_svix.Webhook(config.resendWebhookSecret);
     let event;
@@ -130118,7 +130140,8 @@ var WebhookController = class {
       res.status(400).json({ success: false, message: "Invalid webhook signature." });
       return;
     }
-    const providerEventId = headers["svix-id"];
+    const rawEventId = headers["svix-id"];
+    const providerEventId = Array.isArray(rawEventId) ? rawEventId[0] : rawEventId;
     if (!providerEventId) {
       res.status(400).json({ success: false, message: "Missing svix-id header." });
       return;
@@ -130133,21 +130156,46 @@ var WebhookController = class {
         return;
       }
       if (event.type === "email.received") {
-        const { from, subject, html, text, in_reply_to } = event.data;
-        let senderEmail = from;
-        const emailMatch = from.match(/<([^>]+)>/);
-        if (emailMatch && emailMatch[1]) {
-          senderEmail = emailMatch[1].trim().toLowerCase();
-        } else {
-          senderEmail = senderEmail.trim().toLowerCase();
+        let { from, subject, html, text, in_reply_to } = event.data || {};
+        const emailId = event.data?.email_id || event.data?.id;
+        if (!html && !text && emailId) {
+          try {
+            const receivedData = await emailService.getReceivedEmail(emailId);
+            if (receivedData) {
+              if (receivedData.html) html = receivedData.html;
+              if (receivedData.text) text = receivedData.text;
+              if (receivedData.from && !from) from = receivedData.from;
+              if (receivedData.subject && !subject) subject = receivedData.subject;
+              if (!in_reply_to && receivedData.headers) {
+                in_reply_to = receivedData.headers["in-reply-to"] || receivedData.headers["In-Reply-To"];
+              }
+            }
+          } catch (fetchErr) {
+            console.warn(`[Webhook] Could not fetch received email ${emailId}:`, fetchErr?.message || fetchErr);
+          }
+        }
+        let senderEmail = from || "";
+        if (from) {
+          const emailMatch = from.match(/<([^>]+)>/);
+          if (emailMatch && emailMatch[1]) {
+            senderEmail = emailMatch[1].trim().toLowerCase();
+          } else {
+            senderEmail = senderEmail.trim().toLowerCase();
+          }
         }
         const safeHtml = html ? sanitizeHtml(html) : text || "No content provided.";
         let matchedConversationId = null;
         let matchedContactId = null;
         if (in_reply_to) {
-          const cleanInReplyTo = in_reply_to.replace(/^<|>$/g, "");
+          const cleanInReplyTo = in_reply_to.replace(/^<|>$/g, "").trim();
+          const idWithoutDomain = cleanInReplyTo.split("@")[0];
           const originalMessage = await prisma.message.findFirst({
-            where: { providerMessageId: cleanInReplyTo },
+            where: {
+              OR: [
+                { providerMessageId: cleanInReplyTo },
+                { providerMessageId: idWithoutDomain }
+              ]
+            },
             include: { conversation: true }
           });
           if (originalMessage) {
@@ -130155,7 +130203,7 @@ var WebhookController = class {
             matchedContactId = originalMessage.conversation.contactId;
           }
         }
-        if (!matchedConversationId) {
+        if (!matchedConversationId && senderEmail) {
           const contact = await prisma.contact.findFirst({
             where: { email: { equals: senderEmail, mode: "insensitive" } }
           });
@@ -130187,7 +130235,7 @@ var WebhookController = class {
             data: {
               content: safeHtml,
               senderType: import_client68.SenderType.CUSTOMER,
-              senderName: from,
+              senderName: (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail || "Customer",
               senderEmail,
               isInternalNote: false,
               providerEventId,
@@ -130243,7 +130291,7 @@ var router28 = (0, import_express28.Router)();
 var webhookController = new WebhookController();
 router28.post(
   "/resend",
-  import_express29.default.raw({ type: "application/json" }),
+  import_express29.default.raw({ type: "*/*" }),
   (req, res, next) => {
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body.toString("utf8");

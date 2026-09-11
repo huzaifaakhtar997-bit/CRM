@@ -11,7 +11,7 @@ const webhookController = new WebhookController();
 // Svix requires the exact raw string body.
 router.post(
   "/resend",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "*/*" }),
   (req, res, next) => {
     // If body is a buffer (from express.raw), assign it to rawBody string
     if (Buffer.isBuffer(req.body)) {
