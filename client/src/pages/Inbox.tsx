@@ -248,7 +248,11 @@ export default function Inbox() {
 
       {/* Right Pane: Details */}
       <div className="w-72 flex-shrink-0 hidden xl:block border-l border-border">
-        <ConversationDetails conversation={selectedConversation} />
+        <ConversationDetails
+          conversation={selectedConversation}
+          messages={messages}
+          onConversationUpdated={loadConversations}
+        />
       </div>
     </div>
   );

@@ -28,3 +28,16 @@ export const queryLeadSchema = z.object({
 export type CreateLeadInput = z.infer<typeof createLeadSchema>;
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;
 export type QueryLeadInput = z.infer<typeof queryLeadSchema>;
+
+export const convertLeadSchema = z.object({
+  companyId: z.string().nullable().optional(),
+  createCompany: z.boolean().optional(),
+  companyName: z.string().optional(),
+  createDeal: z.boolean().optional(),
+  dealTitle: z.string().optional(),
+  dealValue: z.number().optional(),
+  stageId: z.string().optional(),
+});
+
+export type ConvertLeadInput = z.infer<typeof convertLeadSchema>;
+

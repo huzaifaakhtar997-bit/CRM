@@ -21,16 +21,16 @@ router.get(
   conversationController.getConversationById
 );
 
-// Create/Edit/Delete — ADMIN, MANAGER, SUPPORT
+// Create/Edit/Delete — ADMIN, MANAGER, SALES_REP, SUPPORT
 router.post(
   "/",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.SUPPORT),
   conversationController.createConversation
 );
 
 router.patch(
   "/:id",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.SUPPORT),
   conversationController.updateConversation
 );
 

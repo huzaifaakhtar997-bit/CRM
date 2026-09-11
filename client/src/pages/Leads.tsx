@@ -189,6 +189,7 @@ export const Leads: React.FC = () => {
           setIsFormOpen(true);
         }}
         onDelete={handleDelete}
+        onConverted={fetchLeads}
       />
     </div>
   );

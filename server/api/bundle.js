@@ -112435,6 +112435,134 @@ var LeadService = class {
     });
     return updatedLead;
   }
+  async convertLead(id, input, currentUserId) {
+    const lead = await this.leadRepo.findById(id);
+    if (!lead) {
+      throw new AppError(`Lead with ID '${id}' not found.`, 404);
+    }
+    if (lead.status === import_client11.LeadStatus.CONVERTED) {
+      throw new AppError("This lead has already been converted.", 400);
+    }
+    return prisma.$transaction(async (tx) => {
+      let companyId = input.companyId || null;
+      if (!companyId && input.createCompany) {
+        const companyName = (input.companyName || lead.company || "").trim();
+        if (companyName) {
+          let existingCompany = await tx.company.findFirst({
+            where: { name: { equals: companyName, mode: "insensitive" } }
+          });
+          if (!existingCompany) {
+            existingCompany = await tx.company.create({
+              data: {
+                name: companyName
+              }
+            });
+          }
+          companyId = existingCompany.id;
+        }
+      } else if (!companyId && lead.company) {
+        const matchedCompany = await tx.company.findFirst({
+          where: { name: { equals: lead.company.trim(), mode: "insensitive" } }
+        });
+        if (matchedCompany) {
+          companyId = matchedCompany.id;
+        }
+      }
+      let contact = await tx.contact.findFirst({
+        where: { email: { equals: lead.email.toLowerCase(), mode: "insensitive" } }
+      });
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            firstName: lead.firstName,
+            lastName: lead.lastName || "",
+            email: lead.email.toLowerCase(),
+            phone: lead.phone,
+            jobTitle: lead.jobTitle,
+            leadSource: lead.source,
+            lifecycleStage: input.createDeal ? import_client11.LifecycleStage.OPPORTUNITY : import_client11.LifecycleStage.LEAD,
+            assignedUserId: lead.assignedUserId || currentUserId,
+            companyId,
+            notes: lead.notes
+          }
+        });
+      } else if (companyId && !contact.companyId) {
+        contact = await tx.contact.update({
+          where: { id: contact.id },
+          data: { companyId }
+        });
+      }
+      let deal;
+      if (input.createDeal && input.dealTitle) {
+        let stageId = input.stageId;
+        if (!stageId) {
+          const defaultStage = await tx.pipelineStage.findFirst({
+            orderBy: { order: "asc" }
+          });
+          if (defaultStage) {
+            stageId = defaultStage.id;
+          }
+        }
+        if (stageId) {
+          deal = await tx.deal.create({
+            data: {
+              title: input.dealTitle,
+              value: input.dealValue || 0,
+              currency: "USD",
+              probability: 20,
+              expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
+              priority: "MEDIUM",
+              stageId,
+              contactId: contact.id,
+              companyId,
+              assignedUserId: contact.assignedUserId || currentUserId
+            }
+          });
+        }
+      }
+      const updatedLead = await tx.lead.update({
+        where: { id: lead.id },
+        data: {
+          status: import_client11.LeadStatus.CONVERTED,
+          convertedContactId: contact.id
+        }
+      });
+      await tx.conversation.updateMany({
+        where: {
+          contactId: null,
+          messages: {
+            some: {
+              senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" }
+            }
+          }
+        },
+        data: {
+          contactId: contact.id
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client11.ActivityType.LEAD_CONVERTED,
+          title: "Lead Converted",
+          content: `Converted lead ${lead.firstName} ${lead.lastName || ""}`.trim() + ` to Contact (${contact.email})` + (deal ? ` and created deal "${deal.title}"` : ""),
+          userId: currentUserId,
+          contactId: contact.id,
+          leadId: lead.id,
+          dealId: deal?.id,
+          metadata: {
+            contactId: contact.id,
+            companyId,
+            dealId: deal?.id
+          }
+        }
+      });
+      return {
+        lead: updatedLead,
+        contact,
+        deal
+      };
+    });
+  }
   async deleteLead(id) {
     const existing = await this.leadRepo.findById(id);
     if (!existing) {
@@ -112468,6 +112596,15 @@ var queryLeadSchema = external_exports.object({
   status: external_exports.nativeEnum(import_client12.LeadStatus).optional(),
   source: external_exports.nativeEnum(import_client12.LeadSource).optional(),
   assignedUserId: external_exports.string().optional()
+});
+var convertLeadSchema = external_exports.object({
+  companyId: external_exports.string().nullable().optional(),
+  createCompany: external_exports.boolean().optional(),
+  companyName: external_exports.string().optional(),
+  createDeal: external_exports.boolean().optional(),
+  dealTitle: external_exports.string().optional(),
+  dealValue: external_exports.number().optional(),
+  stageId: external_exports.string().optional()
 });
 
 // src/controllers/lead.controller.ts
@@ -112549,6 +112686,28 @@ var LeadController = class {
         next(error51);
       }
     };
+    this.convertLead = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = convertLeadSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const result = await this.leadServ.convertLead(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Lead converted to contact successfully.",
+          data: result,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
     this.deleteLead = async (req, res, next) => {
       try {
         const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
@@ -112590,6 +112749,11 @@ router5.patch(
   "/:id",
   authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
   leadController.updateLead
+);
+router5.post(
+  "/:id/convert",
+  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
+  leadController.convertLead
 );
 router5.delete(
   "/:id",
@@ -113983,12 +114147,12 @@ router9.get(
 );
 router9.post(
   "/",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SUPPORT),
+  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.SUPPORT),
   conversationController.createConversation
 );
 router9.patch(
   "/:id",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SUPPORT),
+  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.SUPPORT),
   conversationController.updateConversation
 );
 router9.delete(
@@ -130215,6 +130379,35 @@ var WebhookController = class {
             });
             if (latestConvo) {
               matchedConversationId = latestConvo.id;
+            }
+          } else {
+            const existingLead = await prisma.lead.findFirst({
+              where: { email: { equals: senderEmail, mode: "insensitive" } }
+            });
+            if (existingLead) {
+              if (existingLead.convertedContactId) {
+                matchedContactId = existingLead.convertedContactId;
+              }
+            } else {
+              try {
+                const cleanSenderName = (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail.split("@")[0];
+                const parts = cleanSenderName.split(/\s+/).filter(Boolean);
+                const firstName = parts[0] || "Inbound";
+                const lastName = parts.slice(1).join(" ") || void 0;
+                const newLead = await prisma.lead.create({
+                  data: {
+                    firstName,
+                    lastName,
+                    email: senderEmail.toLowerCase(),
+                    source: import_client68.LeadSource.OTHER,
+                    status: import_client68.LeadStatus.NEW,
+                    notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`
+                  }
+                });
+                console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
+              } catch (leadErr) {
+                console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
+              }
             }
           }
         }

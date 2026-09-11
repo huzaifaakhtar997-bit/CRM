@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Webhook } from "svix";
 import { config } from "../config/env";
 import { prisma } from "../config/database";
-import { SenderType, Prisma } from "@prisma/client";
+import { SenderType, Prisma, LeadSource, LeadStatus } from "@prisma/client";
 import { socketService } from "../services/socket.service";
 import { emailService } from "../services/email.service";
 
@@ -136,6 +136,39 @@ export class WebhookController {
             });
             if (latestConvo) {
               matchedConversationId = latestConvo.id;
+            }
+          } else {
+            // Check if there is an existing Lead for this email
+            const existingLead = await prisma.lead.findFirst({
+              where: { email: { equals: senderEmail, mode: "insensitive" } },
+            });
+
+            if (existingLead) {
+              if (existingLead.convertedContactId) {
+                matchedContactId = existingLead.convertedContactId;
+              }
+            } else {
+              // No Contact and no Lead exists — auto-create an inbound Lead!
+              try {
+                const cleanSenderName = (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail.split("@")[0];
+                const parts = cleanSenderName.split(/\s+/).filter(Boolean);
+                const firstName = parts[0] || "Inbound";
+                const lastName = parts.slice(1).join(" ") || undefined;
+
+                const newLead = await prisma.lead.create({
+                  data: {
+                    firstName,
+                    lastName,
+                    email: senderEmail.toLowerCase(),
+                    source: LeadSource.OTHER,
+                    status: LeadStatus.NEW,
+                    notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
+                  },
+                });
+                console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
+              } catch (leadErr: any) {
+                console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
+              }
             }
           }
         }

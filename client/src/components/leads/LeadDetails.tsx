@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Lead } from "../../types/api.types";
-import { X, Building2, Mail, Phone, Calendar, Loader2, Edit, Trash2, UserCircle } from "lucide-react";
+import { X, Building2, Mail, Phone, Calendar, Loader2, Edit, Trash2, UserCircle, UserCheck, CheckCircle2 } from "lucide-react";
 import { getLeadStatusBadge, getLeadSourceLabel } from "./LeadTable";
 import { leadsApi } from "../../api/leads.api";
+import { ConvertLeadModal } from "./ConvertLeadModal";
 
 interface LeadDetailsProps {
   leadId: string | null;
@@ -10,6 +11,7 @@ interface LeadDetailsProps {
   onClose: () => void;
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
+  onConverted?: () => void;
   canWrite: boolean;
 }
 
@@ -19,10 +21,12 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
   onClose,
   onEdit,
   onDelete,
+  onConverted,
   canWrite,
 }) => {
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isConvertOpen, setIsConvertOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,24 +102,41 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
 
               {/* Action Buttons */}
               {canWrite && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => onEdit(lead)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground h-10 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit Profile
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Are you sure you want to delete this lead?")) {
-                        onDelete(lead.id);
-                      }
-                    }}
-                    className="flex items-center justify-center w-10 h-10 border border-destructive/30 text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="space-y-2">
+                  {lead.status !== "CONVERTED" ? (
+                    <button
+                      onClick={() => setIsConvertOpen(true)}
+                      className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white h-10 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      Convert to Contact
+                    </button>
+                  ) : (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 rounded-lg text-xs flex items-center gap-2 font-medium">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                      <span>This lead has been successfully converted into a Contact.</span>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => onEdit(lead)}
+                      className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground h-10 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to delete this lead?")) {
+                          onDelete(lead.id);
+                        }
+                      }}
+                      className="flex items-center justify-center w-10 h-10 border border-destructive/30 text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -192,6 +213,16 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
           ) : null}
         </div>
       </div>
+
+      <ConvertLeadModal
+        lead={lead}
+        isOpen={isConvertOpen}
+        onClose={() => setIsConvertOpen(false)}
+        onSuccess={() => {
+          loadLead();
+          if (onConverted) onConverted();
+        }}
+      />
     </>
   );
 };

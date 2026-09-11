@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { leadService, LeadService } from "../services/lead.service";
-import { createLeadSchema, updateLeadSchema, queryLeadSchema } from "../validators/lead.validator";
+import { createLeadSchema, updateLeadSchema, queryLeadSchema, convertLeadSchema } from "../validators/lead.validator";
 import { AppError } from "../types/auth.types";
 
 export class LeadController {
@@ -93,6 +93,34 @@ export class LeadController {
         success: true,
         message: "Lead updated successfully.",
         data: { lead },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  convertLead = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AppError("Authentication required.", 401);
+      }
+
+      const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const validationResult = convertLeadSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+          .map((i) => `${i.path.join(".")}: ${i.message}`)
+          .join(", ");
+        throw new AppError(`Validation failed: ${errors}`, 400);
+      }
+
+      const result = await this.leadServ.convertLead(id, validationResult.data, req.user.userId);
+
+      res.status(200).json({
+        success: true,
+        message: "Lead converted to contact successfully.",
+        data: result,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

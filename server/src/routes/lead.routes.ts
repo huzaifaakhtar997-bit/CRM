@@ -37,11 +37,19 @@ router.patch(
   leadController.updateLead
 );
 
+// POST /api/v1/leads/:id/convert - Accessible by ADMIN, MANAGER, SALES_REP
+router.post(
+  "/:id/convert",
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP),
+  leadController.convertLead
+);
+
 // DELETE /api/v1/leads/:id - Accessible by ADMIN, MANAGER, SALES_REP
 router.delete(
   "/:id",
   authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP),
   leadController.deleteLead
 );
+
 
 export default router;
