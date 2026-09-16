@@ -256,6 +256,78 @@ export class WebhookController {
         return;
       }
 
+      // ---------------------------------------------------------------
+      // Campaign Tracking Events: delivered, opened, clicked, bounced
+      // Resend fires these for outbound emails we send. Match by the
+      // providerMessageId stored when the email was dispatched.
+      // ---------------------------------------------------------------
+      if (
+        event.type === "email.delivered" ||
+        event.type === "email.opened" ||
+        event.type === "email.clicked" ||
+        event.type === "email.bounced" ||
+        event.type === "email.complained"
+      ) {
+        const emailId: string | undefined = event.data?.email_id || event.data?.id;
+
+        if (!emailId) {
+          res.status(200).json({ success: true, message: "Tracking event missing email_id, ignored." });
+          return;
+        }
+
+        // Determine the new status
+        let newStatus: string;
+        if (event.type === "email.delivered") newStatus = "DELIVERED";
+        else if (event.type === "email.opened") newStatus = "OPENED";
+        else if (event.type === "email.clicked") newStatus = "CLICKED";
+        else newStatus = "BOUNCED"; // bounced or complained
+
+        try {
+          // Find campaign recipient whose providerMessageId matches
+          const recipient = await prisma.campaignRecipient.findFirst({
+            where: { providerMessageId: emailId },
+          });
+
+          if (recipient) {
+            // Only move forward in the funnel — never go backwards
+            const priority: Record<string, number> = {
+              PENDING: 0, SENT: 1, DELIVERED: 2, OPENED: 3, CLICKED: 4, REPLIED: 5, BOUNCED: 2, FAILED: 2,
+            };
+            const currentPriority = priority[recipient.status] ?? 0;
+            const newPriority = priority[newStatus] ?? 0;
+
+            if (newPriority > currentPriority || newStatus === "BOUNCED") {
+              const now = new Date();
+              const updateData: any = { status: newStatus };
+              if (newStatus === "DELIVERED" && !recipient.deliveredAt) updateData.deliveredAt = now;
+              if (newStatus === "OPENED") {
+                if (!recipient.openedAt) updateData.openedAt = now;
+                if (!recipient.deliveredAt) updateData.deliveredAt = now;
+              }
+              if (newStatus === "CLICKED") {
+                if (!recipient.clickedAt) updateData.clickedAt = now;
+                if (!recipient.openedAt) updateData.openedAt = now;
+                if (!recipient.deliveredAt) updateData.deliveredAt = now;
+              }
+
+              await prisma.campaignRecipient.update({
+                where: { id: recipient.id },
+                data: updateData,
+              });
+              console.log(`[Webhook] Campaign recipient ${recipient.id} updated to ${newStatus}`);
+            }
+          } else {
+            // May be a direct message (not a campaign) — just log and ignore
+            console.log(`[Webhook] No campaign recipient found for providerMessageId ${emailId}, tracking event ignored.`);
+          }
+        } catch (trackErr: any) {
+          console.warn(`[Webhook] Error updating campaign tracking for ${emailId}:`, trackErr?.message || trackErr);
+        }
+
+        res.status(200).json({ success: true, message: `Tracking event ${event.type} processed.` });
+        return;
+      }
+
       // Ignore unsupported events
       res.status(200).json({ success: true, message: "Event type not supported." });
     } catch (err: any) {
