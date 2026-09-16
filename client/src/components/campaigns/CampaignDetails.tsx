@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Campaign, CampaignRecipient, CampaignTrackingSummary, CampaignRecipientStatus } from "../../types/api.types";
+import { Campaign, CampaignRecipient, CampaignTrackingSummary } from "../../types/api.types";
 import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
 import { X, Loader2, Play, Users, Send, CheckCircle2, MailOpen, MousePointerClick, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/button";
@@ -149,19 +149,6 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
       loadRecipients();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to remove recipient.");
-    }
-  };
-
-  const handleStatusChange = async (recipientId: string, newStatus: string) => {
-    try {
-      await campaignsApi.updateRecipientStatus(campaignId!, recipientId, newStatus as CampaignRecipientStatus);
-      loadRecipients();
-      if (campaign?.status !== "DRAFT") {
-        const trackingData = await campaignsApi.getTrackingSummary(campaignId!);
-        setTracking(trackingData);
-      }
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update status.");
     }
   };
 
@@ -437,24 +424,38 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                                 <div className="text-xs text-muted-foreground font-normal">{r.contact?.email}</div>
                               </td>
                               <td className="px-4 py-3">
-                                {canWrite ? (
-                                  <select 
-                                    className="text-xs p-1 border rounded"
-                                    value={r.status}
-                                    onChange={(e) => handleStatusChange(r.id, e.target.value)}
+                                <div className="flex flex-col items-start gap-1">
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                                      r.status === "DELIVERED"
+                                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        : r.status === "OPENED"
+                                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                                        : r.status === "CLICKED"
+                                        ? "bg-purple-50 text-purple-700 border-purple-200"
+                                        : r.status === "BOUNCED" || r.status === "FAILED"
+                                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                                        : "bg-blue-50 text-blue-700 border-blue-200"
+                                    }`}
                                   >
-                                    <option value="PENDING">PENDING</option>
-                                    <option value="SENT">SENT</option>
-                                    <option value="DELIVERED">DELIVERED</option>
-                                    <option value="OPENED">OPENED</option>
-                                    <option value="CLICKED">CLICKED</option>
-                                    <option value="REPLIED">REPLIED</option>
-                                    <option value="BOUNCED">BOUNCED</option>
-                                    <option value="FAILED">FAILED</option>
-                                  </select>
-                                ) : (
-                                  <span className="text-xs font-semibold">{r.status}</span>
-                                )}
+                                    {r.status}
+                                  </span>
+                                  {r.deliveredAt && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      Delivered {new Date(r.deliveredAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                  )}
+                                  {r.openedAt && (
+                                    <span className="text-[10px] text-amber-600 font-medium">
+                                      Opened {new Date(r.openedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                  )}
+                                  {r.clickedAt && (
+                                    <span className="text-[10px] text-purple-600 font-medium">
+                                      Clicked {new Date(r.clickedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-4 py-3 text-right">
                                 {canWrite && campaign.status === "DRAFT" && (
