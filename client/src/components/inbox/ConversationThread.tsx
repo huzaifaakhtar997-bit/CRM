@@ -1,12 +1,91 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Message, SenderType } from "../../types/api.types";
-import { Shield } from "lucide-react";
+import { Shield, MoreHorizontal } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+function stripHtml(html: string): string {
+  if (!html) return "";
+  let text = html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|tr|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#x27;/gi, "'");
+
+  return text
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function parseEmailContent(raw: string): { cleanContent: string; quotedText?: string } {
+  if (!raw) return { cleanContent: "" };
+
+  // 1. Check for email quote boundaries (Gmail, Outlook, Apple Mail, standard blockquotes)
+  const quotePattern =
+    /(?:<div[^>]*class=["'][^"']*(?:gmail_quote|gmail_extra)[^"']*["'][^>]*>|<blockquote[^>]*>|<div[^>]*id=["'](?:divRplyFwdMsg|appendonsend)["'][^>]*>|(?:\r?\n|^)\s*(?:On\s+.*,\s+.*wrote:|On\s+.*wrote:|---+\s*Original Message\s*---+|From:\s*.*|Sent:\s*.*))[\s\S]*/i;
+
+  const quoteMatch = raw.match(quotePattern);
+
+  let cleanRaw = raw;
+  let quotedRaw: string | undefined;
+
+  if (quoteMatch && quoteMatch.index !== undefined && quoteMatch.index >= 0) {
+    cleanRaw = raw.substring(0, quoteMatch.index);
+    quotedRaw = raw.substring(quoteMatch.index);
+  }
+
+  const cleanContent = stripHtml(cleanRaw) || stripHtml(raw);
+  const quotedText = quotedRaw ? stripHtml(quotedRaw) : undefined;
+
+  return {
+    cleanContent: cleanContent || raw,
+    quotedText: quotedText && quotedText !== cleanContent ? quotedText : undefined,
+  };
+}
+
+const MessageBubbleContent: React.FC<{ content: string; isCustomer: boolean }> = ({ content }) => {
+  const [showQuote, setShowQuote] = useState(false);
+  const { cleanContent, quotedText } = useMemo(() => parseEmailContent(content), [content]);
+
+  return (
+    <div className="space-y-2">
+      <div className="whitespace-pre-wrap break-words leading-relaxed">{cleanContent}</div>
+      {quotedText && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowQuote(!showQuote)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 px-1.5 py-0.5 rounded transition-colors"
+            title={showQuote ? "Hide quoted history" : "Show quoted email history"}
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+            <span>{showQuote ? "Hide quote" : "Quoted text"}</span>
+          </button>
+          {showQuote && (
+            <div className="mt-2 p-2.5 rounded-lg bg-black/5 dark:bg-black/20 text-xs opacity-75 border-l-2 border-current whitespace-pre-wrap max-h-56 overflow-y-auto font-mono text-[11px]">
+              {quotedText}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface ConversationThreadProps {
   messages: Message[];
@@ -74,7 +153,7 @@ export const ConversationThread: React.FC<ConversationThreadProps> = ({
 
             <div
               className={cn(
-                "px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap relative group",
+                "px-4 py-3 rounded-2xl text-sm relative group",
                 isInternalNote
                   ? "bg-amber-50 text-amber-900 border border-amber-200 rounded-tr-sm"
                   : isCustomer
@@ -88,7 +167,7 @@ export const ConversationThread: React.FC<ConversationThreadProps> = ({
                   Internal Note
                 </div>
               )}
-              {message.content}
+              <MessageBubbleContent content={message.content} isCustomer={isCustomer} />
             </div>
           </div>
         );
