@@ -82,6 +82,29 @@ export class EmailService {
       return null;
     }
   }
+
+  async getEmail(emailId: string): Promise<any> {
+    if (!this.resend) {
+      if (config.emailProvider === "resend" && config.resendApiKey) {
+        this.resend = new Resend(config.resendApiKey);
+        this.isConfigured = true;
+      }
+    }
+    if (!this.resend) {
+      return null;
+    }
+    try {
+      const { data, error } = await this.resend.emails.get(emailId);
+      if (error) {
+        console.warn(`[EmailService] Failed to retrieve email ${emailId}:`, error);
+        return null;
+      }
+      return data;
+    } catch (err: any) {
+      console.warn(`[EmailService] Error retrieving email ${emailId}:`, err?.message || err);
+      return null;
+    }
+  }
 }
 
 export const emailService = new EmailService();

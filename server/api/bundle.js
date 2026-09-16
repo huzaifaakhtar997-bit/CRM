@@ -119389,6 +119389,28 @@ var EmailService = class {
       return null;
     }
   }
+  async getEmail(emailId) {
+    if (!this.resend) {
+      if (config.emailProvider === "resend" && config.resendApiKey) {
+        this.resend = new Resend(config.resendApiKey);
+        this.isConfigured = true;
+      }
+    }
+    if (!this.resend) {
+      return null;
+    }
+    try {
+      const { data, error: error51 } = await this.resend.emails.get(emailId);
+      if (error51) {
+        console.warn(`[EmailService] Failed to retrieve email ${emailId}:`, error51);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn(`[EmailService] Error retrieving email ${emailId}:`, err?.message || err);
+      return null;
+    }
+  }
 };
 var emailService = new EmailService();
 
@@ -122251,10 +122273,64 @@ var CampaignTrackingService = class {
     });
     return updated;
   }
+  async syncWithProvider(campaignId) {
+    const recipients = await prisma.campaignRecipient.findMany({
+      where: {
+        campaignId,
+        providerMessageId: { not: null },
+        status: { in: [import_client54.CampaignRecipientStatus.PENDING, import_client54.CampaignRecipientStatus.SENT, import_client54.CampaignRecipientStatus.DELIVERED, import_client54.CampaignRecipientStatus.OPENED] }
+      }
+    });
+    if (recipients.length === 0) return;
+    await Promise.allSettled(
+      recipients.map(async (recipient) => {
+        if (!recipient.providerMessageId) return;
+        try {
+          const emailData = await emailService.getEmail(recipient.providerMessageId);
+          if (!emailData || !emailData.last_event) return;
+          const lastEvent = String(emailData.last_event).toLowerCase();
+          let newStatus = null;
+          if (lastEvent === "clicked") newStatus = import_client54.CampaignRecipientStatus.CLICKED;
+          else if (lastEvent === "opened") newStatus = import_client54.CampaignRecipientStatus.OPENED;
+          else if (lastEvent === "delivered") newStatus = import_client54.CampaignRecipientStatus.DELIVERED;
+          else if (lastEvent === "bounced" || lastEvent === "complained") newStatus = import_client54.CampaignRecipientStatus.BOUNCED;
+          else if (lastEvent === "failed") newStatus = import_client54.CampaignRecipientStatus.FAILED;
+          if (!newStatus) return;
+          const currentPriority = this.statusPriority[recipient.status] ?? 0;
+          const newPriority = this.statusPriority[newStatus] ?? 0;
+          if (newPriority > currentPriority || newStatus === import_client54.CampaignRecipientStatus.BOUNCED || newStatus === import_client54.CampaignRecipientStatus.FAILED) {
+            const now = /* @__PURE__ */ new Date();
+            const updateData = { status: newStatus };
+            if (newStatus === import_client54.CampaignRecipientStatus.DELIVERED && !recipient.deliveredAt) updateData.deliveredAt = now;
+            if (newStatus === import_client54.CampaignRecipientStatus.OPENED) {
+              if (!recipient.openedAt) updateData.openedAt = now;
+              if (!recipient.deliveredAt) updateData.deliveredAt = now;
+            }
+            if (newStatus === import_client54.CampaignRecipientStatus.CLICKED) {
+              if (!recipient.clickedAt) updateData.clickedAt = now;
+              if (!recipient.openedAt) updateData.openedAt = now;
+              if (!recipient.deliveredAt) updateData.deliveredAt = now;
+            }
+            await prisma.campaignRecipient.update({
+              where: { id: recipient.id },
+              data: updateData
+            });
+            console.log(`[Tracking] Recipient ${recipient.id} synced to ${newStatus} from Resend.`);
+          }
+        } catch (err) {
+        }
+      })
+    );
+  }
   async getTrackingSummary(campaignId) {
     const campaign = await this.trackingRepo.findCampaignById(campaignId);
     if (!campaign) {
       throw new AppError(`Campaign with ID '${campaignId}' not found.`, 404);
+    }
+    try {
+      await this.syncWithProvider(campaignId);
+    } catch (err) {
+      console.warn(`[Tracking] Live sync with Resend failed:`, err);
     }
     return this.trackingRepo.getTrackingSummary(campaignId);
   }

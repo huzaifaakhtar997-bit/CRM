@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Campaign, CampaignRecipient, CampaignTrackingSummary, CampaignRecipientStatus } from "../../types/api.types";
 import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
-import { X, Loader2, Play, Users, Send, CheckCircle2, MailOpen, MousePointerClick, AlertCircle } from "lucide-react";
+import { X, Loader2, Play, Users, Send, CheckCircle2, MailOpen, MousePointerClick, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/button";
 import { getCampaignStatusBadge } from "./CampaignTable";
 
@@ -22,6 +22,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
   // Overview data
   const [tracking, setTracking] = useState<CampaignTrackingSummary | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [refreshingTracking, setRefreshingTracking] = useState(false);
 
   // Audience data
   const [audienceFilters, setAudienceFilters] = useState<AudienceFilters>({});
@@ -72,6 +73,20 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
       setError(err.response?.data?.message || err.message || "Failed to load campaign.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefreshTracking = async () => {
+    if (!campaignId) return;
+    setRefreshingTracking(true);
+    try {
+      const trackingData = await campaignsApi.getTrackingSummary(campaignId);
+      setTracking(trackingData);
+      await loadRecipients();
+    } catch (err: any) {
+      console.error("Failed to refresh tracking:", err);
+    } finally {
+      setRefreshingTracking(false);
     }
   };
 
@@ -240,32 +255,52 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
 
                   {tracking && (
                     <div className="space-y-4">
-                      <h3 className="text-lg font-bold">Tracking Summary</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
-                          <Users className="w-5 h-5 mx-auto text-blue-500 mb-2" />
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-bold">Real-Time Tracking</h3>
+                          <p className="text-xs text-muted-foreground">Live delivery & engagement verified directly from Resend</p>
+                        </div>
+                        <Button
+                          onClick={handleRefreshTracking}
+                          disabled={refreshingTracking}
+                          variant="outline"
+                          size="sm"
+                          className="gap-2 text-xs"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${refreshingTracking ? "animate-spin text-primary" : ""}`} />
+                          {refreshingTracking ? "Syncing..." : "Sync Live Status"}
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <Users className="w-5 h-5 mx-auto text-blue-500 mb-1.5" />
                           <div className="text-2xl font-bold">{tracking.totalRecipients}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Total Recipients</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Total</div>
                         </div>
-                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
-                          <Send className="w-5 h-5 mx-auto text-indigo-500 mb-2" />
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <Send className="w-5 h-5 mx-auto text-indigo-500 mb-1.5" />
                           <div className="text-2xl font-bold">{tracking.sent}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Sent</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Sent</div>
                         </div>
-                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
-                          <CheckCircle2 className="w-5 h-5 mx-auto text-emerald-500 mb-2" />
-                          <div className="text-2xl font-bold">{tracking.delivered}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Delivered</div>
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <CheckCircle2 className="w-5 h-5 mx-auto text-emerald-500 mb-1.5" />
+                          <div className="text-2xl font-bold text-emerald-600">{tracking.delivered}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Delivered</div>
                         </div>
-                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
-                          <MailOpen className="w-5 h-5 mx-auto text-amber-500 mb-2" />
-                          <div className="text-2xl font-bold">{tracking.opened}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Opened</div>
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <MailOpen className="w-5 h-5 mx-auto text-amber-500 mb-1.5" />
+                          <div className="text-2xl font-bold text-amber-600">{tracking.opened}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Opened</div>
                         </div>
-                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
-                          <MousePointerClick className="w-5 h-5 mx-auto text-purple-500 mb-2" />
-                          <div className="text-2xl font-bold">{tracking.clicked}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Clicked</div>
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <MousePointerClick className="w-5 h-5 mx-auto text-purple-500 mb-1.5" />
+                          <div className="text-2xl font-bold text-purple-600">{tracking.clicked}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Clicked</div>
+                        </div>
+                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                          <AlertTriangle className="w-5 h-5 mx-auto text-rose-500 mb-1.5" />
+                          <div className="text-2xl font-bold text-rose-600">{tracking.bounced}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Bounced / Fake</div>
                         </div>
                       </div>
                     </div>

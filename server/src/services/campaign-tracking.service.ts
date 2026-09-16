@@ -2,6 +2,7 @@ import { CampaignRecipient, CampaignRecipientStatus, ActivityType } from "@prism
 import { prisma } from "../config/database";
 import { campaignTrackingRepository, CampaignTrackingRepository, CampaignTrackingSummary } from "../repositories/campaign-tracking.repository";
 import { AppError } from "../types/auth.types";
+import { emailService } from "./email.service";
 
 export class CampaignTrackingService {
   private statusPriority: Record<CampaignRecipientStatus, number> = {
@@ -133,10 +134,75 @@ export class CampaignTrackingService {
     return updated;
   }
 
+  async syncWithProvider(campaignId: string): Promise<void> {
+    const recipients = await prisma.campaignRecipient.findMany({
+      where: {
+        campaignId,
+        providerMessageId: { not: null },
+        status: { in: [CampaignRecipientStatus.PENDING, CampaignRecipientStatus.SENT, CampaignRecipientStatus.DELIVERED, CampaignRecipientStatus.OPENED] },
+      },
+    });
+
+    if (recipients.length === 0) return;
+
+    await Promise.allSettled(
+      recipients.map(async (recipient) => {
+        if (!recipient.providerMessageId) return;
+        try {
+          const emailData = await emailService.getEmail(recipient.providerMessageId);
+          if (!emailData || !emailData.last_event) return;
+
+          const lastEvent = String(emailData.last_event).toLowerCase();
+          let newStatus: CampaignRecipientStatus | null = null;
+
+          if (lastEvent === "clicked") newStatus = CampaignRecipientStatus.CLICKED;
+          else if (lastEvent === "opened") newStatus = CampaignRecipientStatus.OPENED;
+          else if (lastEvent === "delivered") newStatus = CampaignRecipientStatus.DELIVERED;
+          else if (lastEvent === "bounced" || lastEvent === "complained") newStatus = CampaignRecipientStatus.BOUNCED;
+          else if (lastEvent === "failed") newStatus = CampaignRecipientStatus.FAILED;
+
+          if (!newStatus) return;
+
+          const currentPriority = this.statusPriority[recipient.status] ?? 0;
+          const newPriority = this.statusPriority[newStatus] ?? 0;
+
+          if (newPriority > currentPriority || newStatus === CampaignRecipientStatus.BOUNCED || newStatus === CampaignRecipientStatus.FAILED) {
+            const now = new Date();
+            const updateData: any = { status: newStatus };
+            if (newStatus === CampaignRecipientStatus.DELIVERED && !recipient.deliveredAt) updateData.deliveredAt = now;
+            if (newStatus === CampaignRecipientStatus.OPENED) {
+              if (!recipient.openedAt) updateData.openedAt = now;
+              if (!recipient.deliveredAt) updateData.deliveredAt = now;
+            }
+            if (newStatus === CampaignRecipientStatus.CLICKED) {
+              if (!recipient.clickedAt) updateData.clickedAt = now;
+              if (!recipient.openedAt) updateData.openedAt = now;
+              if (!recipient.deliveredAt) updateData.deliveredAt = now;
+            }
+
+            await prisma.campaignRecipient.update({
+              where: { id: recipient.id },
+              data: updateData,
+            });
+            console.log(`[Tracking] Recipient ${recipient.id} synced to ${newStatus} from Resend.`);
+          }
+        } catch (err: any) {
+          // ignore individual sync errors
+        }
+      })
+    );
+  }
+
   async getTrackingSummary(campaignId: string): Promise<CampaignTrackingSummary> {
     const campaign = await this.trackingRepo.findCampaignById(campaignId);
     if (!campaign) {
       throw new AppError(`Campaign with ID '${campaignId}' not found.`, 404);
+    }
+
+    try {
+      await this.syncWithProvider(campaignId);
+    } catch (err) {
+      console.warn(`[Tracking] Live sync with Resend failed:`, err);
     }
 
     return this.trackingRepo.getTrackingSummary(campaignId);
