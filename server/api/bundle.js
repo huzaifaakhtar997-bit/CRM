@@ -121204,9 +121204,47 @@ var CampaignController = class {
 };
 var campaignController = new CampaignController(campaignService);
 
+// src/controllers/campaign-launch.controller.ts
+var CampaignLaunchController = class {
+  constructor(launchServ) {
+    this.launchServ = launchServ;
+    this.launch = async (req, res, next) => {
+      try {
+        if (!req.user) throw new AppError("Authentication required.", 401);
+        const campaignId = Array.isArray(req.params.campaignId) ? req.params.campaignId[0] : req.params.campaignId;
+        const outcome = await this.launchServ.launchCampaign(campaignId, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Campaign launched successfully.",
+          data: outcome,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.processScheduled = async (_req, res, next) => {
+      try {
+        const launchedCount = await this.launchServ.processScheduledCampaigns();
+        res.status(200).json({
+          success: true,
+          message: `Processed scheduled campaigns. Launched: ${launchedCount}.`,
+          data: { launchedCount },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var campaignLaunchController = new CampaignLaunchController(campaignLaunchService);
+
 // src/routes/campaign.routes.ts
 var import_client44 = require("@prisma/client");
 var router16 = (0, import_express16.Router)();
+router16.post("/process-scheduled", campaignLaunchController.processScheduled);
+router16.get("/process-scheduled", campaignLaunchController.processScheduled);
 router16.use(authenticate);
 router16.get(
   "/",
@@ -122139,44 +122177,6 @@ var campaign_test_routes_default = router19;
 
 // src/routes/campaign-launch.routes.ts
 var import_express20 = __toESM(require_express2());
-
-// src/controllers/campaign-launch.controller.ts
-var CampaignLaunchController = class {
-  constructor(launchServ) {
-    this.launchServ = launchServ;
-    this.launch = async (req, res, next) => {
-      try {
-        if (!req.user) throw new AppError("Authentication required.", 401);
-        const campaignId = Array.isArray(req.params.campaignId) ? req.params.campaignId[0] : req.params.campaignId;
-        const outcome = await this.launchServ.launchCampaign(campaignId, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Campaign launched successfully.",
-          data: outcome,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.processScheduled = async (_req, res, next) => {
-      try {
-        const launchedCount = await this.launchServ.processScheduledCampaigns();
-        res.status(200).json({
-          success: true,
-          message: `Processed scheduled campaigns. Launched: ${launchedCount}.`,
-          data: { launchedCount },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var campaignLaunchController = new CampaignLaunchController(campaignLaunchService);
-
-// src/routes/campaign-launch.routes.ts
 var import_client53 = require("@prisma/client");
 var router20 = (0, import_express20.Router)();
 router20.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);

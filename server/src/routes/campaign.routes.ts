@@ -1,10 +1,15 @@
 import { Router } from "express";
 import { campaignController } from "../controllers/campaign.controller";
+import { campaignLaunchController } from "../controllers/campaign-launch.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorize } from "../middleware/rbac.middleware";
 import { UserRole } from "@prisma/client";
 
 const router = Router();
+
+// Process scheduled campaigns endpoint
+router.post("/process-scheduled", campaignLaunchController.processScheduled);
+router.get("/process-scheduled", campaignLaunchController.processScheduled);
 
 // All campaign routes require a valid JWT
 router.use(authenticate);
