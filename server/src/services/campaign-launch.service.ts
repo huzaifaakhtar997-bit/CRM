@@ -39,10 +39,26 @@ export class CampaignLaunchService {
       );
     }
 
-    // 4. Ensure recipient list size > 0
-    const recipientsCount = await this.launchRepo.getRecipientsCount(campaignId);
+    // 4. Ensure recipient list size > 0 (or auto-assign all contacts with email)
+    let recipientsCount = await this.launchRepo.getRecipientsCount(campaignId);
     if (recipientsCount === 0) {
-      throw new AppError("Campaign must have at least one recipient assigned before launch.", 422);
+      const contacts = await prisma.contact.findMany({
+        where: { email: { not: null } },
+        select: { id: true },
+      });
+      if (contacts.length === 0) {
+        throw new AppError("No contacts with email addresses exist in your CRM. Please add at least one contact first.", 422);
+      }
+      await prisma.campaignRecipient.createMany({
+        data: contacts.map((c) => ({
+          campaignId,
+          contactId: c.id,
+          status: "PENDING",
+        })),
+        skipDuplicates: true,
+      });
+      recipientsCount = contacts.length;
+      console.log(`[CampaignLaunch] Auto-assigned ${contacts.length} contact(s) to campaign ${campaignId}`);
     }
 
     // 5. Query pending recipients

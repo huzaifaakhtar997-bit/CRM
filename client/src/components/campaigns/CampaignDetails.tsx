@@ -69,6 +69,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
       } else {
         setTracking(null);
       }
+      await loadRecipients();
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Failed to load campaign.");
     } finally {
@@ -103,11 +104,25 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
   };
 
   const handleLaunch = async () => {
-    if (!window.confirm("Are you sure you want to launch this campaign? This cannot be undone.")) return;
+    if (recipients.length === 0) {
+      const autoTarget = window.confirm(
+        "No specific audience has been added to this campaign yet.\n\nClick OK to automatically send to ALL contacts with email addresses, or Cancel to customize your audience first."
+      );
+      if (!autoTarget) {
+        setActiveTab("audience");
+        return;
+      }
+    } else {
+      if (!window.confirm(`Are you sure you want to launch this campaign to ${recipients.length} recipient(s)? This cannot be undone.`)) {
+        return;
+      }
+    }
+
     setLaunching(true);
     try {
       await campaignsApi.launchCampaign(campaignId!);
       await loadCampaignData();
+      await loadRecipients();
       alert("Campaign launched successfully!");
     } catch (err: any) {
       alert(err.response?.data?.message || err.message || "Failed to launch campaign.");
@@ -298,9 +313,9 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
               {/* AUDIENCE TAB */}
               {activeTab === "audience" && (
                 <div className="space-y-6">
-                  {campaign.status !== "DRAFT" ? (
+                  {campaign.status === "ACTIVE" || campaign.status === "COMPLETED" ? (
                     <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm border border-amber-200">
-                      Audience cannot be modified because the campaign is no longer in DRAFT state.
+                      Audience cannot be modified because the campaign has already been launched.
                     </div>
                   ) : !canWrite ? (
                     <div className="bg-gray-50 text-gray-800 p-4 rounded-xl text-sm border">
@@ -349,7 +364,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                         <h3 className="text-sm font-bold text-foreground">
                           Preview Results <span className="text-muted-foreground font-normal">({previewData.total} matching)</span>
                         </h3>
-                        {canWrite && campaign.status === "DRAFT" && (
+                        {canWrite && campaign.status !== "ACTIVE" && campaign.status !== "COMPLETED" && (
                           <Button onClick={handleApplyAudience} disabled={applying || previewData.total === 0} size="sm" className="gap-2">
                             {applying && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                             Apply Audience
@@ -434,7 +449,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-right">
-                                {canWrite && campaign.status === "DRAFT" && (
+                                {canWrite && campaign.status !== "ACTIVE" && campaign.status !== "COMPLETED" && (
                                   <button
                                     onClick={() => handleRemoveRecipient(r.id)}
                                     className="text-xs text-destructive hover:underline"
