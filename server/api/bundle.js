@@ -120663,7 +120663,7 @@ var conversation_contact_routes_default = router15;
 var import_express16 = __toESM(require_express2());
 
 // src/services/campaign.service.ts
-var import_client41 = require("@prisma/client");
+var import_client42 = require("@prisma/client");
 
 // src/repositories/campaign.repository.ts
 var campaignInclude = {
@@ -120738,6 +120738,183 @@ var CampaignRepository = class {
 };
 var campaignRepository = new CampaignRepository();
 
+// src/services/campaign-launch.service.ts
+var import_client41 = require("@prisma/client");
+
+// src/repositories/campaign-launch.repository.ts
+var CampaignLaunchRepository = class {
+  async findCampaignById(id) {
+    return prisma.campaign.findUnique({
+      where: { id }
+    });
+  }
+  async getRecipientsCount(campaignId) {
+    return prisma.campaignRecipient.count({
+      where: { campaignId }
+    });
+  }
+  async getPendingRecipients(campaignId) {
+    return prisma.campaignRecipient.findMany({
+      where: {
+        campaignId,
+        status: "PENDING"
+      },
+      include: {
+        contact: {
+          select: { id: true, email: true, firstName: true, lastName: true }
+        }
+      }
+    });
+  }
+};
+var campaignLaunchRepository = new CampaignLaunchRepository();
+
+// src/services/campaign-launch.service.ts
+var CampaignLaunchService = class {
+  constructor(launchRepo) {
+    this.launchRepo = launchRepo;
+  }
+  async launchCampaign(campaignId, currentUserId) {
+    const campaign = await this.launchRepo.findCampaignById(campaignId);
+    if (!campaign) {
+      throw new AppError(`Campaign with ID '${campaignId}' not found.`, 404);
+    }
+    if (campaign.status === "ACTIVE" || campaign.status === "COMPLETED") {
+      throw new AppError(`Campaign has already been launched (status: ${campaign.status}).`, 409);
+    }
+    if (campaign.status === "PAUSED") {
+      throw new AppError("Paused campaigns cannot be launched directly.", 409);
+    }
+    if (!campaign.name || !campaign.subject || !campaign.content) {
+      throw new AppError(
+        "Campaign is incomplete. Name, subject, and content/body are required before launching.",
+        422
+      );
+    }
+    const recipientsCount = await this.launchRepo.getRecipientsCount(campaignId);
+    if (recipientsCount === 0) {
+      throw new AppError("Campaign must have at least one recipient assigned before launch.", 422);
+    }
+    const pendingRecipients = await this.launchRepo.getPendingRecipients(campaignId);
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: {
+        status: "ACTIVE",
+        sentAt: /* @__PURE__ */ new Date()
+      }
+    });
+    let successCount = 0;
+    let failCount = 0;
+    for (const recipient of pendingRecipients) {
+      const emailAddress = recipient.contact?.email;
+      if (!emailAddress) {
+        await prisma.campaignRecipient.update({
+          where: { id: recipient.id },
+          data: {
+            status: "FAILED",
+            errorMessage: "Contact has no email address"
+          }
+        });
+        failCount++;
+        continue;
+      }
+      try {
+        const result = await emailService.sendEmail({
+          from: config.emailFromAddress,
+          to: emailAddress,
+          subject: campaign.subject,
+          html: campaign.content
+        });
+        await prisma.campaignRecipient.update({
+          where: { id: recipient.id },
+          data: {
+            status: "SENT",
+            sentAt: /* @__PURE__ */ new Date(),
+            providerMessageId: result.id
+            // Store real tracking ID
+          }
+        });
+        successCount++;
+      } catch (err) {
+        const safeErrorMessage = err.message || "Unknown provider error";
+        await prisma.campaignRecipient.update({
+          where: { id: recipient.id },
+          data: {
+            status: "FAILED",
+            errorMessage: safeErrorMessage.substring(0, 255)
+            // Safe truncation
+          }
+        });
+        failCount++;
+      }
+    }
+    await prisma.activity.create({
+      data: {
+        type: import_client41.ActivityType.NOTE,
+        title: "Campaign Launched",
+        content: `Campaign "${campaign.name}" dispatched. Successful: ${successCount}. Failed: ${failCount}.`,
+        userId: currentUserId,
+        metadata: {
+          campaignId,
+          campaignName: campaign.name,
+          successCount,
+          failCount
+        }
+      }
+    });
+    return {
+      campaignId,
+      status: "ACTIVE",
+      processedRecipients: pendingRecipients.length,
+      queuedRecipients: successCount,
+      failedRecipients: failCount
+    };
+  }
+  async processScheduledCampaigns() {
+    const now = /* @__PURE__ */ new Date();
+    const dueCampaigns = await prisma.campaign.findMany({
+      where: {
+        status: "SCHEDULED",
+        scheduledAt: { not: null, lte: now }
+      },
+      include: {
+        recipients: { select: { id: true } }
+      }
+    });
+    if (dueCampaigns.length === 0) return 0;
+    console.log(`[Scheduler] Found ${dueCampaigns.length} scheduled campaign(s) due for launch.`);
+    let launchedCount = 0;
+    for (const campaign of dueCampaigns) {
+      try {
+        if (campaign.recipients.length === 0) {
+          const contacts = await prisma.contact.findMany({
+            where: { email: { not: null } },
+            select: { id: true }
+          });
+          if (contacts.length > 0) {
+            await prisma.campaignRecipient.createMany({
+              data: contacts.map((c) => ({
+                campaignId: campaign.id,
+                contactId: c.id,
+                status: "PENDING"
+              })),
+              skipDuplicates: true
+            });
+            console.log(`[Scheduler] Auto-assigned ${contacts.length} recipient(s) to scheduled campaign "${campaign.name}"`);
+          }
+        }
+        await this.launchCampaign(campaign.id, campaign.ownerId || "system");
+        launchedCount++;
+        console.log(`[Scheduler] Successfully launched scheduled campaign "${campaign.name}" (${campaign.id})`);
+      } catch (err) {
+        console.error(`[Scheduler] Failed to launch scheduled campaign ${campaign.id}:`, err?.message || err);
+      }
+    }
+    return launchedCount;
+  }
+};
+var campaignLaunchService = new CampaignLaunchService(campaignLaunchRepository);
+
 // src/services/campaign.service.ts
 var CampaignService = class {
   constructor(campaignRepo) {
@@ -120752,6 +120929,7 @@ var CampaignService = class {
         409
       );
     }
+    const initialStatus = input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() ? import_client42.CampaignStatus.SCHEDULED : import_client42.CampaignStatus.DRAFT;
     const campaign = await prisma.$transaction(async (tx) => {
       const newCampaign = await tx.campaign.create({
         data: {
@@ -120761,7 +120939,7 @@ var CampaignService = class {
           previewText: input.previewText ?? null,
           content: input.content ?? null,
           scheduledAt: input.scheduledAt ?? null,
-          // status defaults to DRAFT via the Prisma schema
+          status: initialStatus,
           ownerId: currentUserId
         },
         include: {
@@ -120770,9 +120948,9 @@ var CampaignService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client41.ActivityType.NOTE,
+          type: import_client42.ActivityType.NOTE,
           title: "Campaign Created",
-          content: `Created campaign "${newCampaign.name}"`,
+          content: `Created campaign "${newCampaign.name}" (${newCampaign.status})`,
           userId: currentUserId,
           metadata: {
             campaignId: newCampaign.id,
@@ -120787,10 +120965,20 @@ var CampaignService = class {
   }
   // ── READ (list) ───────────────────────────────────────────────────────────
   async getCampaigns(query) {
+    try {
+      await campaignLaunchService.processScheduledCampaigns();
+    } catch (err) {
+      console.warn("[Scheduler] Auto-check on getCampaigns skipped:", err);
+    }
     return this.campaignRepo.findAll(query);
   }
   // ── READ (single) ─────────────────────────────────────────────────────────
   async getCampaignById(id) {
+    try {
+      await campaignLaunchService.processScheduledCampaigns();
+    } catch (err) {
+      console.warn("[Scheduler] Auto-check on getCampaignById skipped:", err);
+    }
     const campaign = await this.campaignRepo.findById(id);
     if (!campaign) {
       throw new AppError(`Campaign with ID '${id}' not found.`, 404);
@@ -120812,13 +121000,17 @@ var CampaignService = class {
         );
       }
     }
+    let targetStatus = input.status;
+    if (!targetStatus && input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() && existing.status !== import_client42.CampaignStatus.ACTIVE && existing.status !== import_client42.CampaignStatus.COMPLETED) {
+      targetStatus = import_client42.CampaignStatus.SCHEDULED;
+    }
     const updated = await prisma.$transaction(async (tx) => {
       const updatedCampaign = await tx.campaign.update({
         where: { id },
         data: {
           ...input.name !== void 0 && { name: input.name },
           ...input.objective !== void 0 && { objective: input.objective },
-          ...input.status !== void 0 && { status: input.status },
+          ...targetStatus !== void 0 && { status: targetStatus },
           ...input.subject !== void 0 && { subject: input.subject },
           ...input.previewText !== void 0 && { previewText: input.previewText },
           ...input.content !== void 0 && { content: input.content },
@@ -120830,7 +121022,7 @@ var CampaignService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client41.ActivityType.NOTE,
+          type: import_client42.ActivityType.NOTE,
           title: "Campaign Updated",
           content: `Updated campaign "${updatedCampaign.name}"`,
           userId: currentUserId,
@@ -120855,7 +121047,7 @@ var CampaignService = class {
       await tx.campaign.delete({ where: { id } });
       await tx.activity.create({
         data: {
-          type: import_client41.ActivityType.NOTE,
+          type: import_client42.ActivityType.NOTE,
           title: "Campaign Deleted",
           content: `Deleted campaign "${existing.name}"`,
           userId: currentUserId,
@@ -120872,7 +121064,7 @@ var CampaignService = class {
 var campaignService = new CampaignService(campaignRepository);
 
 // src/validators/campaign.validator.ts
-var import_client42 = require("@prisma/client");
+var import_client43 = require("@prisma/client");
 var createCampaignSchema = external_exports.object({
   name: external_exports.string().min(1, "Campaign name is required").max(255, "Name must be 255 characters or fewer"),
   objective: external_exports.string().max(1e3, "Objective must be 1000 characters or fewer").nullable().optional(),
@@ -120884,7 +121076,7 @@ var createCampaignSchema = external_exports.object({
 var updateCampaignSchema = external_exports.object({
   name: external_exports.string().min(1, "Campaign name cannot be empty").max(255, "Name must be 255 characters or fewer").optional(),
   objective: external_exports.string().max(1e3, "Objective must be 1000 characters or fewer").nullable().optional(),
-  status: external_exports.nativeEnum(import_client42.CampaignStatus).optional(),
+  status: external_exports.nativeEnum(import_client43.CampaignStatus).optional(),
   subject: external_exports.string().max(500, "Subject must be 500 characters or fewer").nullable().optional(),
   previewText: external_exports.string().max(500, "Preview text must be 500 characters or fewer").nullable().optional(),
   content: external_exports.string().nullable().optional(),
@@ -120894,7 +121086,7 @@ var queryCampaignSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 20),
   search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client42.CampaignStatus).optional()
+  status: external_exports.nativeEnum(import_client43.CampaignStatus).optional()
 });
 
 // src/controllers/campaign.controller.ts
@@ -120997,32 +121189,32 @@ var CampaignController = class {
 var campaignController = new CampaignController(campaignService);
 
 // src/routes/campaign.routes.ts
-var import_client43 = require("@prisma/client");
+var import_client44 = require("@prisma/client");
 var router16 = (0, import_express16.Router)();
 router16.use(authenticate);
 router16.get(
   "/",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.SALES_REP, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
+  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.SALES_REP, import_client44.UserRole.MARKETING, import_client44.UserRole.SUPPORT),
   campaignController.getCampaigns
 );
 router16.get(
   "/:id",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.SALES_REP, import_client43.UserRole.MARKETING, import_client43.UserRole.SUPPORT),
+  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.SALES_REP, import_client44.UserRole.MARKETING, import_client44.UserRole.SUPPORT),
   campaignController.getCampaignById
 );
 router16.post(
   "/",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.MARKETING),
+  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
   campaignController.createCampaign
 );
 router16.patch(
   "/:id",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.MARKETING),
+  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
   campaignController.updateCampaign
 );
 router16.delete(
   "/:id",
-  authorize(import_client43.UserRole.ADMIN, import_client43.UserRole.MANAGER, import_client43.UserRole.MARKETING),
+  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
   campaignController.deleteCampaign
 );
 var campaign_routes_default = router16;
@@ -121031,7 +121223,7 @@ var campaign_routes_default = router16;
 var import_express17 = __toESM(require_express2());
 
 // src/services/campaign-audience.service.ts
-var import_client44 = require("@prisma/client");
+var import_client45 = require("@prisma/client");
 
 // src/repositories/campaign-audience.repository.ts
 var CampaignAudienceRepository = class {
@@ -121205,7 +121397,7 @@ var CampaignAudienceService = class {
       }
       await tx.activity.create({
         data: {
-          type: import_client44.ActivityType.NOTE,
+          type: import_client45.ActivityType.NOTE,
           title: "Campaign Audience Applied",
           content: `Added ${contactIdsToInsert.length} recipients to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121254,7 +121446,7 @@ var CampaignAudienceService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client44.ActivityType.NOTE,
+          type: import_client45.ActivityType.NOTE,
           title: "Campaign Recipient Removed",
           content: `Removed recipient "${contactName}" from campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121273,9 +121465,9 @@ var CampaignAudienceService = class {
 var campaignAudienceService = new CampaignAudienceService(campaignAudienceRepository);
 
 // src/validators/campaign-audience.validator.ts
-var import_client45 = require("@prisma/client");
+var import_client46 = require("@prisma/client");
 var audienceFilterSchema = external_exports.object({
-  lifecycleStage: external_exports.nativeEnum(import_client45.LifecycleStage).optional(),
+  lifecycleStage: external_exports.nativeEnum(import_client46.LifecycleStage).optional(),
   companyId: external_exports.string().optional(),
   assignedUserId: external_exports.string().optional(),
   tags: external_exports.array(external_exports.string()).optional(),
@@ -121380,27 +121572,27 @@ var CampaignAudienceController = class {
 var campaignAudienceController = new CampaignAudienceController(campaignAudienceService);
 
 // src/routes/campaign-audience.routes.ts
-var import_client46 = require("@prisma/client");
+var import_client47 = require("@prisma/client");
 var router17 = (0, import_express17.Router)();
 router17.use(authenticate);
 router17.get(
   "/campaigns/:campaignId/audience",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.SALES_REP, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
+  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.SALES_REP, import_client47.UserRole.MARKETING, import_client47.UserRole.SUPPORT),
   campaignAudienceController.getAudience
 );
 router17.post(
   "/campaigns/:campaignId/audience/preview",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.SALES_REP, import_client46.UserRole.MARKETING, import_client46.UserRole.SUPPORT),
+  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.SALES_REP, import_client47.UserRole.MARKETING, import_client47.UserRole.SUPPORT),
   campaignAudienceController.previewAudience
 );
 router17.post(
   "/campaigns/:campaignId/audience/apply",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.MARKETING),
+  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.MARKETING),
   campaignAudienceController.applyAudience
 );
 router17.delete(
   "/campaigns/:campaignId/audience/:recipientId",
-  authorize(import_client46.UserRole.ADMIN, import_client46.UserRole.MANAGER, import_client46.UserRole.MARKETING),
+  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.MARKETING),
   campaignAudienceController.removeRecipient
 );
 var campaign_audience_routes_default = router17;
@@ -121409,7 +121601,7 @@ var campaign_audience_routes_default = router17;
 var import_express18 = __toESM(require_express2());
 
 // src/services/campaign-recipient.service.ts
-var import_client47 = require("@prisma/client");
+var import_client48 = require("@prisma/client");
 
 // src/repositories/campaign-recipient.repository.ts
 var CampaignRecipientRepository = class {
@@ -121540,7 +121732,7 @@ var CampaignRecipientService = class {
       const contactName = `${contact.firstName} ${contact.lastName}`;
       await tx.activity.create({
         data: {
-          type: import_client47.ActivityType.NOTE,
+          type: import_client48.ActivityType.NOTE,
           title: "Campaign Recipient Added",
           content: `Added contact "${contactName}" to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121585,7 +121777,7 @@ var CampaignRecipientService = class {
       }
       await tx.activity.create({
         data: {
-          type: import_client47.ActivityType.NOTE,
+          type: import_client48.ActivityType.NOTE,
           title: "Campaign Recipients Added",
           content: `Added ${contactIdsToInsert.length} recipients to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121641,7 +121833,7 @@ var CampaignRecipientService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client47.ActivityType.NOTE,
+          type: import_client48.ActivityType.NOTE,
           title: "Campaign Recipient Removed",
           content: `Removed recipient "${contactName}" from campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121660,7 +121852,7 @@ var CampaignRecipientService = class {
 var campaignRecipientService = new CampaignRecipientService(campaignRecipientRepository);
 
 // src/validators/campaign-recipient.validator.ts
-var import_client48 = require("@prisma/client");
+var import_client49 = require("@prisma/client");
 var addRecipientSchema = external_exports.object({
   contactId: external_exports.string().min(1, "Contact ID is required")
 });
@@ -121673,7 +121865,7 @@ var queryCampaignRecipientSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 20),
   search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client48.CampaignRecipientStatus).optional()
+  status: external_exports.nativeEnum(import_client49.CampaignRecipientStatus).optional()
 });
 
 // src/controllers/campaign-recipient.controller.ts
@@ -121775,32 +121967,32 @@ var CampaignRecipientController = class {
 var campaignRecipientController = new CampaignRecipientController(campaignRecipientService);
 
 // src/routes/campaign-recipient.routes.ts
-var import_client49 = require("@prisma/client");
+var import_client50 = require("@prisma/client");
 var router18 = (0, import_express18.Router)();
 router18.use(authenticate);
 router18.get(
   "/campaigns/:campaignId/recipients",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.SALES_REP, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
+  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.SALES_REP, import_client50.UserRole.MARKETING, import_client50.UserRole.SUPPORT),
   campaignRecipientController.getRecipients
 );
 router18.get(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.SALES_REP, import_client49.UserRole.MARKETING, import_client49.UserRole.SUPPORT),
+  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.SALES_REP, import_client50.UserRole.MARKETING, import_client50.UserRole.SUPPORT),
   campaignRecipientController.getRecipientDetails
 );
 router18.post(
   "/campaigns/:campaignId/recipients",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.MARKETING),
+  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
   campaignRecipientController.addRecipient
 );
 router18.post(
   "/campaigns/:campaignId/recipients/bulk",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.MARKETING),
+  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
   campaignRecipientController.bulkAddRecipients
 );
 router18.delete(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(import_client49.UserRole.ADMIN, import_client49.UserRole.MANAGER, import_client49.UserRole.MARKETING),
+  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
   campaignRecipientController.removeRecipient
 );
 var campaign_recipient_routes_default = router18;
@@ -121809,7 +122001,7 @@ var campaign_recipient_routes_default = router18;
 var import_express19 = __toESM(require_express2());
 
 // src/services/campaign-test.service.ts
-var import_client50 = require("@prisma/client");
+var import_client51 = require("@prisma/client");
 
 // src/repositories/campaign-test.repository.ts
 var CampaignTestRepository = class {
@@ -121846,7 +122038,7 @@ var CampaignTestService = class {
       });
       await prisma.activity.create({
         data: {
-          type: import_client50.ActivityType.EMAIL,
+          type: import_client51.ActivityType.EMAIL,
           title: "Campaign Test Send Successful",
           content: `Test send delivered for campaign "${campaign.name}" to ${recipientEmail}`,
           userId: currentUserId,
@@ -121866,7 +122058,7 @@ var CampaignTestService = class {
     } catch (err) {
       await prisma.activity.create({
         data: {
-          type: import_client50.ActivityType.EMAIL,
+          type: import_client51.ActivityType.EMAIL,
           title: "Campaign Test Send Failed",
           content: `Test send failed for campaign "${campaign.name}" to ${recipientEmail}: ${err.message}`,
           userId: currentUserId,
@@ -121919,153 +122111,18 @@ var CampaignTestController = class {
 var campaignTestController = new CampaignTestController(campaignTestService);
 
 // src/routes/campaign-test.routes.ts
-var import_client51 = require("@prisma/client");
+var import_client52 = require("@prisma/client");
 var router19 = (0, import_express19.Router)();
 router19.use(authenticate);
 router19.post(
   "/campaigns/:campaignId/test-send",
-  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.MARKETING),
+  authorize(import_client52.UserRole.ADMIN, import_client52.UserRole.MANAGER, import_client52.UserRole.MARKETING),
   campaignTestController.testSend
 );
 var campaign_test_routes_default = router19;
 
 // src/routes/campaign-launch.routes.ts
 var import_express20 = __toESM(require_express2());
-
-// src/services/campaign-launch.service.ts
-var import_client52 = require("@prisma/client");
-
-// src/repositories/campaign-launch.repository.ts
-var CampaignLaunchRepository = class {
-  async findCampaignById(id) {
-    return prisma.campaign.findUnique({
-      where: { id }
-    });
-  }
-  async getRecipientsCount(campaignId) {
-    return prisma.campaignRecipient.count({
-      where: { campaignId }
-    });
-  }
-  async getPendingRecipients(campaignId) {
-    return prisma.campaignRecipient.findMany({
-      where: {
-        campaignId,
-        status: "PENDING"
-      },
-      include: {
-        contact: {
-          select: { id: true, email: true, firstName: true, lastName: true }
-        }
-      }
-    });
-  }
-};
-var campaignLaunchRepository = new CampaignLaunchRepository();
-
-// src/services/campaign-launch.service.ts
-var CampaignLaunchService = class {
-  constructor(launchRepo) {
-    this.launchRepo = launchRepo;
-  }
-  async launchCampaign(campaignId, currentUserId) {
-    const campaign = await this.launchRepo.findCampaignById(campaignId);
-    if (!campaign) {
-      throw new AppError(`Campaign with ID '${campaignId}' not found.`, 404);
-    }
-    if (campaign.status === "ACTIVE" || campaign.status === "COMPLETED") {
-      throw new AppError(`Campaign has already been launched (status: ${campaign.status}).`, 409);
-    }
-    if (campaign.status === "PAUSED") {
-      throw new AppError("Paused campaigns cannot be launched directly.", 409);
-    }
-    if (!campaign.name || !campaign.subject || !campaign.content) {
-      throw new AppError(
-        "Campaign is incomplete. Name, subject, and content/body are required before launching.",
-        422
-      );
-    }
-    const recipientsCount = await this.launchRepo.getRecipientsCount(campaignId);
-    if (recipientsCount === 0) {
-      throw new AppError("Campaign must have at least one recipient assigned before launch.", 422);
-    }
-    const pendingRecipients = await this.launchRepo.getPendingRecipients(campaignId);
-    await prisma.campaign.update({
-      where: { id: campaignId },
-      data: {
-        status: "ACTIVE",
-        sentAt: /* @__PURE__ */ new Date()
-      }
-    });
-    let successCount = 0;
-    let failCount = 0;
-    for (const recipient of pendingRecipients) {
-      const emailAddress = recipient.contact?.email;
-      if (!emailAddress) {
-        await prisma.campaignRecipient.update({
-          where: { id: recipient.id },
-          data: {
-            status: "FAILED",
-            errorMessage: "Contact has no email address"
-          }
-        });
-        failCount++;
-        continue;
-      }
-      try {
-        const result = await emailService.sendEmail({
-          from: config.emailFromAddress,
-          to: emailAddress,
-          subject: campaign.subject,
-          html: campaign.content
-        });
-        await prisma.campaignRecipient.update({
-          where: { id: recipient.id },
-          data: {
-            status: "SENT",
-            sentAt: /* @__PURE__ */ new Date(),
-            providerMessageId: result.id
-            // Store real tracking ID
-          }
-        });
-        successCount++;
-      } catch (err) {
-        const safeErrorMessage = err.message || "Unknown provider error";
-        await prisma.campaignRecipient.update({
-          where: { id: recipient.id },
-          data: {
-            status: "FAILED",
-            errorMessage: safeErrorMessage.substring(0, 255)
-            // Safe truncation
-          }
-        });
-        failCount++;
-      }
-    }
-    await prisma.activity.create({
-      data: {
-        type: import_client52.ActivityType.NOTE,
-        title: "Campaign Launched",
-        content: `Campaign "${campaign.name}" dispatched. Successful: ${successCount}. Failed: ${failCount}.`,
-        userId: currentUserId,
-        metadata: {
-          campaignId,
-          campaignName: campaign.name,
-          successCount,
-          failCount
-        }
-      }
-    });
-    return {
-      campaignId,
-      status: "ACTIVE",
-      processedRecipients: pendingRecipients.length,
-      queuedRecipients: successCount,
-      failedRecipients: failCount
-    };
-  }
-};
-var campaignLaunchService = new CampaignLaunchService(campaignLaunchRepository);
 
 // src/controllers/campaign-launch.controller.ts
 var CampaignLaunchController = class {
@@ -122086,6 +122143,19 @@ var CampaignLaunchController = class {
         next(error51);
       }
     };
+    this.processScheduled = async (_req, res, next) => {
+      try {
+        const launchedCount = await this.launchServ.processScheduledCampaigns();
+        res.status(200).json({
+          success: true,
+          message: `Processed scheduled campaigns. Launched: ${launchedCount}.`,
+          data: { launchedCount },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
   }
 };
 var campaignLaunchController = new CampaignLaunchController(campaignLaunchService);
@@ -122093,6 +122163,8 @@ var campaignLaunchController = new CampaignLaunchController(campaignLaunchServic
 // src/routes/campaign-launch.routes.ts
 var import_client53 = require("@prisma/client");
 var router20 = (0, import_express20.Router)();
+router20.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router20.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
 router20.use(authenticate);
 router20.post(
   "/campaigns/:campaignId/launch",

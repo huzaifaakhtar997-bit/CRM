@@ -23,6 +23,20 @@ export class CampaignLaunchController {
       next(error);
     }
   };
+
+  processScheduled = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const launchedCount = await this.launchServ.processScheduledCampaigns();
+      res.status(200).json({
+        success: true,
+        message: `Processed scheduled campaigns. Launched: ${launchedCount}.`,
+        data: { launchedCount },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export const campaignLaunchController = new CampaignLaunchController(campaignLaunchService);

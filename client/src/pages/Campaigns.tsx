@@ -59,7 +59,20 @@ export const Campaigns: React.FC = () => {
 
   useEffect(() => {
     fetchCampaigns();
-  }, [fetchCampaigns]);
+    const interval = setInterval(() => {
+      campaignsApi.getCampaigns({
+        page,
+        limit,
+        search: filters.search || undefined,
+        status: filters.status || undefined,
+      }).then((res) => {
+        setCampaigns(res.data.campaigns || []);
+        setTotal(res.data.total);
+        setTotalPages(res.data.totalPages);
+      }).catch(() => {});
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchCampaigns, page, filters]);
 
   const handleFilterChange = useCallback(
     (newFilters: { search: string; status: CampaignStatus | "" }) => {

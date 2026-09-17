@@ -138,6 +138,57 @@ export class CampaignLaunchService {
       failedRecipients: failCount,
     };
   }
+
+  async processScheduledCampaigns(): Promise<number> {
+    const now = new Date();
+    // Find campaigns that are SCHEDULED whose scheduledAt is <= now
+    const dueCampaigns = await prisma.campaign.findMany({
+      where: {
+        status: "SCHEDULED",
+        scheduledAt: { not: null, lte: now },
+      },
+      include: {
+        recipients: { select: { id: true } },
+      },
+    });
+
+    if (dueCampaigns.length === 0) return 0;
+
+    console.log(`[Scheduler] Found ${dueCampaigns.length} scheduled campaign(s) due for launch.`);
+
+    let launchedCount = 0;
+    for (const campaign of dueCampaigns) {
+      try {
+        // If the campaign has 0 recipients, automatically assign all contacts with emails
+        if (campaign.recipients.length === 0) {
+          const contacts = await prisma.contact.findMany({
+            where: { email: { not: null } },
+            select: { id: true },
+          });
+          if (contacts.length > 0) {
+            await prisma.campaignRecipient.createMany({
+              data: contacts.map((c) => ({
+                campaignId: campaign.id,
+                contactId: c.id,
+                status: "PENDING",
+              })),
+              skipDuplicates: true,
+            });
+            console.log(`[Scheduler] Auto-assigned ${contacts.length} recipient(s) to scheduled campaign "${campaign.name}"`);
+          }
+        }
+
+        // Launch campaign
+        await this.launchCampaign(campaign.id, campaign.ownerId || "system");
+        launchedCount++;
+        console.log(`[Scheduler] Successfully launched scheduled campaign "${campaign.name}" (${campaign.id})`);
+      } catch (err: any) {
+        console.error(`[Scheduler] Failed to launch scheduled campaign ${campaign.id}:`, err?.message || err);
+      }
+    }
+
+    return launchedCount;
+  }
 }
 
 export const campaignLaunchService = new CampaignLaunchService(campaignLaunchRepository);

@@ -1,4 +1,4 @@
-import { Campaign, ActivityType } from "@prisma/client";
+import { Campaign, ActivityType, CampaignStatus } from "@prisma/client";
 import {
   campaignRepository,
   CampaignRepository,
@@ -11,6 +11,7 @@ import {
   QueryCampaignInput,
 } from "../validators/campaign.validator";
 import { AppError } from "../types/auth.types";
+import { campaignLaunchService } from "./campaign-launch.service";
 
 export class CampaignService {
   constructor(private campaignRepo: CampaignRepository) {}
@@ -27,6 +28,10 @@ export class CampaignService {
       );
     }
 
+    const initialStatus = input.scheduledAt && new Date(input.scheduledAt) > new Date()
+      ? CampaignStatus.SCHEDULED
+      : CampaignStatus.DRAFT;
+
     const campaign = await prisma.$transaction(async (tx) => {
       const newCampaign = await tx.campaign.create({
         data: {
@@ -36,7 +41,7 @@ export class CampaignService {
           previewText: input.previewText ?? null,
           content: input.content ?? null,
           scheduledAt: input.scheduledAt ?? null,
-          // status defaults to DRAFT via the Prisma schema
+          status: initialStatus,
           ownerId: currentUserId,
         },
         include: {
@@ -48,7 +53,7 @@ export class CampaignService {
         data: {
           type: ActivityType.NOTE,
           title: "Campaign Created",
-          content: `Created campaign "${newCampaign.name}"`,
+          content: `Created campaign "${newCampaign.name}" (${newCampaign.status})`,
           userId: currentUserId,
           metadata: {
             campaignId: newCampaign.id,
@@ -67,12 +72,22 @@ export class CampaignService {
   // ── READ (list) ───────────────────────────────────────────────────────────
 
   async getCampaigns(query: QueryCampaignInput): Promise<CampaignListResult> {
+    try {
+      await campaignLaunchService.processScheduledCampaigns();
+    } catch (err) {
+      console.warn("[Scheduler] Auto-check on getCampaigns skipped:", err);
+    }
     return this.campaignRepo.findAll(query);
   }
 
   // ── READ (single) ─────────────────────────────────────────────────────────
 
   async getCampaignById(id: string): Promise<Campaign> {
+    try {
+      await campaignLaunchService.processScheduledCampaigns();
+    } catch (err) {
+      console.warn("[Scheduler] Auto-check on getCampaignById skipped:", err);
+    }
     const campaign = await this.campaignRepo.findById(id);
     if (!campaign) {
       throw new AppError(`Campaign with ID '${id}' not found.`, 404);
@@ -104,13 +119,25 @@ export class CampaignService {
       }
     }
 
+    // Auto-update status to SCHEDULED if scheduledAt is set in the future and status not already ACTIVE/COMPLETED
+    let targetStatus = input.status;
+    if (
+      !targetStatus &&
+      input.scheduledAt &&
+      new Date(input.scheduledAt) > new Date() &&
+      existing.status !== CampaignStatus.ACTIVE &&
+      existing.status !== CampaignStatus.COMPLETED
+    ) {
+      targetStatus = CampaignStatus.SCHEDULED;
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       const updatedCampaign = await tx.campaign.update({
         where: { id },
         data: {
           ...(input.name !== undefined && { name: input.name }),
           ...(input.objective !== undefined && { objective: input.objective }),
-          ...(input.status !== undefined && { status: input.status }),
+          ...(targetStatus !== undefined && { status: targetStatus }),
           ...(input.subject !== undefined && { subject: input.subject }),
           ...(input.previewText !== undefined && { previewText: input.previewText }),
           ...(input.content !== undefined && { content: input.content }),

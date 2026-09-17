@@ -6,6 +6,10 @@ import { UserRole } from "@prisma/client";
 
 const router = Router();
 
+// Cron / background endpoint to trigger scheduled campaigns
+router.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+
 // Launch routes require authentication
 router.use(authenticate);
 
