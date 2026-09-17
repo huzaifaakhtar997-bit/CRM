@@ -120,110 +120,145 @@ export class WebhookController {
           if (originalMessage) {
             matchedConversationId = originalMessage.conversationId;
             matchedContactId = originalMessage.conversation.contactId;
-          }
-
-          // MATCHING STRATEGY 1B: In-Reply-To matching a Campaign dispatch!
-          const matchedCampaignRecipient = await prisma.campaignRecipient.findFirst({
-            where: {
-              OR: [
-                { providerMessageId: cleanInReplyTo },
-                { providerMessageId: idWithoutDomain },
-              ],
-            },
-            include: { campaign: true },
-          });
-
-          if (matchedCampaignRecipient) {
-            matchedContactId = matchedCampaignRecipient.contactId;
-            matchedCampaignId = matchedCampaignRecipient.campaignId;
-            matchedCampaignName = matchedCampaignRecipient.campaign.name;
-
-            // Mark CampaignRecipient as REPLIED
-            await prisma.campaignRecipient.update({
-              where: { id: matchedCampaignRecipient.id },
-              data: {
-                status: "REPLIED",
-                repliedAt: matchedCampaignRecipient.repliedAt ?? new Date(),
+            // Explicit reply to a direct conversation message — NOT a campaign!
+          } else {
+            // MATCHING STRATEGY 1B: In-Reply-To matching a Campaign dispatch!
+            const matchedCampaignRecipient = await prisma.campaignRecipient.findFirst({
+              where: {
+                OR: [
+                  { providerMessageId: cleanInReplyTo },
+                  { providerMessageId: idWithoutDomain },
+                ],
               },
+              include: { campaign: true },
             });
+
+            if (matchedCampaignRecipient) {
+              matchedContactId = matchedCampaignRecipient.contactId;
+              matchedCampaignId = matchedCampaignRecipient.campaignId;
+              matchedCampaignName = matchedCampaignRecipient.campaign.name;
+
+              // Mark CampaignRecipient as REPLIED
+              await prisma.campaignRecipient.update({
+                where: { id: matchedCampaignRecipient.id },
+                data: {
+                  status: CampaignRecipientStatus.REPLIED,
+                  repliedAt: matchedCampaignRecipient.repliedAt ?? new Date(),
+                },
+              });
+            }
           }
         }
 
-        // MATCHING STRATEGY 2: Find Contact -> Latest Conversation
-        if (senderEmail) {
-          const contact = await prisma.contact.findFirst({
-            where: { email: { equals: senderEmail, mode: "insensitive" } },
-          });
+        // MATCHING STRATEGY 1C: Subject-based Campaign Matching (fallback if in_reply_to missing/omitted by mail client)
+        if (!matchedConversationId && !matchedCampaignId && senderEmail && subject) {
+          const cleanSubject = subject.replace(/^(re|fwd|fw):\s*/i, "").trim().toLowerCase();
+          if (cleanSubject) {
+            const contact = await prisma.contact.findFirst({
+              where: { email: { equals: senderEmail, mode: "insensitive" } },
+            });
 
-          if (contact) {
-            matchedContactId = contact.id;
+            if (contact) {
+              matchedContactId = contact.id;
 
-            // Check if contact recently received a campaign and mark as REPLIED if not already
-            if (!matchedCampaignId) {
-              const recentCampaignRecip: any = await prisma.campaignRecipient.findFirst({
+              // Only match if the campaign's subject specifically matches the incoming email's subject
+              const matchingCampaignRecip: any = await prisma.campaignRecipient.findFirst({
                 where: {
                   contactId: contact.id,
                   status: { in: [CampaignRecipientStatus.SENT, CampaignRecipientStatus.DELIVERED, CampaignRecipientStatus.REPLIED] },
+                  campaign: {
+                    subject: { equals: cleanSubject, mode: "insensitive" },
+                  },
                 },
                 include: { campaign: true },
                 orderBy: { sentAt: "desc" },
               });
 
-              if (recentCampaignRecip) {
-                matchedCampaignId = recentCampaignRecip.campaignId;
-                matchedCampaignName = recentCampaignRecip.campaign?.name || null;
+              if (matchingCampaignRecip) {
+                matchedCampaignId = matchingCampaignRecip.campaignId;
+                matchedCampaignName = matchingCampaignRecip.campaign?.name || null;
                 await prisma.campaignRecipient.update({
-                  where: { id: recentCampaignRecip.id },
+                  where: { id: matchingCampaignRecip.id },
                   data: {
                     status: CampaignRecipientStatus.REPLIED,
-                    repliedAt: recentCampaignRecip.repliedAt ?? new Date(),
+                    repliedAt: matchingCampaignRecip.repliedAt ?? new Date(),
                   },
                 });
               }
             }
+          }
+        }
 
-            if (!matchedConversationId) {
-              // Find their latest conversation
-              const latestConvo = await prisma.conversation.findFirst({
-                where: { contactId: contact.id },
-                orderBy: { updatedAt: "desc" },
-              });
-              if (latestConvo) {
-                matchedConversationId = latestConvo.id;
-              }
-            }
-          } else {
-            // Check if there is an existing Lead for this email
-            const existingLead = await prisma.lead.findFirst({
+        // MATCHING STRATEGY 2: Find Contact -> Latest Direct Conversation
+        if (senderEmail) {
+          if (!matchedContactId) {
+            const contact = await prisma.contact.findFirst({
               where: { email: { equals: senderEmail, mode: "insensitive" } },
             });
 
-            if (existingLead) {
-              if (existingLead.convertedContactId) {
-                matchedContactId = existingLead.convertedContactId;
-              }
+            if (contact) {
+              matchedContactId = contact.id;
             } else {
-              // No Contact and no Lead exists — auto-create an inbound Lead!
-              try {
-                const cleanSenderName = (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail.split("@")[0];
-                const parts = cleanSenderName.split(/\s+/).filter(Boolean);
-                const firstName = parts[0] || "Inbound";
-                const lastName = parts.slice(1).join(" ") || undefined;
+              // Check if there is an existing Lead for this email
+              const existingLead = await prisma.lead.findFirst({
+                where: { email: { equals: senderEmail, mode: "insensitive" } },
+              });
 
-                const newLead = await prisma.lead.create({
-                  data: {
-                    firstName,
-                    lastName,
-                    email: senderEmail.toLowerCase(),
-                    source: LeadSource.OTHER,
-                    status: LeadStatus.NEW,
-                    notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
-                  },
-                });
-                console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
-              } catch (leadErr: any) {
-                console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
+              if (existingLead) {
+                if (existingLead.convertedContactId) {
+                  matchedContactId = existingLead.convertedContactId;
+                }
+              } else {
+                // No Contact and no Lead exists — auto-create an inbound Lead!
+                try {
+                  const cleanSenderName = (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail.split("@")[0];
+                  const parts = cleanSenderName.split(/\s+/).filter(Boolean);
+                  const firstName = parts[0] || "Inbound";
+                  const lastName = parts.slice(1).join(" ") || undefined;
+
+                  const newLead = await prisma.lead.create({
+                    data: {
+                      firstName,
+                      lastName,
+                      email: senderEmail.toLowerCase(),
+                      source: LeadSource.OTHER,
+                      status: LeadStatus.NEW,
+                      notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
+                    },
+                  });
+                  console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
+                } catch (leadErr: any) {
+                  console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
+                }
               }
+            }
+          }
+
+          // If matched to a campaign, check if there's already an existing thread for that campaign
+          if (matchedContactId && matchedCampaignId && !matchedConversationId) {
+            const existingCampaignConvo = await prisma.conversation.findFirst({
+              where: {
+                contactId: matchedContactId,
+                campaignId: matchedCampaignId,
+              },
+              orderBy: { updatedAt: "desc" },
+            });
+            if (existingCampaignConvo) {
+              matchedConversationId = existingCampaignConvo.id;
+            }
+          }
+
+          // If direct email (NOT a campaign reply), route to contact's latest direct conversation
+          if (matchedContactId && !matchedConversationId && !matchedCampaignId) {
+            const latestConvo = await prisma.conversation.findFirst({
+              where: {
+                contactId: matchedContactId,
+                campaignId: null, // Only append to regular direct conversations
+              },
+              orderBy: { updatedAt: "desc" },
+            });
+            if (latestConvo) {
+              matchedConversationId = latestConvo.id;
             }
           }
         }
@@ -235,13 +270,19 @@ export class WebhookController {
           if (!finalConversationId) {
             const newConvo = await tx.conversation.create({
               data: {
-                subject: subject || "No Subject",
+                subject: subject || (matchedCampaignName ? `Re: ${matchedCampaignName}` : "No Subject"),
                 channel: "EMAIL",
                 status: "OPEN",
                 contactId: matchedContactId || null,
+                campaignId: matchedCampaignId || null,
               },
             });
             finalConversationId = newConvo.id;
+          } else if (matchedCampaignId) {
+            await tx.conversation.update({
+              where: { id: finalConversationId },
+              data: { campaignId: matchedCampaignId },
+            });
           }
 
           // Create Inbound Message
@@ -267,6 +308,7 @@ export class WebhookController {
             include: {
               assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
               contact: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
+              campaign: { select: { id: true, name: true, subject: true } },
             },
           });
 
@@ -288,16 +330,20 @@ export class WebhookController {
           // ---------------------------------------------------------------
           const assignedUserId = updatedConversation.assignedUserId;
 
-          const isFromCampaign = Boolean(matchedCampaignName);
+          const isFromCampaign = Boolean(updatedConversation.campaignId && (updatedConversation.campaign || matchedCampaignName));
+          const effectiveCampaignName = updatedConversation.campaign?.name || matchedCampaignName || null;
+
           const messagePayload = {
             ...newMessage,
             isFromCampaign,
-            campaignName: matchedCampaignName || null,
+            campaignName: isFromCampaign ? effectiveCampaignName : null,
+            campaignId: updatedConversation.campaignId,
           };
           const conversationPayload = {
             ...updatedConversation,
             isFromCampaign,
-            campaignName: matchedCampaignName || null,
+            campaignName: isFromCampaign ? effectiveCampaignName : null,
+            campaignId: updatedConversation.campaignId,
           };
 
           if (assignedUserId) {

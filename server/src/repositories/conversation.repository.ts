@@ -1,4 +1,4 @@
-import { Conversation, Prisma, CampaignRecipientStatus } from "@prisma/client";
+import { Conversation, Prisma } from "@prisma/client";
 import { prisma } from "../config/database";
 import { QueryConversationInput } from "../validators/conversation.validator";
 
@@ -21,31 +21,21 @@ const conversationInclude: Prisma.ConversationInclude = {
       lastName: true,
       email: true,
       avatarUrl: true,
-      campaignRecipients: {
-        where: {
-          status: CampaignRecipientStatus.REPLIED,
-        },
-        include: {
-          campaign: {
-            select: { id: true, name: true, subject: true },
-          },
-        },
-        orderBy: { repliedAt: "desc" },
-        take: 1,
-      },
     },
+  },
+  campaign: {
+    select: { id: true, name: true, subject: true },
   },
 };
 
 function enrichConversation(conv: any) {
   if (!conv) return null;
-  const repliedRecipient = conv.contact?.campaignRecipients?.[0];
-  const campaign = repliedRecipient?.campaign;
+  const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
   return {
     ...conv,
-    isFromCampaign: Boolean(campaign),
-    campaignName: campaign?.name || null,
-    campaignId: campaign?.id || null,
+    isFromCampaign,
+    campaignName: isFromCampaign ? (conv.campaign?.name || null) : null,
+    campaignId: isFromCampaign ? (conv.campaignId || null) : null,
   };
 }
 

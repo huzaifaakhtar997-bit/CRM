@@ -516,14 +516,17 @@ model Conversation {
   // Foreign keys
   contactId      String? // The contact who initiated the conversation
   assignedUserId String? // The CRM user responsible for this thread
+  campaignId     String? // If this conversation was initiated as a reply to a campaign
 
   // Relations
   contact      Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
   assignedUser User?     @relation("AssignedConversations", fields: [assignedUserId], references: [id], onDelete: SetNull)
+  campaign     Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   messages     Message[]
 
   @@index([contactId])
   @@index([assignedUserId])
+  @@index([campaignId])
   @@index([status])
   @@index([lastMessageAt])
   @@map("conversations")
@@ -582,8 +585,9 @@ model Campaign {
   ownerId String // The user who created/owns this campaign
 
   // Relations
-  owner      User                @relation("OwnedCampaigns", fields: [ownerId], references: [id])
-  recipients CampaignRecipient[]
+  owner         User                @relation("OwnedCampaigns", fields: [ownerId], references: [id])
+  recipients    CampaignRecipient[]
+  conversations Conversation[]
 
   @@index([ownerId])
   @@index([status])
