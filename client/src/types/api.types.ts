@@ -214,6 +214,10 @@ export interface Conversation {
     email: string;
     avatarUrl: string | null;
   } | null;
+
+  isFromCampaign?: boolean;
+  campaignName?: string | null;
+  campaignId?: string | null;
 }
 
 export interface Message {
@@ -226,6 +230,9 @@ export interface Message {
   createdAt: string;
 
   conversationId: string;
+  isFromCampaign?: boolean;
+  campaignName?: string | null;
+  campaignId?: string | null;
 }
 
 

@@ -7,6 +7,8 @@ import { DealDetails } from "../components/deals/DealDetails";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { Plus, Search, AlertCircle } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export default function Deals() {
   const { user } = useAuth();
@@ -124,6 +126,8 @@ export default function Deals() {
     }
   };
 
+  useRefreshListener(loadData);
+
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] space-y-6 animate-in fade-in slide-in-bottom duration-500">
       
@@ -136,6 +140,7 @@ export default function Deals() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
+          <RefreshButton onRefresh={loadData} />
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input

@@ -8,6 +8,8 @@ import { LeadDetails } from "../components/leads/LeadDetails";
 import { LeadFilters } from "../components/leads/LeadFilters";
 import { Button } from "../components/ui/button";
 import { Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export const Leads: React.FC = () => {
   const { user } = useAuth();
@@ -90,6 +92,8 @@ export const Leads: React.FC = () => {
     }
   };
 
+  useRefreshListener(fetchLeads);
+
   return (
     <div className="space-y-6 max-w-full">
       {/* Header */}
@@ -100,12 +104,15 @@ export const Leads: React.FC = () => {
             Manage your leads, prospects, and incoming requests.
           </p>
         </div>
-        {canWrite && (
-          <Button onClick={() => { setEditingLead(null); setIsFormOpen(true); }} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Lead
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={fetchLeads} />
+          {canWrite && (
+            <Button onClick={() => { setEditingLead(null); setIsFormOpen(true); }} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Lead
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

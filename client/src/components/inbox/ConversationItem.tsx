@@ -1,6 +1,6 @@
 import React from "react";
 import { Conversation, ConversationStatus } from "../../types/api.types";
-import { User, Mail, MessageSquare, Clock } from "lucide-react";
+import { User, Mail, MessageSquare, Clock, Megaphone } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -79,14 +79,22 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
           {conversation.subject || "No Subject"}
         </div>
         <div className="flex items-center justify-between mt-2">
-          <span
-            className={cn(
-              "text-[10px] font-medium px-2 py-0.5 rounded-full",
-              getStatusColor(conversation.status)
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={cn(
+                "text-[10px] font-medium px-2 py-0.5 rounded-full",
+                getStatusColor(conversation.status)
+              )}
+            >
+              {conversation.status}
+            </span>
+            {(conversation.isFromCampaign || (conversation as any).campaignName) && (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1 shadow-2xs">
+                <Megaphone className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />
+                (from campaign)
+              </span>
             )}
-          >
-            {conversation.status}
-          </span>
+          </div>
           {conversation.channel === "EMAIL" ? (
             <Mail className="w-3 h-3 text-muted-foreground" />
           ) : (

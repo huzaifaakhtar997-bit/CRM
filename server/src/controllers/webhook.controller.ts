@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Webhook } from "svix";
 import { config } from "../config/env";
 import { prisma } from "../config/database";
-import { SenderType, Prisma, LeadSource, LeadStatus } from "@prisma/client";
+import { SenderType, Prisma, LeadSource, LeadStatus, CampaignRecipientStatus } from "@prisma/client";
 import { socketService } from "../services/socket.service";
 import { emailService } from "../services/email.service";
 
@@ -99,8 +99,10 @@ export class WebhookController {
 
         let matchedConversationId: string | null = null;
         let matchedContactId: string | null = null;
+        let matchedCampaignId: string | null = null;
+        let matchedCampaignName: string | null = null;
 
-        // MATCHING STRATEGY 1: In-Reply-To
+        // MATCHING STRATEGY 1: In-Reply-To matching a direct Message
         if (in_reply_to) {
           // Some providers wrap in_reply_to in angle brackets or include domain
           const cleanInReplyTo = in_reply_to.replace(/^<|>$/g, "").trim();
@@ -119,23 +121,76 @@ export class WebhookController {
             matchedConversationId = originalMessage.conversationId;
             matchedContactId = originalMessage.conversation.contactId;
           }
+
+          // MATCHING STRATEGY 1B: In-Reply-To matching a Campaign dispatch!
+          const matchedCampaignRecipient = await prisma.campaignRecipient.findFirst({
+            where: {
+              OR: [
+                { providerMessageId: cleanInReplyTo },
+                { providerMessageId: idWithoutDomain },
+              ],
+            },
+            include: { campaign: true },
+          });
+
+          if (matchedCampaignRecipient) {
+            matchedContactId = matchedCampaignRecipient.contactId;
+            matchedCampaignId = matchedCampaignRecipient.campaignId;
+            matchedCampaignName = matchedCampaignRecipient.campaign.name;
+
+            // Mark CampaignRecipient as REPLIED
+            await prisma.campaignRecipient.update({
+              where: { id: matchedCampaignRecipient.id },
+              data: {
+                status: "REPLIED",
+                repliedAt: matchedCampaignRecipient.repliedAt ?? new Date(),
+              },
+            });
+          }
         }
 
         // MATCHING STRATEGY 2: Find Contact -> Latest Conversation
-        if (!matchedConversationId && senderEmail) {
+        if (senderEmail) {
           const contact = await prisma.contact.findFirst({
             where: { email: { equals: senderEmail, mode: "insensitive" } },
           });
 
           if (contact) {
             matchedContactId = contact.id;
-            // Find their latest conversation
-            const latestConvo = await prisma.conversation.findFirst({
-              where: { contactId: contact.id },
-              orderBy: { updatedAt: "desc" },
-            });
-            if (latestConvo) {
-              matchedConversationId = latestConvo.id;
+
+            // Check if contact recently received a campaign and mark as REPLIED if not already
+            if (!matchedCampaignId) {
+              const recentCampaignRecip: any = await prisma.campaignRecipient.findFirst({
+                where: {
+                  contactId: contact.id,
+                  status: { in: [CampaignRecipientStatus.SENT, CampaignRecipientStatus.DELIVERED, CampaignRecipientStatus.REPLIED] },
+                },
+                include: { campaign: true },
+                orderBy: { sentAt: "desc" },
+              });
+
+              if (recentCampaignRecip) {
+                matchedCampaignId = recentCampaignRecip.campaignId;
+                matchedCampaignName = recentCampaignRecip.campaign?.name || null;
+                await prisma.campaignRecipient.update({
+                  where: { id: recentCampaignRecip.id },
+                  data: {
+                    status: CampaignRecipientStatus.REPLIED,
+                    repliedAt: recentCampaignRecip.repliedAt ?? new Date(),
+                  },
+                });
+              }
+            }
+
+            if (!matchedConversationId) {
+              // Find their latest conversation
+              const latestConvo = await prisma.conversation.findFirst({
+                where: { contactId: contact.id },
+                orderBy: { updatedAt: "desc" },
+              });
+              if (latestConvo) {
+                matchedConversationId = latestConvo.id;
+              }
             }
           } else {
             // Check if there is an existing Lead for this email
@@ -233,21 +288,33 @@ export class WebhookController {
           // ---------------------------------------------------------------
           const assignedUserId = updatedConversation.assignedUserId;
 
+          const isFromCampaign = Boolean(matchedCampaignName);
+          const messagePayload = {
+            ...newMessage,
+            isFromCampaign,
+            campaignName: matchedCampaignName || null,
+          };
+          const conversationPayload = {
+            ...updatedConversation,
+            isFromCampaign,
+            campaignName: matchedCampaignName || null,
+          };
+
           if (assignedUserId) {
             // Full payload only to assigned user
             socketService.emitToUser(assignedUserId, "message:receive", {
-              message: newMessage,
-              conversation: updatedConversation,
+              message: messagePayload,
+              conversation: conversationPayload,
             });
             // Lightweight sidebar update to everyone else — no message body
             socketService.emitToAll("conversation:updated", {
-              conversation: updatedConversation,
+              conversation: conversationPayload,
             });
           } else {
             // Unassigned conversation — shared inbox, all users may handle it
             socketService.emitToAll("message:receive", {
-              message: newMessage,
-              conversation: updatedConversation,
+              message: messagePayload,
+              conversation: conversationPayload,
             });
           }
         });

@@ -8,6 +8,8 @@ import { CampaignDetails } from "../components/campaigns/CampaignDetails";
 import { CampaignFilters } from "../components/campaigns/CampaignFilters";
 import { Button } from "../components/ui/button";
 import { Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export const Campaigns: React.FC = () => {
   const { user } = useAuth();
@@ -101,6 +103,8 @@ export const Campaigns: React.FC = () => {
     }
   };
 
+  useRefreshListener(fetchCampaigns);
+
   return (
     <div className="space-y-6 max-w-full">
       {/* Header */}
@@ -111,12 +115,15 @@ export const Campaigns: React.FC = () => {
             Manage your marketing campaigns and targeted email blasts.
           </p>
         </div>
-        {canWrite && (
-          <Button onClick={() => { setEditingCampaign(null); setIsFormOpen(true); }} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Create Campaign
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={fetchCampaigns} />
+          {canWrite && (
+            <Button onClick={() => { setEditingCampaign(null); setIsFormOpen(true); }} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Create Campaign
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

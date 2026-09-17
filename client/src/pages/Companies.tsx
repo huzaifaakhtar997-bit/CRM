@@ -7,6 +7,8 @@ import { CompanyDetails } from "../components/companies/CompanyDetails";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { Plus, Search, AlertCircle } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export default function Companies() {
   const { user } = useAuth();
@@ -100,6 +102,8 @@ export default function Companies() {
     loadCompanies();
   };
 
+  useRefreshListener(loadCompanies);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-bottom duration-500">
       
@@ -111,12 +115,15 @@ export default function Companies() {
             Manage your client organizations and accounts.
           </p>
         </div>
-        {canCreate && (
-          <Button onClick={handleCreateNew} className="flex-shrink-0">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Company
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={loadCompanies} />
+          {canCreate && (
+            <Button onClick={handleCreateNew} className="flex-shrink-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Company
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}

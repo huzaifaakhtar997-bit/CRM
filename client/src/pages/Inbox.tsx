@@ -7,6 +7,8 @@ import { ConversationList } from "../components/inbox/ConversationList";
 import { ConversationThread } from "../components/inbox/ConversationThread";
 import { MessageComposer } from "../components/inbox/MessageComposer";
 import { ConversationDetails } from "../components/inbox/ConversationDetails";
+import { useRefreshListener } from "../hooks/useRefreshListener";
+import { RefreshButton } from "../components/ui/RefreshButton";
 
 
 export default function Inbox() {
@@ -56,6 +58,20 @@ export default function Inbox() {
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  const handleFullRefresh = useCallback(async () => {
+    await loadConversations();
+    if (selectedId) {
+      try {
+        const data = await conversationsApi.getMessages(selectedId, { limit: 100 });
+        setMessages(data.messages || []);
+      } catch (err) {
+        console.error("Failed to refresh messages:", err);
+      }
+    }
+  }, [loadConversations, selectedId]);
+
+  useRefreshListener(handleFullRefresh);
 
   // Load Messages when a conversation is selected
   useEffect(() => {
@@ -196,6 +212,7 @@ export default function Inbox() {
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}
           onStatusChange={setStatusFilter}
+          onRefresh={handleFullRefresh}
         />
       </div>
 
@@ -213,6 +230,9 @@ export default function Inbox() {
                     ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
                     : "Unknown Contact"}
                 </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <RefreshButton onRefresh={handleFullRefresh} variant="header" />
               </div>
             </div>
             <ConversationThread

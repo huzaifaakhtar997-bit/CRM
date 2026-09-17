@@ -3,7 +3,7 @@ import { Conversation, Message, Contact, SenderType } from "../../types/api.type
 import { contactsApi } from "../../api/contacts.api";
 import { conversationsApi } from "../../api/conversations.api";
 import { Button } from "../ui/button";
-import { User, Mail, UserPlus, Link as LinkIcon, Loader2, Check, X, AlertCircle } from "lucide-react";
+import { User, Mail, UserPlus, Link as LinkIcon, Loader2, Check, X, AlertCircle, Megaphone } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ConversationDetailsProps {
@@ -125,6 +125,22 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
       </div>
 
       <div className="p-6 space-y-8">
+        {/* Campaign Reply Banner if from campaign */}
+        {(conversation.isFromCampaign || (conversation as any).campaignName) && (
+          <div className="p-3.5 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800 space-y-1.5 shadow-2xs">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+              <Megaphone className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>Campaign Reply</span>
+            </div>
+            <div className="text-sm font-semibold text-purple-950 dark:text-purple-100">
+              {(conversation as any).campaignName || "Marketing Campaign"}
+            </div>
+            <p className="text-xs text-purple-700/80 dark:text-purple-300/80 leading-relaxed">
+              Customer replied directly to this email campaign from their email provider.
+            </p>
+          </div>
+        )}
+
         {/* Contact Info */}
         <div className="space-y-4">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">

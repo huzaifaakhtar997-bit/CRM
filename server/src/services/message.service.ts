@@ -1,4 +1,4 @@
-import { Message, ActivityType } from "@prisma/client";
+import { Message, ActivityType, CampaignRecipientStatus } from "@prisma/client";
 import { messageRepository, MessageRepository, MessageListResult } from "../repositories/message.repository";
 import { prisma } from "../config/database";
 import { CreateMessageInput, UpdateMessageInput, QueryMessageInput } from "../validators/message.validator";
@@ -91,16 +91,58 @@ export class MessageService {
   async getMessagesByConversation(
     conversationId: string,
     query: QueryMessageInput
-  ): Promise<MessageListResult> {
+  ): Promise<any> {
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
+      include: {
+        contact: {
+          include: {
+            campaignRecipients: {
+              where: {
+                status: CampaignRecipientStatus.REPLIED,
+              },
+              include: {
+                campaign: {
+                  select: { id: true, name: true, subject: true },
+                },
+              },
+              orderBy: { repliedAt: "desc" },
+              take: 1,
+            },
+          },
+        },
+      },
     });
 
     if (!conversation) {
       throw new AppError(`Conversation with ID '${conversationId}' not found.`, 404);
     }
 
-    return this.messageRepo.findByConversation(conversationId, query);
+    const result = await this.messageRepo.findByConversation(conversationId, query);
+    const repliedRecipient = conversation.contact?.campaignRecipients?.[0];
+    const campaign = repliedRecipient?.campaign;
+
+    const enrichedMessages = result.messages.map((msg: any) => {
+      // Customer messages in a thread associated with a replied campaign
+      const isFromCampaign = Boolean(
+        campaign && (
+          msg.senderType === "CUSTOMER" ||
+          (conversation.subject && campaign.name && conversation.subject.toLowerCase().includes(campaign.name.toLowerCase()))
+        )
+      );
+
+      return {
+        ...msg,
+        isFromCampaign,
+        campaignName: isFromCampaign ? (campaign?.name || "Campaign") : null,
+        campaignId: isFromCampaign ? campaign?.id : null,
+      };
+    });
+
+    return {
+      ...result,
+      messages: enrichedMessages,
+    };
   }
 
   async getMessageById(id: string): Promise<Message> {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Message, SenderType } from "../../types/api.types";
-import { Shield, MoreHorizontal } from "lucide-react";
+import { Shield, MoreHorizontal, Megaphone } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -137,6 +137,16 @@ export const ConversationThread: React.FC<ConversationThreadProps> = ({
               isCustomer ? "items-start" : "items-end ml-auto"
             )}
           >
+            {/* Mention above for campaign replies */}
+            {isCustomer && (message.isFromCampaign || (message as any).campaignName) && (
+              <div className="mb-1 px-1 flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[10px] font-semibold tracking-tight shadow-2xs">
+                  <Megaphone className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                  (from campaign{(message as any).campaignName ? `: ${(message as any).campaignName}` : ""})
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 mb-1.5 px-1">
               <span className="text-xs font-semibold text-foreground">
                 {isCustomer ? message.senderName || contactName : message.senderName || "You"}

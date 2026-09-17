@@ -7,6 +7,8 @@ import { RecentContacts } from "../components/dashboard/RecentContacts";
 import { DealsOverview } from "../components/dashboard/DealsOverview";
 import { TasksOverview } from "../components/dashboard/TasksOverview";
 import { Users, Building2, Briefcase, CheckSquare, Bell } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -137,15 +139,22 @@ export default function Dashboard() {
       .catch(() => setRecentData(p => ({ ...p, tasks: { data: [], loading: false, error: 'Failed' } })));
   };
 
+  useRefreshListener(fetchDashboardData);
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-bottom duration-500">
       
       {/* Header Area */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          {greeting}, {user?.name?.split(' ')[0] || "User"}. Here's what's happening with your CRM today.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            {greeting}, {user?.name?.split(' ')[0] || "User"}. Here's what's happening with your CRM today.
+          </p>
+        </div>
+        <div>
+          <RefreshButton onRefresh={fetchDashboardData} />
+        </div>
       </div>
 
       {/* Metrics Grid */}

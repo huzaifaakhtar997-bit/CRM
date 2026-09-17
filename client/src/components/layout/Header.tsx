@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLocation as useRouteLocation } from "react-router-dom";
 import { Menu, LogOut, ChevronDown } from "lucide-react";
 import { NotificationBell } from "./NotificationBell";
+import { RefreshButton } from "../ui/RefreshButton";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -46,7 +47,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
+        <RefreshButton variant="header" />
         <NotificationBell />
 
         <div className="relative">

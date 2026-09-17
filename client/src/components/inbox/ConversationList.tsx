@@ -2,6 +2,7 @@ import React from "react";
 import { Conversation, ConversationStatus } from "../../types/api.types";
 import { ConversationItem } from "./ConversationItem";
 import { Search, Loader2 } from "lucide-react";
+import { RefreshButton } from "../ui/RefreshButton";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -12,6 +13,7 @@ interface ConversationListProps {
   onSearchChange: (q: string) => void;
   statusFilter: ConversationStatus | "ALL";
   onStatusChange: (status: ConversationStatus | "ALL") => void;
+  onRefresh?: () => void | Promise<void>;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -23,11 +25,15 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onSearchChange,
   statusFilter,
   onStatusChange,
+  onRefresh,
 }) => {
   return (
     <div className="flex flex-col h-full bg-card border-r border-border">
       <div className="p-4 border-b border-border space-y-4">
-        <h2 className="text-lg font-bold text-foreground">Inbox</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-foreground">Inbox</h2>
+          <RefreshButton onRefresh={onRefresh} variant="header" label="Refresh" />
+        </div>
         
         {/* Search */}
         <div className="relative">

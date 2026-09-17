@@ -8,6 +8,8 @@ import { TaskFilters, TaskStatusFilter } from "../components/tasks/TaskFilters";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
 import { Plus, AlertCircle } from "lucide-react";
+import { RefreshButton } from "../components/ui/RefreshButton";
+import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export default function Tasks() {
   const { user } = useAuth();
@@ -130,6 +132,8 @@ export default function Tasks() {
     }
   };
 
+  useRefreshListener(loadTasks);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-bottom duration-500">
       
@@ -141,12 +145,15 @@ export default function Tasks() {
             Manage your daily action items, calls, and meetings.
           </p>
         </div>
-        {canWrite && (
-          <Button onClick={handleCreateNew} className="flex-shrink-0">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Task
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={loadTasks} />
+          {canWrite && (
+            <Button onClick={handleCreateNew} className="flex-shrink-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Task
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}

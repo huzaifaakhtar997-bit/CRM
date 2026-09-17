@@ -4,6 +4,8 @@ import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
 import { X, Loader2, Play, Users, Send, CheckCircle2, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/button";
 import { getCampaignStatusBadge } from "./CampaignTable";
+import { RefreshButton } from "../ui/RefreshButton";
+import { useRefreshListener } from "../../hooks/useRefreshListener";
 
 interface CampaignDetailsProps {
   campaignId: string | null;
@@ -167,6 +169,13 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
     }
   };
 
+  useRefreshListener(async () => {
+    if (isOpen && campaignId) {
+      await loadCampaignData();
+      await loadRecipients();
+    }
+  });
+
   if (!isOpen) return null;
 
   return (
@@ -184,7 +193,14 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <RefreshButton
+              onRefresh={async () => {
+                await loadCampaignData();
+                await loadRecipients();
+              }}
+              variant="header"
+            />
             {campaign && (campaign.status === "DRAFT" || campaign.status === "SCHEDULED") && canWrite && (
               <Button onClick={handleLaunch} disabled={launching} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                 {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
