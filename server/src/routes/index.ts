@@ -25,6 +25,7 @@ import integrationRoutes from "./integration.routes";
 import hubspotSyncRoutes from "./hubspot-sync.routes";
 import importRoutes from "./import.routes";
 import notificationRoutes from "./notification.routes";
+import { campaignLaunchController } from "../controllers/campaign-launch.controller";
 
 
 const router = Router();
@@ -52,12 +53,17 @@ router.use("/tasks", taskRoutes);
 router.use("/conversations", conversationRoutes);
 router.use("/templates", templateRoutes);
 
+// Public / webhook / cron endpoint to process scheduled campaigns (must precede root-level routers)
+router.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+
+router.use("/campaigns", campaignRoutes);
+
 router.use("/", messageRoutes); // Mapped at root since endpoints contain nested shapes /conversations/:id/messages and /messages/:id
 router.use("/", replyRoutes); // Mapped at root to capture nested POST /conversations/:id/reply shape
 router.use("/", noteRoutes); // Mapped at root to capture nested POST /conversations/:id/notes shape
 router.use("/", replyTemplateRoutes); // Mapped at root to capture nested POST /conversations/:id/reply/template shape
 router.use("/", conversationContactRoutes); // Mapped at root to capture nested PATCH/POST /conversations/:id/contact shapes
-router.use("/campaigns", campaignRoutes);
 router.use("/", campaignAudienceRoutes); // Mapped at root to capture nested /campaigns/:id/audience shapes
 router.use("/", campaignRecipientRoutes); // Mapped at root to capture nested /campaigns/:id/recipients shapes
 router.use("/", campaignTestRoutes); // Mapped at root to capture nested /campaigns/:id/test-send shapes
