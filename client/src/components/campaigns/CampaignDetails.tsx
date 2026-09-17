@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Campaign, CampaignRecipient, CampaignTrackingSummary } from "../../types/api.types";
 import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
-import { X, Loader2, Play, Users, Send, CheckCircle2, MailOpen, MousePointerClick, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
+import { X, Loader2, Play, Users, Send, CheckCircle2, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/button";
 import { getCampaignStatusBadge } from "./CampaignTable";
 
@@ -258,36 +258,26 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                           {refreshingTracking ? "Syncing..." : "Sync Live Status"}
                         </Button>
                       </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
                           <Users className="w-5 h-5 mx-auto text-blue-500 mb-1.5" />
                           <div className="text-2xl font-bold">{tracking.totalRecipients}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Total</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Total Recipients</div>
                         </div>
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
                           <Send className="w-5 h-5 mx-auto text-indigo-500 mb-1.5" />
                           <div className="text-2xl font-bold">{tracking.sent}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">Sent</div>
                         </div>
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
                           <CheckCircle2 className="w-5 h-5 mx-auto text-emerald-500 mb-1.5" />
                           <div className="text-2xl font-bold text-emerald-600">{tracking.delivered}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">Delivered</div>
                         </div>
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
-                          <MailOpen className="w-5 h-5 mx-auto text-amber-500 mb-1.5" />
-                          <div className="text-2xl font-bold text-amber-600">{tracking.opened}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Opened</div>
-                        </div>
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
-                          <MousePointerClick className="w-5 h-5 mx-auto text-purple-500 mb-1.5" />
-                          <div className="text-2xl font-bold text-purple-600">{tracking.clicked}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Clicked</div>
-                        </div>
-                        <div className="bg-card p-3.5 rounded-xl border shadow-sm text-center">
+                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
                           <AlertTriangle className="w-5 h-5 mx-auto text-rose-500 mb-1.5" />
                           <div className="text-2xl font-bold text-rose-600">{tracking.bounced}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">Bounced / Fake</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Undeliverable / Fake</div>
                         </div>
                       </div>
                     </div>
@@ -429,30 +419,16 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                                       r.status === "DELIVERED"
                                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                        : r.status === "OPENED"
-                                        ? "bg-amber-50 text-amber-700 border-amber-200"
-                                        : r.status === "CLICKED"
-                                        ? "bg-purple-50 text-purple-700 border-purple-200"
                                         : r.status === "BOUNCED" || r.status === "FAILED"
                                         ? "bg-rose-50 text-rose-700 border-rose-200"
                                         : "bg-blue-50 text-blue-700 border-blue-200"
                                     }`}
                                   >
-                                    {r.status}
+                                    {r.status === "BOUNCED" || r.status === "FAILED" ? "BOUNCED" : r.status}
                                   </span>
                                   {r.deliveredAt && (
                                     <span className="text-[10px] text-muted-foreground">
                                       Delivered {new Date(r.deliveredAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                  )}
-                                  {r.openedAt && (
-                                    <span className="text-[10px] text-amber-600 font-medium">
-                                      Opened {new Date(r.openedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                  )}
-                                  {r.clickedAt && (
-                                    <span className="text-[10px] text-purple-600 font-medium">
-                                      Clicked {new Date(r.clickedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                     </span>
                                   )}
                                 </div>
