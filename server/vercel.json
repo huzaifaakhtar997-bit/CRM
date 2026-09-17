@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "crons": [
-    {
-      "path": "/api/v1/campaigns/process-scheduled",
-      "schedule": "* * * * *"
-    }
-  ],
   "rewrites": [
     {
       "source": "/(.*)",
