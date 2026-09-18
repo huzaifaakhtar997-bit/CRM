@@ -32,7 +32,7 @@ export const queryTaskSchema = z.object({
   page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 1)),
   limit: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 10)),
   search: z.string().optional(),
-  completed: z.string().optional().transform((val) => val === "true"),
+  completed: z.string().optional().transform((val) => (val !== undefined ? val === "true" : undefined)),
   priority: z.nativeEnum(Priority).optional(),
   assignedUserId: z.string().optional(),
   contactId: z.string().optional(),

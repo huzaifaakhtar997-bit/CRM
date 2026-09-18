@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import {
   Conversation,
   Message,
@@ -14,6 +14,7 @@ import { contactsApi } from "../../api/contacts.api";
 import { conversationsApi } from "../../api/conversations.api";
 import { dealsApi } from "../../api/deals.api";
 import { tasksApi } from "../../api/tasks.api";
+import { triggerGlobalRefresh, useRefreshListener } from "../../hooks/useRefreshListener";
 import { Button } from "../ui/button";
 import {
   User,
@@ -107,6 +108,8 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   const [creatingTask, setCreatingTask] = useState(false);
   const [taskError, setTaskError] = useState<string | null>(null);
 
+  const effectiveContactId = conversation?.contactId || conversation?.contact?.id || null;
+
   const customerMsg = messages.find(
     (m) => m.senderType === SenderType.CUSTOMER && m.senderEmail
   );
@@ -130,27 +133,40 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     }
   }, [showLinkModal]);
 
+  // Always load pipeline stages so they are ready for deals and modals
   useEffect(() => {
-    if (!conversation?.contactId) {
+    dealsApi.getPipelineStages().then((stages) => {
+      const sorted = (stages || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+      setPipelineStages(sorted);
+      if (sorted.length > 0) {
+        setDealStageId((prev) => prev || sorted[0].id);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const loadContactRelatedData = useCallback(() => {
+    if (!effectiveContactId) {
       setDeals([]);
       setTasks([]);
       return;
     }
-    if (conversation.contact?.lifecycleStage) {
+    if (conversation?.contact?.lifecycleStage) {
       setLifecycle(conversation.contact.lifecycleStage as string);
     }
-    dealsApi.getPipelineStages().then((stages) => {
-      setPipelineStages(stages);
-      if (stages.length > 0 && !dealStageId) setDealStageId(stages[0].id);
-    }).catch(console.error);
-    dealsApi.getDeals({ contactId: conversation.contactId! }).then((res) => {
+    dealsApi.getDeals({ contactId: effectiveContactId }).then((res) => {
       setDeals(res.deals || []);
     }).catch(console.error);
-    tasksApi.getTasks({ contactId: conversation.contactId!, completed: false }).then((res) => {
+    tasksApi.getTasks({ contactId: effectiveContactId, completed: false }).then((res) => {
       setTasks(res.tasks || []);
     }).catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversation?.contactId]);
+  }, [effectiveContactId, conversation?.contact?.lifecycleStage]);
+
+  useEffect(() => {
+    loadContactRelatedData();
+  }, [loadContactRelatedData]);
+
+  // Keep contact deals & tasks refreshed whenever global refresh triggers
+  useRefreshListener(loadContactRelatedData);
 
   if (!conversation) {
     return (
@@ -172,6 +188,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
       });
       await conversationsApi.updateConversation(conversation.id, { contactId: newContact.id });
       setShowCreateModal(false);
+      triggerGlobalRefresh();
       if (onConversationUpdated) onConversationUpdated();
     } catch (err: any) {
       setCreateError(err.response?.data?.message || err.message || "Failed to create contact.");
@@ -184,6 +201,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     try {
       await conversationsApi.updateConversation(conversation.id, { contactId });
       setShowLinkModal(false);
+      triggerGlobalRefresh();
       if (onConversationUpdated) onConversationUpdated();
     } catch (err: any) {
       setLinkError(err.response?.data?.message || err.message || "Failed to link contact.");
@@ -191,9 +209,13 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   };
 
   const handleLifecycleChange = async (newStage: string) => {
-    if (!contact?.id || !newStage) return;
+    const targetId = contact?.id || effectiveContactId;
+    if (!targetId || !newStage) return;
     setLifecycle(newStage); setSavingLifecycle(true);
-    try { await contactsApi.updateContact(contact.id, { lifecycleStage: newStage as any }); }
+    try {
+      await contactsApi.updateContact(targetId, { lifecycleStage: newStage as any });
+      triggerGlobalRefresh();
+    }
     catch (err) { console.error("Failed to update lifecycle stage", err); }
     finally { setSavingLifecycle(false); }
   };
@@ -207,12 +229,14 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
         const stage = pipelineStages.find((s) => s.id === stageId);
         return { ...d, stageId, stage: stage || d.stage };
       }));
+      triggerGlobalRefresh();
     } catch (err) { console.error("Failed to update deal stage", err); }
     finally { setUpdatingDealStage(null); }
   };
 
   const handleCreateDeal = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!effectiveContactId) { setDealError("No linked contact for this deal."); return; }
     if (!dealTitle.trim() || !dealStageId) { setDealError("Title and pipeline stage are required."); return; }
     setCreatingDeal(true); setDealError(null);
     try {
@@ -220,11 +244,12 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
         title: dealTitle.trim(),
         value: dealValue ? parseFloat(dealValue) : 0,
         stageId: dealStageId,
-        contactId: conversation.contactId!,
+        contactId: effectiveContactId,
         expectedCloseDate: new Date(dealCloseDate).toISOString(),
       });
       setDeals((prev) => [...prev, newDeal]);
       setShowDealModal(false); setDealTitle(""); setDealValue("");
+      triggerGlobalRefresh();
     } catch (err: any) {
       setDealError(err.response?.data?.message || err.message || "Failed to create deal.");
     } finally { setCreatingDeal(false); }
@@ -232,15 +257,20 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!effectiveContactId) { setTaskError("No linked contact for this task."); return; }
     if (!taskTitle.trim() || !taskDate) { setTaskError("Title and due date are required."); return; }
     setCreatingTask(true); setTaskError(null);
     try {
       const newTask = await tasksApi.createTask({
-        title: taskTitle.trim(), taskType, dueDate: new Date(taskDate).toISOString(),
-        priority: taskPriority, contactId: conversation.contactId!,
+        title: taskTitle.trim(),
+        taskType,
+        dueDate: new Date(taskDate).toISOString(),
+        priority: taskPriority,
+        contactId: effectiveContactId,
       });
       setTasks((prev) => [...prev, newTask]);
       setShowTaskModal(false); setTaskTitle(""); setTaskDate(addDays(1));
+      triggerGlobalRefresh();
     } catch (err: any) {
       setTaskError(err.response?.data?.message || err.message || "Failed to create task.");
     } finally { setCreatingTask(false); }
@@ -251,6 +281,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     try {
       await tasksApi.updateTask(taskId, { completed: true });
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      triggerGlobalRefresh();
     } catch (err) { console.error("Failed to complete task", err); }
     finally { setCompletingTask(null); }
   };
@@ -262,6 +293,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
       </div>
 
       <div className="p-4 space-y-6">
+        {/* Campaign Reply Banner */}
         {(conversation.isFromCampaign || (conversation as any).campaignName) && (
           <div className="p-3.5 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800 space-y-1.5">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
@@ -277,13 +309,16 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           </div>
         )}
 
+        {/* Contact Info */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</h4>
           {contact ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                  {contact.avatarUrl ? <img src={contact.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" /> : <User className="w-5 h-5" />}
+                  {contact.avatarUrl ? (
+                    <img src={contact.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                  ) : <User className="w-5 h-5" />}
                 </div>
                 <div>
                   <div className="font-medium text-sm text-foreground">{contact.firstName} {contact.lastName}</div>
@@ -296,13 +331,20 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                   <span className="truncate" title={contact.email}>{contact.email}</span>
                 </div>
               )}
+              {/* Lifecycle Stage */}
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Lifecycle Stage</label>
                 <div className="relative">
-                  <select value={lifecycle} onChange={(e) => handleLifecycleChange(e.target.value)} disabled={savingLifecycle}
-                    className="w-full h-8 px-2.5 pr-7 rounded-md border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60">
+                  <select
+                    value={lifecycle}
+                    onChange={(e) => handleLifecycleChange(e.target.value)}
+                    disabled={savingLifecycle}
+                    className="w-full h-8 px-2.5 pr-7 rounded-md border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60"
+                  >
                     <option value="">Select Stage</option>
-                    {LIFECYCLE_STAGES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    {LIFECYCLE_STAGES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
                   {savingLifecycle && <Loader2 className="absolute right-6 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-primary" />}
@@ -312,7 +354,8 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           ) : (
             <div className="p-3 bg-accent/30 rounded-xl border border-border space-y-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
-                <UserPlus className="w-3.5 h-3.5" /><span>Unregistered Sender</span>
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>Unregistered Sender</span>
               </div>
               <div>
                 <div className="font-medium text-sm text-foreground">{rawSenderName || "Unknown"}</div>
@@ -330,13 +373,23 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           )}
         </div>
 
+        {/* Associated Deals */}
         {contact && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5" /> Deals
               </h4>
-              <button onClick={() => setShowDealModal(true)} className="text-xs text-primary hover:underline flex items-center gap-0.5">
+              <button
+                onClick={() => {
+                  if (pipelineStages.length > 0 && !dealStageId) {
+                    setDealStageId(pipelineStages[0].id);
+                  }
+                  setDealError(null);
+                  setShowDealModal(true);
+                }}
+                className="text-xs text-primary hover:underline flex items-center gap-0.5"
+              >
                 <Plus className="w-3 h-3" /> Add
               </button>
             </div>
@@ -351,8 +404,12 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                       {deal.value != null && <span className="text-xs font-semibold text-primary shrink-0">${deal.value.toLocaleString()}</span>}
                     </div>
                     <div className="relative">
-                      <select value={deal.stageId || ""} onChange={(e) => handleDealStageChange(deal.id, e.target.value)} disabled={updatingDealStage === deal.id}
-                        className="w-full h-7 px-2 pr-6 rounded border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60">
+                      <select
+                        value={deal.stageId || ""}
+                        onChange={(e) => handleDealStageChange(deal.id, e.target.value)}
+                        disabled={updatingDealStage === deal.id}
+                        className="w-full h-7 px-2 pr-6 rounded border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60"
+                      >
                         {pipelineStages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                       <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
@@ -365,13 +422,20 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           </div>
         )}
 
+        {/* Follow-up Tasks */}
         {contact && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <CalendarPlus className="w-3.5 h-3.5" /> Follow-up Tasks
               </h4>
-              <button onClick={() => setShowTaskModal(true)} className="text-xs text-primary hover:underline flex items-center gap-0.5">
+              <button
+                onClick={() => {
+                  setTaskError(null);
+                  setShowTaskModal(true);
+                }}
+                className="text-xs text-primary hover:underline flex items-center gap-0.5"
+              >
                 <Plus className="w-3 h-3" /> Schedule
               </button>
             </div>
@@ -381,8 +445,12 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
               <div className="space-y-1.5">
                 {tasks.map((task) => (
                   <div key={task.id} className="flex items-start gap-2 p-2 bg-accent/20 rounded-lg border border-border">
-                    <button onClick={() => handleCompleteTask(task.id)} disabled={completingTask === task.id}
-                      className="mt-0.5 shrink-0 text-muted-foreground hover:text-green-500 transition-colors" title="Mark complete">
+                    <button
+                      onClick={() => handleCompleteTask(task.id)}
+                      disabled={completingTask === task.id}
+                      className="mt-0.5 shrink-0 text-muted-foreground hover:text-green-500 transition-colors"
+                      title="Mark complete"
+                    >
                       {completingTask === task.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     </button>
                     <div className="min-w-0">
@@ -392,8 +460,12 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                         <span>·</span>
                         <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "—"}</span>
                         {task.priority && (
-                          <><span>·</span>
-                          <span className={task.priority === "HIGH" ? "text-red-500" : task.priority === "MEDIUM" ? "text-yellow-500" : "text-green-500"}>{task.priority}</span></>
+                          <>
+                            <span>·</span>
+                            <span className={task.priority === "HIGH" ? "text-red-500 font-medium" : task.priority === "MEDIUM" ? "text-yellow-500 font-medium" : "text-green-500 font-medium"}>
+                              {task.priority}
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
@@ -404,6 +476,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           </div>
         )}
 
+        {/* Assignment */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assignment</h4>
           {assignedUser ? (
@@ -419,6 +492,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           ) : <div className="text-sm text-muted-foreground italic">Unassigned</div>}
         </div>
 
+        {/* Thread Data */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Thread Data</h4>
           <div className="text-xs space-y-2 text-muted-foreground">
@@ -428,6 +502,8 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ===== MODALS ===== */}
 
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
@@ -488,8 +564,14 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
               <div>
                 <label className="text-xs text-muted-foreground block mb-1">Pipeline Stage *</label>
                 <select value={dealStageId} onChange={(e) => setDealStageId(e.target.value)} required className="w-full h-8 px-2.5 rounded-md border border-input bg-background text-sm">
-                  <option value="">Select Stage</option>
-                  {pipelineStages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {pipelineStages.length === 0 ? (
+                    <option value="">Loading stages...</option>
+                  ) : (
+                    <>
+                      <option value="">Select Stage</option>
+                      {pipelineStages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </>
+                  )}
                 </select>
               </div>
               <div><label className="text-xs text-muted-foreground block mb-1">Expected Close Date *</label><input type="date" required value={dealCloseDate} onChange={(e) => setDealCloseDate(e.target.value)} className="w-full h-8 px-2.5 rounded-md border border-input bg-background text-sm" /></div>

@@ -113638,7 +113638,7 @@ var queryTaskSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
   search: external_exports.string().optional(),
-  completed: external_exports.string().optional().transform((val) => val === "true"),
+  completed: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
   priority: external_exports.nativeEnum(import_client20.Priority).optional(),
   assignedUserId: external_exports.string().optional(),
   contactId: external_exports.string().optional(),

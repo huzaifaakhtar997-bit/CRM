@@ -8,7 +8,6 @@ import { ConversationThread } from "../components/inbox/ConversationThread";
 import { MessageComposer } from "../components/inbox/MessageComposer";
 import { ConversationDetails } from "../components/inbox/ConversationDetails";
 import { useRefreshListener } from "../hooks/useRefreshListener";
-import { RefreshButton } from "../components/ui/RefreshButton";
 
 
 export default function Inbox() {
@@ -230,9 +229,6 @@ export default function Inbox() {
                     ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
                     : "Unknown Contact"}
                 </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <RefreshButton onRefresh={handleFullRefresh} variant="header" />
               </div>
             </div>
             <ConversationThread
