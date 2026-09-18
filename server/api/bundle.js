@@ -112897,6 +112897,16 @@ var DealService = class {
           }
         }
       });
+      if (input.contactId) {
+        const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
+        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED"];
+        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+          await tx.contact.update({
+            where: { id: input.contactId },
+            data: { lifecycleStage: "OPPORTUNITY" }
+          });
+        }
+      }
       return newDeal;
     });
     const assignedUserId = input.assignedUserId || currentUserId;
@@ -113221,6 +113231,16 @@ var PipelineService = class {
           assignedUser: { select: { id: true, name: true, email: true } }
         }
       });
+      if (targetStage.isWon && updated.contactId) {
+        const contact = await tx.contact.findUnique({ where: { id: updated.contactId } });
+        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED", "OPPORTUNITY"];
+        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { lifecycleStage: "CUSTOMER" }
+          });
+        }
+      }
       await tx.activity.create({
         data: {
           type: import_client16.ActivityType.STAGE_CHANGE,

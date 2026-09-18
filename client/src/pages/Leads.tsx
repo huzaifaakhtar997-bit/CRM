@@ -101,7 +101,7 @@ export const Leads: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Leads</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your leads, prospects, and incoming requests.
+            Raw inbound prospects — qualify and convert them into Contacts &amp; Deals.
           </p>
         </div>
         <div className="flex items-center gap-2">

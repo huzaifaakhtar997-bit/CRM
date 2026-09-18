@@ -28,6 +28,9 @@ export default function Contacts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
+  // Lifecycle stage filter
+  const [activeStage, setActiveStage] = useState<string>("");
+
   // Modals/Drawers State
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -54,6 +57,7 @@ export default function Contacts() {
         page,
         limit: 10,
         search: debouncedSearch || undefined,
+        lifecycleStage: activeStage || undefined,
       });
       setContacts(data.contacts || []);
       setTotalPages(data.totalPages || 1);
@@ -62,11 +66,17 @@ export default function Contacts() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, activeStage]);
 
   useEffect(() => {
     loadContacts();
   }, [loadContacts]);
+
+  // Reset to page 1 when lifecycle stage filter changes
+  const handleStageFilter = (stage: string) => {
+    setActiveStage(stage);
+    setPage(1);
+  };
 
   // Handlers
   const handleCreateNew = () => {
@@ -162,6 +172,35 @@ export default function Contacts() {
           )}
         </div>
       </div>
+
+      {/* Lifecycle Stage Filter Tabs */}
+      {(() => {
+        const stages = [
+          { label: "All", value: "" },
+          { label: "Leads", value: "LEAD" },
+          { label: "MQL", value: "MARKETING_QUALIFIED" },
+          { label: "SQL", value: "SALES_QUALIFIED" },
+          { label: "Opportunities", value: "OPPORTUNITY" },
+          { label: "Customers", value: "CUSTOMER" },
+        ];
+        return (
+          <div className="flex flex-wrap gap-2">
+            {stages.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => handleStageFilter(s.value)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  activeStage === s.value
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-input hover:border-primary hover:text-foreground"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">

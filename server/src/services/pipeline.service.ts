@@ -62,6 +62,18 @@ export class PipelineService {
         },
       });
 
+      // Auto-promote contact lifecycle stage when deal is Won
+      if (targetStage.isWon && updated.contactId) {
+        const contact = await tx.contact.findUnique({ where: { id: updated.contactId } });
+        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED", "OPPORTUNITY"];
+        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { lifecycleStage: "CUSTOMER" },
+          });
+        }
+      }
+
       // Log the STAGE_CHANGE activity
       await tx.activity.create({
         data: {
