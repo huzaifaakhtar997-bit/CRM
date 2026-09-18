@@ -207,6 +207,7 @@ export interface Conversation {
     lastName: string;
     email: string | null;
     avatarUrl: string | null;
+    lifecycleStage?: string | null;
   } | null;
   assignedUser?: {
     id: string;
