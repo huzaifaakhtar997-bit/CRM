@@ -112899,7 +112899,7 @@ var DealService = class {
       });
       if (input.contactId) {
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED"];
+        const stagesToPromote = ["LEAD", "MQL", "SQL"];
         if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
           await tx.contact.update({
             where: { id: input.contactId },
@@ -113233,7 +113233,7 @@ var PipelineService = class {
       });
       if (targetStage.isWon && updated.contactId) {
         const contact = await tx.contact.findUnique({ where: { id: updated.contactId } });
-        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED", "OPPORTUNITY"];
+        const stagesToPromote = ["LEAD", "MQL", "SQL", "OPPORTUNITY"];
         if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
           await tx.contact.update({
             where: { id: updated.contactId },

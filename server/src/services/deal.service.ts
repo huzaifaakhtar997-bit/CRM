@@ -72,7 +72,7 @@ export class DealService {
       // Auto-promote contact lifecycle stage to OPPORTUNITY when a deal is created
       if (input.contactId) {
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        const stagesToPromote = ["LEAD", "MARKETING_QUALIFIED", "SALES_QUALIFIED"];
+        const stagesToPromote = ["LEAD", "MQL", "SQL"];
         if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
           await tx.contact.update({
             where: { id: input.contactId },

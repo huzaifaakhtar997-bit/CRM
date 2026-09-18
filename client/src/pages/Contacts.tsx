@@ -178,8 +178,8 @@ export default function Contacts() {
         const stages = [
           { label: "All", value: "" },
           { label: "Leads", value: "LEAD" },
-          { label: "MQL", value: "MARKETING_QUALIFIED" },
-          { label: "SQL", value: "SALES_QUALIFIED" },
+          { label: "MQL", value: "MQL" },
+          { label: "SQL", value: "SQL" },
           { label: "Opportunities", value: "OPPORTUNITY" },
           { label: "Customers", value: "CUSTOMER" },
         ];
