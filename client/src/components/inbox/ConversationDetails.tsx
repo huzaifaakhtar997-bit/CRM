@@ -32,12 +32,18 @@ import {
   Plus,
   CheckCircle2,
   Lock,
+  UserCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { CRMUser, usersApi } from "../../api/users.api";
+import { ConversationStatus } from "../../types/api.types";
 
 interface ConversationDetailsProps {
   conversation: Conversation | null;
   messages?: Message[];
+  users?: CRMUser[];
+  onStatusChange?: (status: ConversationStatus) => void;
+  onAssigneeChange?: (userId: string) => void;
   onConversationUpdated?: () => void;
 }
 
@@ -72,8 +78,20 @@ function addDays(days: number): string {
 export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   conversation,
   messages = [],
+  users,
+  onStatusChange,
+  onAssigneeChange,
   onConversationUpdated,
 }) => {
+  const [userList, setUserList] = useState<CRMUser[]>(users || []);
+
+  useEffect(() => {
+    if (users && users.length > 0) {
+      setUserList(users);
+    } else {
+      usersApi.getAllUsers().then(setUserList).catch(console.error);
+    }
+  }, [users]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
@@ -351,7 +369,17 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                 </div>
                 <div>
                   <div className="font-medium text-sm text-foreground">{contact.firstName} {contact.lastName}</div>
-                  <Link to="/contacts" className="text-xs text-primary hover:underline">View Profile</Link>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Link to="/contacts" className="text-xs text-primary hover:underline">View Profile</Link>
+                    <span className="text-muted-foreground text-xs">·</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowLinkModal(true)}
+                      className="text-xs text-muted-foreground hover:text-primary hover:underline"
+                    >
+                      Re-link
+                    </button>
+                  </div>
                 </div>
               </div>
               {contact.email && (
@@ -544,28 +572,51 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
         )}
 
         {/* Assignment */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assignment</h4>
-          {assignedUser ? (
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                {assignedUser.avatarUrl ? <img src={assignedUser.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" /> : <span className="text-xs font-bold">{assignedUser.name.charAt(0)}</span>}
-              </div>
-              <div className="text-sm">
-                <div className="font-medium text-foreground">{assignedUser.name}</div>
-                <div className="text-xs text-muted-foreground">{assignedUser.email}</div>
-              </div>
-            </div>
-          ) : <div className="text-sm text-muted-foreground italic">Unassigned</div>}
+          <div className="relative">
+            <select
+              value={conversation.assignedUserId || ""}
+              onChange={(e) => onAssigneeChange ? onAssigneeChange(e.target.value) : undefined}
+              className="w-full h-8 pl-8 pr-7 text-xs font-medium rounded-md border border-input bg-background cursor-pointer appearance-none focus:outline-none focus:ring-1 focus:ring-primary truncate"
+            >
+              <option value="">Unassigned</option>
+              {userList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+            <UserCheck className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+          {assignedUser && (
+            <p className="text-[11px] text-muted-foreground truncate">
+              Assigned to {assignedUser.name} ({assignedUser.email})
+            </p>
+          )}
         </div>
 
-        {/* Thread Data */}
+        {/* Conversation Status & Thread Data */}
         <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Thread Data</h4>
-          <div className="text-xs space-y-2 text-muted-foreground">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Conversation Status</h4>
+          <div className="relative">
+            <select
+              value={conversation.status}
+              onChange={(e) => onStatusChange ? onStatusChange(e.target.value as ConversationStatus) : undefined}
+              className="w-full h-8 px-2.5 pr-7 text-xs font-semibold rounded-md border border-input bg-background cursor-pointer appearance-none focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value={ConversationStatus.OPEN}>● Open</option>
+              <option value={ConversationStatus.PENDING}>● Pending</option>
+              <option value={ConversationStatus.RESOLVED}>● Resolved</option>
+              <option value={ConversationStatus.CLOSED}>● Closed</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+          <div className="text-xs space-y-2 text-muted-foreground pt-1">
             <div className="flex justify-between"><span>Channel:</span><span className="font-medium text-foreground">{conversation.channel}</span></div>
-            <div className="flex justify-between"><span>Status:</span><span className="font-medium text-foreground">{conversation.status}</span></div>
             <div className="flex justify-between"><span>Created:</span><span className="font-medium text-foreground">{new Date(conversation.createdAt).toLocaleDateString()}</span></div>
+            <div className="flex justify-between"><span>Last Activity:</span><span className="font-medium text-foreground">{new Date(conversation.lastMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></div>
           </div>
         </div>
       </div>

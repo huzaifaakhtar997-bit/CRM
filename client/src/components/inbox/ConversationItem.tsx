@@ -1,6 +1,6 @@
 import React from "react";
 import { Conversation, ConversationStatus } from "../../types/api.types";
-import { User, Mail, MessageSquare, Clock, Megaphone } from "lucide-react";
+import { User, Mail, MessageSquare, Clock, Megaphone, UserCheck } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -26,13 +26,13 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   const getStatusColor = (status: ConversationStatus) => {
     switch (status) {
       case ConversationStatus.OPEN:
-        return "bg-blue-100 text-blue-700";
+        return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300";
       case ConversationStatus.PENDING:
-        return "bg-amber-100 text-amber-700";
+        return "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300";
       case ConversationStatus.RESOLVED:
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300";
       case ConversationStatus.CLOSED:
-        return "bg-gray-100 text-gray-700";
+        return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -75,10 +75,15 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
       </div>
 
       <div className="pl-10">
-        <div className="text-sm font-medium text-foreground truncate mb-1" title={conversation.subject || "No Subject"}>
+        <div className="text-sm font-medium text-foreground truncate" title={conversation.subject || "No Subject"}>
           {conversation.subject || "No Subject"}
         </div>
-        <div className="flex items-center justify-between mt-2">
+        {conversation.snippet && (
+          <p className="text-xs text-muted-foreground truncate mt-0.5" title={conversation.snippet}>
+            {conversation.snippet}
+          </p>
+        )}
+        <div className="flex items-center justify-between mt-2 pt-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span
               className={cn(
@@ -94,12 +99,24 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
                 (from campaign)
               </span>
             )}
+            {conversation.assignedUser ? (
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1 truncate max-w-[100px]" title={`Assigned to ${conversation.assignedUser.name}`}>
+                <UserCheck className="w-2.5 h-2.5 text-primary shrink-0" />
+                <span className="truncate">{conversation.assignedUser.name.split(" ")[0]}</span>
+              </span>
+            ) : (
+              <span className="text-[10px] text-muted-foreground/60 italic">
+                Unassigned
+              </span>
+            )}
           </div>
-          {conversation.channel === "EMAIL" ? (
-            <Mail className="w-3 h-3 text-muted-foreground" />
-          ) : (
-            <MessageSquare className="w-3 h-3 text-muted-foreground" />
-          )}
+          <span title={conversation.channel === "EMAIL" ? "Email channel" : "Chat channel"}>
+            {conversation.channel === "EMAIL" ? (
+              <Mail className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            ) : (
+              <MessageSquare className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            )}
+          </span>
         </div>
       </div>
     </button>

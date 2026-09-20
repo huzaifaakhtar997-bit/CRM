@@ -220,6 +220,7 @@ export interface Conversation {
   isFromCampaign?: boolean;
   campaignName?: string | null;
   campaignId?: string | null;
+  snippet?: string | null;
 }
 
 export interface Message {

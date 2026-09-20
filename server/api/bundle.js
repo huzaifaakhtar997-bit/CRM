@@ -113895,16 +113895,23 @@ var conversationInclude = {
   },
   campaign: {
     select: { id: true, name: true, subject: true }
+  },
+  messages: {
+    take: 1,
+    orderBy: { createdAt: "desc" },
+    select: { content: true, senderName: true, isInternalNote: true, createdAt: true }
   }
 };
 function enrichConversation(conv) {
   if (!conv) return null;
   const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
+  const lastMsg = conv.messages?.[0];
   return {
     ...conv,
     isFromCampaign,
     campaignName: isFromCampaign ? conv.campaign?.name || null : null,
-    campaignId: isFromCampaign ? conv.campaignId || null : null
+    campaignId: isFromCampaign ? conv.campaignId || null : null,
+    snippet: lastMsg?.content || null
   };
 }
 var ConversationRepository = class {

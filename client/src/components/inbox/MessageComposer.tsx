@@ -25,8 +25,8 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({ onSend, disabl
   const [showTemplates, setShowTemplates] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
 
-  // Load EMAIL_REPLY templates when role has access (ADMIN, MANAGER, SUPPORT)
-  const canUseTemplates = user?.role === "ADMIN" || user?.role === "MANAGER" || user?.role === "SUPPORT";
+  // Load EMAIL_REPLY templates when role has access (ADMIN, MANAGER, SUPPORT, SALES_REP)
+  const canUseTemplates = ["ADMIN", "MANAGER", "SUPPORT", "SALES_REP"].includes(user?.role || "");
 
   useEffect(() => {
     if (!canUseTemplates) return;

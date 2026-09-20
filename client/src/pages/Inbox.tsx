@@ -2,18 +2,19 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
 import { conversationsApi } from "../api/conversations.api";
+import { usersApi, CRMUser } from "../api/users.api";
 import { Conversation, Message, ConversationStatus, SenderType } from "../types/api.types";
 import { ConversationList } from "../components/inbox/ConversationList";
 import { ConversationThread } from "../components/inbox/ConversationThread";
 import { MessageComposer } from "../components/inbox/MessageComposer";
 import { ConversationDetails } from "../components/inbox/ConversationDetails";
-import { useRefreshListener } from "../hooks/useRefreshListener";
-
+import { useRefreshListener, triggerGlobalRefresh } from "../hooks/useRefreshListener";
+import { ChevronDown, UserCheck } from "lucide-react";
 
 export default function Inbox() {
   const { user } = useAuth();
   
-  const canSend = ["ADMIN", "MANAGER", "SUPPORT"].includes(user?.role || "");
+  const canSend = ["ADMIN", "MANAGER", "SUPPORT", "SALES_REP"].includes(user?.role || "");
 
   // State
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -23,10 +24,19 @@ export default function Inbox() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingThread, setLoadingThread] = useState(false);
 
+  // Users & Status/Assignee management
+  const [users, setUsers] = useState<CRMUser[]>([]);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingAssignee, setUpdatingAssignee] = useState(false);
+
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ConversationStatus | "ALL">("ALL");
+
+  useEffect(() => {
+    usersApi.getAllUsers().then(setUsers).catch(console.error);
+  }, []);
 
 
   // Debounce search
@@ -196,6 +206,49 @@ export default function Inbox() {
     }
   };
 
+  const handleStatusChange = async (newStatus: ConversationStatus) => {
+    if (!selectedId) return;
+    setUpdatingStatus(true);
+    try {
+      await conversationsApi.updateConversation(selectedId, { status: newStatus });
+      setConversations((prev) =>
+        prev.map((c) => (c.id === selectedId ? { ...c, status: newStatus } : c))
+      );
+      triggerGlobalRefresh();
+    } catch (err) {
+      console.error("Failed to update status", err);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const handleAssigneeChange = async (newUserId: string) => {
+    if (!selectedId) return;
+    setUpdatingAssignee(true);
+    try {
+      const updated = await conversationsApi.updateConversation(selectedId, {
+        assignedUserId: newUserId || null,
+      });
+      const assignedObj = newUserId ? users.find((u) => u.id === newUserId) || null : null;
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === selectedId
+            ? {
+                ...c,
+                assignedUserId: newUserId || null,
+                assignedUser: updated.assignedUser || (assignedObj ? { id: assignedObj.id, name: assignedObj.name, email: assignedObj.email, avatarUrl: assignedObj.avatarUrl } : null),
+              }
+            : c
+        )
+      );
+      triggerGlobalRefresh();
+    } catch (err) {
+      console.error("Failed to update assignee", err);
+    } finally {
+      setUpdatingAssignee(false);
+    }
+  };
+
   const selectedConversation = conversations.find((c) => c.id === selectedId) || null;
 
   return (
@@ -219,16 +272,54 @@ export default function Inbox() {
       <div className="flex-1 min-w-0 flex flex-col">
         {selectedId ? (
           <>
-            <div className="p-4 border-b border-border bg-card flex items-center justify-between shadow-sm z-10">
-              <div>
-                <h3 className="font-semibold text-foreground truncate">
+            <div className="p-3.5 px-4 border-b border-border bg-card flex flex-wrap items-center justify-between gap-3 shadow-2xs z-10">
+              <div className="min-w-0 max-w-[50%]">
+                <h3 className="font-semibold text-sm text-foreground truncate" title={selectedConversation?.subject || "Conversation"}>
                   {selectedConversation?.subject || "Conversation"}
                 </h3>
                 <p className="text-xs text-muted-foreground truncate">
                   {selectedConversation?.contact
                     ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
-                    : "Unknown Contact"}
+                    : "Unregistered Sender"}
                 </p>
+              </div>
+
+              {/* Status and Assignee Controls */}
+              <div className="flex items-center gap-2">
+                {/* Status Selector */}
+                <div className="relative">
+                  <select
+                    value={selectedConversation?.status || ConversationStatus.OPEN}
+                    onChange={(e) => handleStatusChange(e.target.value as ConversationStatus)}
+                    disabled={updatingStatus}
+                    className="h-8 pl-2.5 pr-7 text-xs font-semibold rounded-md border border-input bg-background cursor-pointer appearance-none focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+                  >
+                    <option value={ConversationStatus.OPEN}>● Open</option>
+                    <option value={ConversationStatus.PENDING}>● Pending</option>
+                    <option value={ConversationStatus.RESOLVED}>● Resolved</option>
+                    <option value={ConversationStatus.CLOSED}>● Closed</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+
+                {/* Assignee Selector */}
+                <div className="relative">
+                  <select
+                    value={selectedConversation?.assignedUserId || ""}
+                    onChange={(e) => handleAssigneeChange(e.target.value)}
+                    disabled={updatingAssignee}
+                    className="h-8 pl-7 pr-7 text-xs font-medium rounded-md border border-input bg-background cursor-pointer appearance-none focus:outline-none focus:ring-1 focus:ring-primary max-w-[150px] truncate shadow-2xs"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                  <UserCheck className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
             </div>
             <ConversationThread
@@ -267,6 +358,9 @@ export default function Inbox() {
         <ConversationDetails
           conversation={selectedConversation}
           messages={messages}
+          users={users}
+          onStatusChange={handleStatusChange}
+          onAssigneeChange={handleAssigneeChange}
           onConversationUpdated={loadConversations}
         />
       </div>
