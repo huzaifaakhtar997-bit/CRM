@@ -111190,6 +111190,10 @@ var ContactRepository = class {
         },
         assignedUser: {
           select: { id: true, name: true, email: true, avatarUrl: true }
+        },
+        deals: {
+          where: { stage: { isWon: true } },
+          select: { id: true }
         }
       }
     });
@@ -111212,7 +111216,15 @@ var ContactRepository = class {
       ];
     }
     if (query.lifecycleStage) {
-      where.lifecycleStage = query.lifecycleStage;
+      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
+        where.OR = [
+          { lifecycleStage: query.lifecycleStage },
+          { status: query.lifecycleStage },
+          { tags: { has: query.lifecycleStage } }
+        ];
+      } else {
+        where.lifecycleStage = query.lifecycleStage;
+      }
     }
     if (query.assignedUserId) {
       where.assignedUserId = query.assignedUserId;
@@ -111232,6 +111244,10 @@ var ContactRepository = class {
           },
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true }
+          },
+          deals: {
+            where: { stage: { isWon: true } },
+            select: { id: true }
           }
         }
       }),
@@ -111560,6 +111576,17 @@ var ContactService = class {
       const emailConflict = await this.contactRepo.findByEmail(input.email.toLowerCase());
       if (emailConflict) {
         throw new AppError("A contact with this email address already exists.", 400);
+      }
+    }
+    if (input.lifecycleStage && input.lifecycleStage !== "CUSTOMER") {
+      const hasWonDeal = await prisma.deal.findFirst({
+        where: {
+          contactId: id,
+          stage: { isWon: true }
+        }
+      });
+      if (hasWonDeal) {
+        input.lifecycleStage = "CUSTOMER";
       }
     }
     const updatedContact = await prisma.$transaction(async (tx) => {
@@ -112898,13 +112925,33 @@ var DealService = class {
         }
       });
       if (input.contactId) {
-        const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        const stagesToPromote = ["LEAD", "MQL", "SQL"];
-        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+        if (stage.isWon) {
           await tx.contact.update({
             where: { id: input.contactId },
-            data: { lifecycleStage: "OPPORTUNITY" }
+            data: { lifecycleStage: "CUSTOMER" }
           });
+        } else {
+          const existingWon = await tx.deal.findFirst({
+            where: {
+              contactId: input.contactId,
+              stage: { isWon: true }
+            }
+          });
+          if (existingWon) {
+            await tx.contact.update({
+              where: { id: input.contactId },
+              data: { lifecycleStage: "CUSTOMER" }
+            });
+          } else {
+            const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
+            const stagesToPromote = ["LEAD", "MQL", "SQL"];
+            if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+              await tx.contact.update({
+                where: { id: input.contactId },
+                data: { lifecycleStage: "OPPORTUNITY" }
+              });
+            }
+          }
         }
       }
       return newDeal;
@@ -112997,6 +113044,21 @@ var DealService = class {
           metadata: { updatedFields: Object.keys(input) }
         }
       });
+      const effectiveContactId = updated.contactId;
+      if (effectiveContactId) {
+        const hasWonDeal = await tx.deal.findFirst({
+          where: {
+            contactId: effectiveContactId,
+            stage: { isWon: true }
+          }
+        });
+        if (hasWonDeal) {
+          await tx.contact.update({
+            where: { id: effectiveContactId },
+            data: { lifecycleStage: "CUSTOMER" }
+          });
+        }
+      }
       return updated;
     });
     if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
@@ -113231,14 +113293,26 @@ var PipelineService = class {
           assignedUser: { select: { id: true, name: true, email: true } }
         }
       });
-      if (targetStage.isWon && updated.contactId) {
-        const contact = await tx.contact.findUnique({ where: { id: updated.contactId } });
-        const stagesToPromote = ["LEAD", "MQL", "SQL", "OPPORTUNITY"];
-        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+      if (updated.contactId) {
+        if (targetStage.isWon) {
           await tx.contact.update({
             where: { id: updated.contactId },
             data: { lifecycleStage: "CUSTOMER" }
           });
+        } else {
+          const hasOtherWon = await tx.deal.findFirst({
+            where: {
+              contactId: updated.contactId,
+              id: { not: dealId },
+              stage: { isWon: true }
+            }
+          });
+          if (hasOtherWon) {
+            await tx.contact.update({
+              where: { id: updated.contactId },
+              data: { lifecycleStage: "CUSTOMER" }
+            });
+          }
         }
       }
       await tx.activity.create({
@@ -113810,7 +113884,13 @@ var conversationInclude = {
       firstName: true,
       lastName: true,
       email: true,
-      avatarUrl: true
+      avatarUrl: true,
+      lifecycleStage: true,
+      status: true,
+      deals: {
+        where: { stage: { isWon: true } },
+        select: { id: true }
+      }
     }
   },
   campaign: {

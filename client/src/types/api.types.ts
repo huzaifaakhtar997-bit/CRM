@@ -1,11 +1,10 @@
 export enum LifecycleStage {
   LEAD = "LEAD",
-  MARKETING_QUALIFIED = "MARKETING_QUALIFIED",
-  SALES_QUALIFIED = "SALES_QUALIFIED",
+  MQL = "MQL",
+  SQL = "SQL",
   OPPORTUNITY = "OPPORTUNITY",
   CUSTOMER = "CUSTOMER",
-  EVANGELIST = "EVANGELIST",
-  OTHER = "OTHER",
+  CHURNED = "CHURNED",
 }
 
 export enum LeadSource {
@@ -44,6 +43,8 @@ export interface Contact {
   status: string | null;
   notes: string | null;
   tags: string[];
+  hasWonDeal?: boolean;
+  deals?: Array<{ id: string; stage?: { isWon: boolean } }>;
   createdAt: string;
   updatedAt: string;
 }

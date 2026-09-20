@@ -24,10 +24,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     jobTitle: "",
     lifecycleStage: LifecycleStage.LEAD,
     leadSource: null,
+    status: "",
     notes: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const hasWonDeal = Boolean(
+    initialData?.hasWonDeal || (initialData?.deals && initialData.deals.length > 0)
+  );
 
   useEffect(() => {
     if (initialData && isOpen) {
@@ -37,8 +42,9 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         email: initialData.email || "",
         phone: initialData.phone || "",
         jobTitle: initialData.jobTitle || "",
-        lifecycleStage: initialData.lifecycleStage,
+        lifecycleStage: initialData.hasWonDeal ? LifecycleStage.CUSTOMER : initialData.lifecycleStage,
         leadSource: initialData.leadSource || null,
+        status: initialData.status || "",
         notes: initialData.notes || "",
       });
       setError(null);
@@ -51,6 +57,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         jobTitle: "",
         lifecycleStage: LifecycleStage.LEAD,
         leadSource: null,
+        status: "",
         notes: "",
       });
       setError(null);
@@ -166,12 +173,20 @@ export const ContactForm: React.FC<ContactFormProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Lifecycle Stage</label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-foreground">Lifecycle Stage</label>
+                {hasWonDeal && (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                    🔒 Locked (Won Deal)
+                  </span>
+                )}
+              </div>
               <select
                 name="lifecycleStage"
-                value={formData.lifecycleStage || LifecycleStage.LEAD}
+                value={hasWonDeal ? LifecycleStage.CUSTOMER : (formData.lifecycleStage || LifecycleStage.LEAD)}
                 onChange={handleChange}
-                className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={hasWonDeal}
+                className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-75 disabled:cursor-not-allowed"
               >
                 {Object.values(LifecycleStage).map((stage) => (
                   <option key={stage} value={stage}>
@@ -179,7 +194,31 @@ export const ContactForm: React.FC<ContactFormProps> = ({
                   </option>
                 ))}
               </select>
+              {hasWonDeal && (
+                <p className="text-[11px] text-muted-foreground">
+                  Contact has a Won deal — lifecycle status is locked to Customer.
+                </p>
+              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Qualification Tag</label>
+            <select
+              name="status"
+              value={formData.status || ""}
+              onChange={handleChange}
+              className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">No Qualification Tag</option>
+              <option value="MQL">MQL (Marketing Qualified)</option>
+              <option value="SQL">SQL (Sales Qualified)</option>
+              <option value="QUALIFIED">Qualified</option>
+              <option value="UNQUALIFIED">Unqualified</option>
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              Freely editable manual qualification label (MQL, SQL, etc.) independent of deal progress.
+            </p>
           </div>
 
           <div className="space-y-2">

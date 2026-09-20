@@ -21,6 +21,10 @@ export class ContactRepository {
         assignedUser: {
           select: { id: true, name: true, email: true, avatarUrl: true },
         },
+        deals: {
+          where: { stage: { isWon: true } },
+          select: { id: true },
+        },
       },
     });
   }
@@ -49,7 +53,15 @@ export class ContactRepository {
 
     // Exact match filters
     if (query.lifecycleStage) {
-      where.lifecycleStage = query.lifecycleStage;
+      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
+        where.OR = [
+          { lifecycleStage: query.lifecycleStage },
+          { status: query.lifecycleStage },
+          { tags: { has: query.lifecycleStage } },
+        ];
+      } else {
+        where.lifecycleStage = query.lifecycleStage;
+      }
     }
     if (query.assignedUserId) {
       where.assignedUserId = query.assignedUserId;
@@ -70,6 +82,10 @@ export class ContactRepository {
           },
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          deals: {
+            where: { stage: { isWon: true } },
+            select: { id: true },
           },
         },
       }),

@@ -100,6 +100,19 @@ export class ContactService {
       }
     }
 
+    // Lightweight rule: if any deal for this contact is Won, status = Customer
+    if (input.lifecycleStage && input.lifecycleStage !== "CUSTOMER") {
+      const hasWonDeal = await prisma.deal.findFirst({
+        where: {
+          contactId: id,
+          stage: { isWon: true },
+        },
+      });
+      if (hasWonDeal) {
+        input.lifecycleStage = "CUSTOMER" as any;
+      }
+    }
+
     const updatedContact = await prisma.$transaction(async (tx) => {
       const updated = await tx.contact.update({
         where: { id },

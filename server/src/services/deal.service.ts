@@ -69,15 +69,35 @@ export class DealService {
         },
       });
 
-      // Auto-promote contact lifecycle stage to OPPORTUNITY when a deal is created
+      // Lightweight rule: if any deal for this contact is Won, status = Customer
       if (input.contactId) {
-        const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        const stagesToPromote = ["LEAD", "MQL", "SQL"];
-        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+        if (stage.isWon) {
           await tx.contact.update({
             where: { id: input.contactId },
-            data: { lifecycleStage: "OPPORTUNITY" },
+            data: { lifecycleStage: "CUSTOMER" },
           });
+        } else {
+          const existingWon = await tx.deal.findFirst({
+            where: {
+              contactId: input.contactId,
+              stage: { isWon: true },
+            },
+          });
+          if (existingWon) {
+            await tx.contact.update({
+              where: { id: input.contactId },
+              data: { lifecycleStage: "CUSTOMER" },
+            });
+          } else {
+            const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
+            const stagesToPromote = ["LEAD", "MQL", "SQL"];
+            if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+              await tx.contact.update({
+                where: { id: input.contactId },
+                data: { lifecycleStage: "OPPORTUNITY" },
+              });
+            }
+          }
         }
       }
 
@@ -182,6 +202,23 @@ export class DealService {
           metadata: { updatedFields: Object.keys(input) },
         },
       });
+
+      // Lightweight rule: if any deal for this contact is Won, status = Customer
+      const effectiveContactId = updated.contactId;
+      if (effectiveContactId) {
+        const hasWonDeal = await tx.deal.findFirst({
+          where: {
+            contactId: effectiveContactId,
+            stage: { isWon: true },
+          },
+        });
+        if (hasWonDeal) {
+          await tx.contact.update({
+            where: { id: effectiveContactId },
+            data: { lifecycleStage: "CUSTOMER" },
+          });
+        }
+      }
 
       return updated;
     });

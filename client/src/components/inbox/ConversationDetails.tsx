@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Conversation,
   Message,
@@ -31,6 +31,7 @@ import {
   ChevronDown,
   Plus,
   CheckCircle2,
+  Lock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -42,12 +43,17 @@ interface ConversationDetailsProps {
 
 const LIFECYCLE_STAGES = [
   { value: "LEAD", label: "Lead" },
-  { value: "MARKETING_QUALIFIED", label: "Marketing Qualified" },
-  { value: "SALES_QUALIFIED", label: "Sales Qualified" },
   { value: "OPPORTUNITY", label: "Opportunity" },
   { value: "CUSTOMER", label: "Customer" },
-  { value: "EVANGELIST", label: "Evangelist" },
-  { value: "OTHER", label: "Other" },
+  { value: "CHURNED", label: "Churned" },
+];
+
+const QUALIFICATION_TAGS = [
+  { value: "", label: "No Qualification Tag" },
+  { value: "MQL", label: "MQL (Marketing Qualified)" },
+  { value: "SQL", label: "SQL (Sales Qualified)" },
+  { value: "QUALIFIED", label: "Qualified" },
+  { value: "UNQUALIFIED", label: "Unqualified" },
 ];
 
 const TASK_TYPES: { value: TaskType; label: string }[] = [
@@ -86,6 +92,8 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
 
   const [lifecycle, setLifecycle] = useState<string>("");
   const [savingLifecycle, setSavingLifecycle] = useState(false);
+  const [qualification, setQualification] = useState<string>("");
+  const [savingQualification, setSavingQualification] = useState(false);
 
   const [deals, setDeals] = useState<Deal[]>([]);
   const [pipelineStages, setPipelineStages] = useState<PipelineStage[]>([]);
@@ -153,13 +161,20 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     if (conversation?.contact?.lifecycleStage) {
       setLifecycle(conversation.contact.lifecycleStage as string);
     }
+    if ((conversation?.contact as any)?.status !== undefined) {
+      setQualification((conversation?.contact as any)?.status || "");
+    }
     dealsApi.getDeals({ contactId: effectiveContactId }).then((res) => {
-      setDeals(res.deals || []);
+      const dealList = res.deals || [];
+      setDeals(dealList);
+      if (dealList.some((d) => d.stage?.isWon)) {
+        setLifecycle("CUSTOMER");
+      }
     }).catch(console.error);
     tasksApi.getTasks({ contactId: effectiveContactId, completed: false }).then((res) => {
       setTasks(res.tasks || []);
     }).catch(console.error);
-  }, [effectiveContactId, conversation?.contact?.lifecycleStage]);
+  }, [effectiveContactId, conversation?.contact?.lifecycleStage, (conversation?.contact as any)?.status]);
 
   useEffect(() => {
     loadContactRelatedData();
@@ -177,6 +192,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   }
 
   const { contact, assignedUser } = conversation;
+  const hasWonDeal = deals.some((d) => d.stage?.isWon) || Boolean((contact as any)?.deals?.length);
 
   const handleCreateContact = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +225,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   };
 
   const handleLifecycleChange = async (newStage: string) => {
+    if (hasWonDeal) return;
     const targetId = contact?.id || effectiveContactId;
     if (!targetId || !newStage) return;
     setLifecycle(newStage); setSavingLifecycle(true);
@@ -218,6 +235,18 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     }
     catch (err) { console.error("Failed to update lifecycle stage", err); }
     finally { setSavingLifecycle(false); }
+  };
+
+  const handleQualificationChange = async (newTag: string) => {
+    const targetId = contact?.id || effectiveContactId;
+    if (!targetId) return;
+    setQualification(newTag); setSavingQualification(true);
+    try {
+      await contactsApi.updateContact(targetId, { status: newTag || null });
+      triggerGlobalRefresh();
+    }
+    catch (err) { console.error("Failed to update qualification tag", err); }
+    finally { setSavingQualification(false); }
   };
 
   const handleDealStageChange = async (dealId: string, stageId: string) => {
@@ -333,21 +362,59 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
               )}
               {/* Lifecycle Stage */}
               <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Lifecycle Stage</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs text-muted-foreground">Lifecycle Stage</label>
+                  {hasWonDeal && (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                      <Lock className="w-2.5 h-2.5" /> Locked (Won Deal)
+                    </span>
+                  )}
+                </div>
+                {hasWonDeal ? (
+                  <div className="w-full h-8 px-2.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-xs font-medium text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      Customer
+                    </span>
+                    <span className="text-[10px] bg-emerald-200/60 dark:bg-emerald-950 px-1.5 py-0.5 rounded text-emerald-800 dark:text-emerald-200 font-semibold uppercase tracking-wider">
+                      Won Deal
+                    </span>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={lifecycle}
+                      onChange={(e) => handleLifecycleChange(e.target.value)}
+                      disabled={savingLifecycle}
+                      className="w-full h-8 px-2.5 pr-7 rounded-md border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60"
+                    >
+                      <option value="">Select Stage</option>
+                      {LIFECYCLE_STAGES.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                    {savingLifecycle && <Loader2 className="absolute right-6 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-primary" />}
+                  </div>
+                )}
+              </div>
+
+              {/* Qualification Tag (Freely editable separate field for MQL/SQL) */}
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Qualification Tag</label>
                 <div className="relative">
                   <select
-                    value={lifecycle}
-                    onChange={(e) => handleLifecycleChange(e.target.value)}
-                    disabled={savingLifecycle}
+                    value={qualification}
+                    onChange={(e) => handleQualificationChange(e.target.value)}
+                    disabled={savingQualification}
                     className="w-full h-8 px-2.5 pr-7 rounded-md border border-input bg-background text-xs appearance-none cursor-pointer disabled:opacity-60"
                   >
-                    <option value="">Select Stage</option>
-                    {LIFECYCLE_STAGES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
+                    {QUALIFICATION_TAGS.map((q) => (
+                      <option key={q.value} value={q.value}>{q.label}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-                  {savingLifecycle && <Loader2 className="absolute right-6 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-primary" />}
+                  {savingQualification && <Loader2 className="absolute right-6 top-1/2 -translate-y-1/2 w-3 h-3 animate-spin text-primary" />}
                 </div>
               </div>
             </div>

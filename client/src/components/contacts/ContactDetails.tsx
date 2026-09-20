@@ -1,7 +1,7 @@
 import React from "react";
 import { Contact } from "../../types/api.types";
 import { Button } from "../ui/button";
-import { X, Mail, Phone, Building2, UserCircle, Briefcase, Calendar, Tag, FileText } from "lucide-react";
+import { X, Mail, Phone, Building2, UserCircle, Briefcase, Calendar, Tag, FileText, Lock, Award } from "lucide-react";
 
 interface ContactDetailsProps {
   contact: Contact | null;
@@ -119,12 +119,34 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
                 <div>
                   <div className="text-sm font-medium text-foreground">Lifecycle Stage</div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-foreground">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-foreground">
+                      {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
+                        <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      )}
                       {contact.lifecycleStage.replace("_", " ")}
                     </span>
+                    {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        (Locked by Won Deal)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {contact.status && (
+                <div className="flex items-start">
+                  <Award className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-medium text-foreground">Qualification Tag</div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span className="inline-flex items-center rounded px-2.5 py-0.5 text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                        {contact.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-start">
                 <UserCircle className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />

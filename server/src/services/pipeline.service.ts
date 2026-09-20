@@ -62,15 +62,27 @@ export class PipelineService {
         },
       });
 
-      // Auto-promote contact lifecycle stage when deal is Won
-      if (targetStage.isWon && updated.contactId) {
-        const contact = await tx.contact.findUnique({ where: { id: updated.contactId } });
-        const stagesToPromote = ["LEAD", "MQL", "SQL", "OPPORTUNITY"];
-        if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+      // Lightweight rule: if any deal for this contact is Won, status = Customer
+      if (updated.contactId) {
+        if (targetStage.isWon) {
           await tx.contact.update({
             where: { id: updated.contactId },
             data: { lifecycleStage: "CUSTOMER" },
           });
+        } else {
+          const hasOtherWon = await tx.deal.findFirst({
+            where: {
+              contactId: updated.contactId,
+              id: { not: dealId },
+              stage: { isWon: true },
+            },
+          });
+          if (hasOtherWon) {
+            await tx.contact.update({
+              where: { id: updated.contactId },
+              data: { lifecycleStage: "CUSTOMER" },
+            });
+          }
         }
       }
 

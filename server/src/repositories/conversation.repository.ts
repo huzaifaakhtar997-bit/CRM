@@ -21,6 +21,12 @@ const conversationInclude: Prisma.ConversationInclude = {
       lastName: true,
       email: true,
       avatarUrl: true,
+      lifecycleStage: true,
+      status: true,
+      deals: {
+        where: { stage: { isWon: true } },
+        select: { id: true },
+      },
     },
   },
   campaign: {
