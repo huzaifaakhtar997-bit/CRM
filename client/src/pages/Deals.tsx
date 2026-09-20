@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { dealsApi } from "../api/deals.api";
 import { Deal, PipelineStage } from "../types/api.types";
 import { DealBoard } from "../components/deals/DealBoard";
@@ -6,7 +6,7 @@ import { DealForm } from "../components/deals/DealForm";
 import { DealDetails } from "../components/deals/DealDetails";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
-import { Plus, Search, AlertCircle } from "lucide-react";
+import { Plus, Search, AlertCircle, X } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
 
@@ -53,11 +53,12 @@ export default function Deals() {
       let totalPages = 1;
       const limit = 100; // Fetch large chunks
 
+      const trimmedSearch = debouncedSearch.trim();
       do {
         const response = await dealsApi.getDeals({
           page: currentPage,
           limit,
-          search: debouncedSearch || undefined,
+          search: trimmedSearch || undefined,
         });
         
         allDeals = [...allDeals, ...(response.deals || [])];
@@ -72,6 +73,19 @@ export default function Deals() {
       setLoading(false);
     }
   }, [debouncedSearch]);
+
+  // Instant client-side search filter over loaded deals
+  const displayedDeals = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return deals;
+    return deals.filter((deal) => {
+      const matchTitle = deal.title?.toLowerCase().includes(q);
+      const matchCompany = deal.company?.name?.toLowerCase().includes(q);
+      const contactFullName = `${deal.contact?.firstName || ""} ${deal.contact?.lastName || ""}`.trim().toLowerCase();
+      const matchContact = contactFullName.includes(q) || deal.contact?.email?.toLowerCase().includes(q);
+      return matchTitle || matchCompany || matchContact;
+    });
+  }, [deals, searchQuery]);
 
   useEffect(() => {
     loadData();
@@ -145,11 +159,20 @@ export default function Deals() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search deals..."
+              placeholder="Search deals, contacts, companies..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full flex h-10 rounded-md border border-input bg-card pl-10 pr-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-full flex h-10 rounded-md border border-input bg-card pl-10 pr-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           {canWrite && (
             <Button onClick={handleCreateNew} className="flex-shrink-0">
@@ -159,6 +182,19 @@ export default function Deals() {
           )}
         </div>
       </div>
+
+      {/* Search feedback indicator */}
+      {searchQuery.trim() && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1 -mt-2">
+          <span>Found {displayedDeals.length} deal{displayedDeals.length === 1 ? "" : "s"} matching "{searchQuery.trim()}"</span>
+          <button
+            onClick={() => setSearchQuery("")}
+            className="text-primary hover:underline font-medium"
+          >
+            Clear search
+          </button>
+        </div>
+      )}
 
       {/* Error state */}
       {error && !loading && (
@@ -177,7 +213,7 @@ export default function Deals() {
       <div className="flex-1 min-h-0 overflow-hidden">
         <DealBoard
           stages={stages}
-          deals={deals}
+          deals={displayedDeals}
           loading={loading}
           onView={handleView}
           onMoveStage={handleMoveStage}

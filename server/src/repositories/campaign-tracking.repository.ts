@@ -8,6 +8,7 @@ export interface CampaignTrackingSummary {
   delivered: number;
   opened: number;
   clicked: number;
+  replied?: number;
   bounced: number;
 }
 
@@ -32,23 +33,6 @@ export class CampaignTrackingRepository {
       where: { campaignId },
     });
 
-    const [sent, delivered, opened, clicked, bounced] = await Promise.all([
-      prisma.campaignRecipient.count({ where: { campaignId, status: "SENT" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "DELIVERED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "OPENED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "CLICKED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "BOUNCED" } }),
-    ]);
-
-    // Note: status is an enum of current status. So a recipient might be 'CLICKED' (previously opened, delivered, sent).
-    // The objective mentions "sent: 120, delivered: 118, opened: 63, clicked: 24, bounced: 2".
-    // Since in Prisma status is a single enum value, we calculate cumulative aggregates:
-    // - bounced counts BOUNCED
-    // - clicked counts CLICKED
-    // - opened counts OPENED + CLICKED
-    // - delivered counts DELIVERED + OPENED + CLICKED
-    // - sent counts SENT + DELIVERED + OPENED + CLICKED
-    // Let's implement this logic to align with standard funnel progression:
     const statusCounts = await prisma.campaignRecipient.groupBy({
       by: ["status"],
       where: { campaignId },
@@ -61,9 +45,9 @@ export class CampaignTrackingRepository {
       DELIVERED: 0,
       OPENED: 0,
       CLICKED: 0,
-      REPLIED: 0, // from schema (unused in spec)
+      REPLIED: 0,
       BOUNCED: 0,
-      FAILED: 0,  // from schema (unused in spec)
+      FAILED: 0,
     };
 
     statusCounts.forEach((group) => {
@@ -71,8 +55,10 @@ export class CampaignTrackingRepository {
     });
 
     const bouncedCount = counts.BOUNCED;
+    const repliedCount = counts.REPLIED;
     const clickedCount = counts.CLICKED;
-    const openedCount = counts.OPENED + clickedCount;
+    // An email that was replied to was delivered, opened, and sent
+    const openedCount = counts.OPENED + clickedCount + repliedCount;
     const deliveredCount = counts.DELIVERED + openedCount;
     const sentCount = counts.SENT + deliveredCount + bouncedCount;
 
@@ -83,6 +69,7 @@ export class CampaignTrackingRepository {
       delivered: deliveredCount,
       opened: openedCount,
       clicked: clickedCount,
+      replied: repliedCount,
       bounced: bouncedCount,
     };
   }

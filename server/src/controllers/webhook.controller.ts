@@ -139,11 +139,14 @@ export class WebhookController {
               matchedCampaignName = matchedCampaignRecipient.campaign.name;
 
               // Mark CampaignRecipient as REPLIED
+              const now = new Date();
               await prisma.campaignRecipient.update({
                 where: { id: matchedCampaignRecipient.id },
                 data: {
                   status: CampaignRecipientStatus.REPLIED,
-                  repliedAt: matchedCampaignRecipient.repliedAt ?? new Date(),
+                  repliedAt: matchedCampaignRecipient.repliedAt ?? now,
+                  deliveredAt: matchedCampaignRecipient.deliveredAt ?? now,
+                  openedAt: matchedCampaignRecipient.openedAt ?? now,
                 },
               });
             }
@@ -177,11 +180,14 @@ export class WebhookController {
               if (matchingCampaignRecip) {
                 matchedCampaignId = matchingCampaignRecip.campaignId;
                 matchedCampaignName = matchingCampaignRecip.campaign?.name || null;
+                const now = new Date();
                 await prisma.campaignRecipient.update({
                   where: { id: matchingCampaignRecip.id },
                   data: {
                     status: CampaignRecipientStatus.REPLIED,
-                    repliedAt: matchingCampaignRecip.repliedAt ?? new Date(),
+                    repliedAt: matchingCampaignRecip.repliedAt ?? now,
+                    deliveredAt: matchingCampaignRecip.deliveredAt ?? now,
+                    openedAt: matchingCampaignRecip.openedAt ?? now,
                   },
                 });
               }

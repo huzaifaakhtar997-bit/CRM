@@ -112822,8 +112822,25 @@ var DealRepository = class {
     const limit = query.limit || 10;
     const skip = (page - 1) * limit;
     const where = {};
-    if (query.search) {
-      where.title = { contains: query.search, mode: "insensitive" };
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: "insensitive" } },
+        {
+          contact: {
+            OR: [
+              { firstName: { contains: searchTerm, mode: "insensitive" } },
+              { lastName: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } }
+            ]
+          }
+        },
+        {
+          company: {
+            name: { contains: searchTerm, mode: "insensitive" }
+          }
+        }
+      ];
     }
     if (query.stageId) where.stageId = query.stageId;
     if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
@@ -113115,8 +113132,8 @@ var updateDealSchema = external_exports.object({
   assignedUserId: external_exports.string().nullable().optional()
 });
 var queryDealSchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  page: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 1),
+  limit: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 10),
   search: external_exports.string().optional(),
   stageId: external_exports.string().optional(),
   assignedUserId: external_exports.string().optional(),
@@ -122361,13 +122378,6 @@ var CampaignTrackingRepository = class {
     const totalRecipients = await prisma.campaignRecipient.count({
       where: { campaignId }
     });
-    const [sent, delivered, opened, clicked, bounced] = await Promise.all([
-      prisma.campaignRecipient.count({ where: { campaignId, status: "SENT" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "DELIVERED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "OPENED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "CLICKED" } }),
-      prisma.campaignRecipient.count({ where: { campaignId, status: "BOUNCED" } })
-    ]);
     const statusCounts = await prisma.campaignRecipient.groupBy({
       by: ["status"],
       where: { campaignId },
@@ -122380,17 +122390,16 @@ var CampaignTrackingRepository = class {
       OPENED: 0,
       CLICKED: 0,
       REPLIED: 0,
-      // from schema (unused in spec)
       BOUNCED: 0,
       FAILED: 0
-      // from schema (unused in spec)
     };
     statusCounts.forEach((group) => {
       counts[group.status] = group._count;
     });
     const bouncedCount = counts.BOUNCED;
+    const repliedCount = counts.REPLIED;
     const clickedCount = counts.CLICKED;
-    const openedCount = counts.OPENED + clickedCount;
+    const openedCount = counts.OPENED + clickedCount + repliedCount;
     const deliveredCount = counts.DELIVERED + openedCount;
     const sentCount = counts.SENT + deliveredCount + bouncedCount;
     return {
@@ -122400,6 +122409,7 @@ var CampaignTrackingRepository = class {
       delivered: deliveredCount,
       opened: openedCount,
       clicked: clickedCount,
+      replied: repliedCount,
       bounced: bouncedCount
     };
   }
@@ -122465,6 +122475,11 @@ var CampaignTrackingService = class {
       if (!recipient.openedAt) updateData.openedAt = now;
       if (!recipient.deliveredAt) updateData.deliveredAt = now;
     }
+    if (newStatus === "REPLIED") {
+      if (!recipient.repliedAt) updateData.repliedAt = now;
+      if (!recipient.openedAt) updateData.openedAt = now;
+      if (!recipient.deliveredAt) updateData.deliveredAt = now;
+    }
     const contact = await prisma.contact.findUnique({
       where: { id: recipient.contactId },
       select: { email: true }
@@ -122486,6 +122501,9 @@ var CampaignTrackingService = class {
       } else if (newStatus === "CLICKED") {
         activityTitle = "Campaign Recipient Clicked";
         activityContent = `Recipient ${contactEmail} clicked campaign link.`;
+      } else if (newStatus === "REPLIED") {
+        activityTitle = "Campaign Recipient Replied";
+        activityContent = `Recipient ${contactEmail} replied to campaign.`;
       } else if (newStatus === "BOUNCED") {
         activityTitle = "Campaign Recipient Bounced";
         activityContent = `Recipient ${contactEmail} bounced.`;
@@ -130693,11 +130711,14 @@ var WebhookController = class {
               matchedContactId = matchedCampaignRecipient.contactId;
               matchedCampaignId = matchedCampaignRecipient.campaignId;
               matchedCampaignName = matchedCampaignRecipient.campaign.name;
+              const now = /* @__PURE__ */ new Date();
               await prisma.campaignRecipient.update({
                 where: { id: matchedCampaignRecipient.id },
                 data: {
                   status: import_client68.CampaignRecipientStatus.REPLIED,
-                  repliedAt: matchedCampaignRecipient.repliedAt ?? /* @__PURE__ */ new Date()
+                  repliedAt: matchedCampaignRecipient.repliedAt ?? now,
+                  deliveredAt: matchedCampaignRecipient.deliveredAt ?? now,
+                  openedAt: matchedCampaignRecipient.openedAt ?? now
                 }
               });
             }
@@ -130725,11 +130746,14 @@ var WebhookController = class {
               if (matchingCampaignRecip) {
                 matchedCampaignId = matchingCampaignRecip.campaignId;
                 matchedCampaignName = matchingCampaignRecip.campaign?.name || null;
+                const now = /* @__PURE__ */ new Date();
                 await prisma.campaignRecipient.update({
                   where: { id: matchingCampaignRecip.id },
                   data: {
                     status: import_client68.CampaignRecipientStatus.REPLIED,
-                    repliedAt: matchingCampaignRecip.repliedAt ?? /* @__PURE__ */ new Date()
+                    repliedAt: matchingCampaignRecip.repliedAt ?? now,
+                    deliveredAt: matchingCampaignRecip.deliveredAt ?? now,
+                    openedAt: matchingCampaignRecip.openedAt ?? now
                   }
                 });
               }

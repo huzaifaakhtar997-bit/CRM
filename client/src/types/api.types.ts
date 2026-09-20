@@ -446,6 +446,7 @@ export interface CampaignTrackingSummary {
   delivered: number;
   opened: number;
   clicked: number;
+  replied?: number;
   bounced: number;
 }
 

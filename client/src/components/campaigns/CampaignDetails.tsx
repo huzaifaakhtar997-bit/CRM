@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Campaign, CampaignRecipient, CampaignTrackingSummary } from "../../types/api.types";
 import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
-import { X, Loader2, Play, Users, Send, CheckCircle2, AlertCircle, RefreshCw, AlertTriangle } from "lucide-react";
+import { X, Loader2, Play, Users, Send, CheckCircle2, AlertCircle, RefreshCw, AlertTriangle, MessageSquare } from "lucide-react";
 import { Button } from "../ui/button";
 import { getCampaignStatusBadge } from "./CampaignTable";
 import { RefreshButton } from "../ui/RefreshButton";
@@ -289,7 +289,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                           {refreshingTracking ? "Syncing..." : "Sync Live Status"}
                         </Button>
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
                           <Users className="w-5 h-5 mx-auto text-blue-500 mb-1.5" />
                           <div className="text-2xl font-bold">{tracking.totalRecipients}</div>
@@ -309,6 +309,11 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                           <AlertTriangle className="w-5 h-5 mx-auto text-rose-500 mb-1.5" />
                           <div className="text-2xl font-bold text-rose-600">{tracking.bounced}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">Undeliverable / Fake</div>
+                        </div>
+                        <div className="bg-card p-4 rounded-xl border shadow-sm text-center">
+                          <MessageSquare className="w-5 h-5 mx-auto text-purple-500 mb-1.5" />
+                          <div className="text-2xl font-bold text-purple-600">{tracking.replied ?? 0}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">Replied</div>
                         </div>
                       </div>
                     </div>
@@ -450,6 +455,8 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
                                       r.status === "DELIVERED"
                                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                        : r.status === "REPLIED"
+                                        ? "bg-purple-50 text-purple-700 border-purple-200"
                                         : r.status === "BOUNCED" || r.status === "FAILED"
                                         ? "bg-rose-50 text-rose-700 border-rose-200"
                                         : "bg-blue-50 text-blue-700 border-blue-200"

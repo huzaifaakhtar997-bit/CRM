@@ -33,8 +33,8 @@ export const updateDealSchema = z.object({
 });
 
 export const queryDealSchema = z.object({
-  page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 1)),
-  limit: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 10)),
+  page: z.union([z.string(), z.number()]).optional().transform((val) => (val ? Number(val) : 1)),
+  limit: z.union([z.string(), z.number()]).optional().transform((val) => (val ? Number(val) : 10)),
   search: z.string().optional(),
   stageId: z.string().optional(),
   assignedUserId: z.string().optional(),

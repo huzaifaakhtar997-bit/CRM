@@ -41,9 +41,26 @@ export class DealRepository {
 
     const where: Prisma.DealWhereInput = {};
 
-    // Search by deal title (case-insensitive)
-    if (query.search) {
-      where.title = { contains: query.search, mode: "insensitive" };
+    // Search by deal title, contact name, contact email, or company name (case-insensitive)
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: "insensitive" } },
+        {
+          contact: {
+            OR: [
+              { firstName: { contains: searchTerm, mode: "insensitive" } },
+              { lastName: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+        {
+          company: {
+            name: { contains: searchTerm, mode: "insensitive" },
+          },
+        },
+      ];
     }
 
     // Exact-match filters

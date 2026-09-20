@@ -80,6 +80,11 @@ export class CampaignTrackingService {
       if (!recipient.openedAt) updateData.openedAt = now;      // Auto set opened if clicked
       if (!recipient.deliveredAt) updateData.deliveredAt = now; // Auto set delivered if clicked
     }
+    if (newStatus === "REPLIED") {
+      if (!recipient.repliedAt) updateData.repliedAt = now;
+      if (!recipient.openedAt) updateData.openedAt = now;      // Auto set opened if replied
+      if (!recipient.deliveredAt) updateData.deliveredAt = now; // Auto set delivered if replied
+    }
 
     // Fetch contact detail for logging
     const contact = await prisma.contact.findUnique({
@@ -108,6 +113,9 @@ export class CampaignTrackingService {
       } else if (newStatus === "CLICKED") {
         activityTitle = "Campaign Recipient Clicked";
         activityContent = `Recipient ${contactEmail} clicked campaign link.`;
+      } else if (newStatus === "REPLIED") {
+        activityTitle = "Campaign Recipient Replied";
+        activityContent = `Recipient ${contactEmail} replied to campaign.`;
       } else if (newStatus === "BOUNCED") {
         activityTitle = "Campaign Recipient Bounced";
         activityContent = `Recipient ${contactEmail} bounced.`;
