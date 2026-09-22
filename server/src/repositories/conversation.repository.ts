@@ -93,7 +93,11 @@ export class ConversationRepository {
     }
 
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
     }
 
     if (query.contactId) {

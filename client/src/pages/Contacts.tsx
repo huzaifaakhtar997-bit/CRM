@@ -10,17 +10,27 @@ import { useAuth } from "../context/AuthContext";
 import { Plus, Search, AlertCircle, Download } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
+import { usersApi, CRMUser } from "../api/users.api";
 
 export default function Contacts() {
   const { user } = useAuth();
   
   // RBAC checks
   const canCreate = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
+  const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role || "");
 
   // State
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Owner filter
+  const [ownerFilter, setOwnerFilter] = useState<string>(isAdminOrManager ? "all" : "mine");
+  const [users, setUsers] = useState<CRMUser[]>([]);
+
+  useEffect(() => {
+    usersApi.getAllUsers().then(setUsers).catch(console.error);
+  }, []);
   
   // Pagination & Search
   const [page, setPage] = useState(1);
@@ -53,11 +63,21 @@ export default function Contacts() {
     setLoading(true);
     setError(null);
     try {
+      let queryAssignedUserId: string | undefined = undefined;
+      if (ownerFilter === "mine") {
+        queryAssignedUserId = user?.id;
+      } else if (ownerFilter === "unassigned") {
+        queryAssignedUserId = "unassigned";
+      } else if (ownerFilter !== "all") {
+        queryAssignedUserId = ownerFilter;
+      }
+
       const data = await contactsApi.getContacts({
         page,
         limit: 10,
         search: debouncedSearch || undefined,
         lifecycleStage: activeStage || undefined,
+        assignedUserId: queryAssignedUserId,
       });
       setContacts(data.contacts || []);
       setTotalPages(data.totalPages || 1);
@@ -66,7 +86,7 @@ export default function Contacts() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, activeStage]);
+  }, [page, debouncedSearch, activeStage, ownerFilter, user?.id]);
 
   useEffect(() => {
     loadContacts();
@@ -213,6 +233,76 @@ export default function Contacts() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full flex h-10 rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+        </div>
+
+        {/* Owner / Assignee Filter */}
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          {isAdminOrManager ? (
+            <div className="relative w-full sm:w-auto">
+              <select
+                value={ownerFilter}
+                onChange={(e) => {
+                  setOwnerFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="h-10 pl-3 pr-8 text-xs font-medium rounded-md border border-input bg-background text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary shadow-2xs w-full sm:w-auto"
+              >
+                <option value="all">All Contacts</option>
+                <option value="mine">My Contacts</option>
+                <option value="unassigned">Unassigned</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex bg-muted/60 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setOwnerFilter("mine");
+                  setPage(1);
+                }}
+                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                  ownerFilter === "mine"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                My Contacts
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOwnerFilter("unassigned");
+                  setPage(1);
+                }}
+                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                  ownerFilter === "unassigned"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Unassigned
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOwnerFilter("all");
+                  setPage(1);
+                }}
+                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                  ownerFilter === "all"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

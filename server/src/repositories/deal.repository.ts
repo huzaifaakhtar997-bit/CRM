@@ -65,7 +65,13 @@ export class DealRepository {
 
     // Exact-match filters
     if (query.stageId) where.stageId = query.stageId;
-    if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
     if (query.companyId) where.companyId = query.companyId;
     if (query.contactId) where.contactId = query.contactId;
 

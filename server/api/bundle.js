@@ -111227,7 +111227,11 @@ var ContactRepository = class {
       }
     }
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
     }
     if (query.companyId) {
       where.companyId = query.companyId;
@@ -111271,7 +111275,13 @@ var ContactRepository = class {
       ];
     }
     if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
-    if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
     return prisma.contact.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -111557,8 +111567,18 @@ var ContactService = class {
     }
     return contact;
   }
-  async getContacts(query) {
-    return this.contactRepo.findAll(query);
+  async getContacts(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+    return this.contactRepo.findAll(effectiveQuery);
   }
   async getContactById(id) {
     const contact = await this.contactRepo.findById(id);
@@ -111630,8 +111650,18 @@ var ContactService = class {
     }
     return updatedContact;
   }
-  async exportContacts(query) {
-    const contacts = await this.contactRepo.findAllForExport(query);
+  async exportContacts(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+    const contacts = await this.contactRepo.findAllForExport(effectiveQuery);
     const headers = [
       "ID",
       "First Name",
@@ -111745,7 +111775,7 @@ var ContactController = class {
           const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
           throw new AppError(`Query validation failed: ${errors}`, 400);
         }
-        const result = await this.contactServ.getContacts(validationResult.data);
+        const result = await this.contactServ.getContacts(validationResult.data, req.user);
         res.status(200).json({
           success: true,
           message: "Contacts retrieved successfully.",
@@ -111813,7 +111843,7 @@ var ContactController = class {
           const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
           throw new AppError(`Query validation failed: ${errors}`, 400);
         }
-        const csvData = await this.contactServ.exportContacts(validationResult.data);
+        const csvData = await this.contactServ.exportContacts(validationResult.data, req.user);
         const dateStr = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
         const filename = `contacts-${dateStr}.csv`;
         res.setHeader("Content-Type", "text/csv; charset=utf-8");
@@ -112843,7 +112873,13 @@ var DealRepository = class {
       ];
     }
     if (query.stageId) where.stageId = query.stageId;
-    if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
     if (query.companyId) where.companyId = query.companyId;
     if (query.contactId) where.contactId = query.contactId;
     const [deals, total] = await Promise.all([
@@ -112985,8 +113021,16 @@ var DealService = class {
     }
     return deal;
   }
-  async getDeals(query) {
-    return this.dealRepo.findAll(query);
+  async getDeals(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.dealRepo.findAll(effectiveQuery);
   }
   async getDealById(id) {
     const deal = await this.dealRepo.findById(id);
@@ -113171,7 +113215,7 @@ var DealController = class {
           const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
           throw new AppError(`Query validation failed: ${errors}`, 400);
         }
-        const data = await this.dealServ.getDeals(result.data);
+        const data = await this.dealServ.getDeals(result.data, req.user);
         res.status(200).json({
           success: true,
           message: "Deals retrieved successfully.",
@@ -113965,7 +114009,11 @@ var ConversationRepository = class {
       where.channel = query.channel;
     }
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
     }
     if (query.contactId) {
       where.contactId = query.contactId;
@@ -114055,8 +114103,16 @@ var ConversationService = class {
     });
     return conversation;
   }
-  async getConversations(query) {
-    return this.convoRepo.findAll(query);
+  async getConversations(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.convoRepo.findAll(effectiveQuery);
   }
   async getConversationById(id) {
     const convo = await this.convoRepo.findById(id);
@@ -114212,7 +114268,7 @@ var ConversationController = class {
           const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
           throw new AppError(`Query validation failed: ${errors}`, 400);
         }
-        const data = await this.convoServ.getConversations(result.data);
+        const data = await this.convoServ.getConversations(result.data, req.user);
         res.status(200).json({
           success: true,
           message: "Conversations retrieved successfully.",

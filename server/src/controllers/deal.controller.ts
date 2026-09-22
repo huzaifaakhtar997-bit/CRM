@@ -37,7 +37,7 @@ export class DealController {
         throw new AppError(`Query validation failed: ${errors}`, 400);
       }
 
-      const data = await this.dealServ.getDeals(result.data);
+      const data = await this.dealServ.getDeals(result.data, req.user);
 
       res.status(200).json({
         success: true,

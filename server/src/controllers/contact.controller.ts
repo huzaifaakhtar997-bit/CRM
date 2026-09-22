@@ -43,7 +43,7 @@ export class ContactController {
         throw new AppError(`Query validation failed: ${errors}`, 400);
       }
 
-      const result = await this.contactServ.getContacts(validationResult.data);
+      const result = await this.contactServ.getContacts(validationResult.data, req.user);
 
       res.status(200).json({
         success: true,
@@ -126,7 +126,7 @@ export class ContactController {
         throw new AppError(`Query validation failed: ${errors}`, 400);
       }
 
-      const csvData = await this.contactServ.exportContacts(validationResult.data);
+      const csvData = await this.contactServ.exportContacts(validationResult.data, req.user);
 
       const dateStr = new Date().toISOString().split("T")[0];
       const filename = `contacts-${dateStr}.csv`;

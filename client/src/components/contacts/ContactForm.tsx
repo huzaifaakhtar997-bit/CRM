@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Contact, LifecycleStage } from "../../types/api.types";
 import { Button } from "../ui/button";
 import { X, AlertCircle } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { usersApi, CRMUser } from "../../api/users.api";
 
 interface ContactFormProps {
   initialData: Contact | null;
@@ -16,6 +18,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   onClose,
   isOpen,
 }) => {
+  const { user } = useAuth();
+  const [users, setUsers] = useState<CRMUser[]>([]);
   const [formData, setFormData] = useState<Partial<Contact>>({
     firstName: "",
     lastName: "",
@@ -26,6 +30,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     leadSource: null,
     status: "",
     notes: "",
+    assignedUserId: null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,34 +40,40 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   );
 
   useEffect(() => {
-    if (initialData && isOpen) {
-      setFormData({
-        firstName: initialData.firstName,
-        lastName: initialData.lastName,
-        email: initialData.email || "",
-        phone: initialData.phone || "",
-        jobTitle: initialData.jobTitle || "",
-        lifecycleStage: initialData.hasWonDeal ? LifecycleStage.CUSTOMER : initialData.lifecycleStage,
-        leadSource: initialData.leadSource || null,
-        status: initialData.status || "",
-        notes: initialData.notes || "",
-      });
-      setError(null);
-    } else if (!initialData && isOpen) {
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        jobTitle: "",
-        lifecycleStage: LifecycleStage.LEAD,
-        leadSource: null,
-        status: "",
-        notes: "",
-      });
-      setError(null);
+    if (isOpen) {
+      usersApi.getAllUsers().then(setUsers).catch(console.error);
+
+      if (initialData) {
+        setFormData({
+          firstName: initialData.firstName,
+          lastName: initialData.lastName,
+          email: initialData.email || "",
+          phone: initialData.phone || "",
+          jobTitle: initialData.jobTitle || "",
+          lifecycleStage: initialData.hasWonDeal ? LifecycleStage.CUSTOMER : initialData.lifecycleStage,
+          leadSource: initialData.leadSource || null,
+          status: initialData.status || "",
+          notes: initialData.notes || "",
+          assignedUserId: initialData.assignedUserId || null,
+        });
+        setError(null);
+      } else {
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          jobTitle: "",
+          lifecycleStage: LifecycleStage.LEAD,
+          leadSource: null,
+          status: "",
+          notes: "",
+          assignedUserId: user?.id || null,
+        });
+        setError(null);
+      }
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, user?.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -218,6 +229,26 @@ export const ContactForm: React.FC<ContactFormProps> = ({
             </select>
             <p className="text-[11px] text-muted-foreground">
               Freely editable manual qualification label (MQL, SQL, etc.) independent of deal progress.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Contact Owner</label>
+            <select
+              name="assignedUserId"
+              value={formData.assignedUserId || ""}
+              onChange={handleChange}
+              className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">Unassigned</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role.replace("_", " ")})
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-muted-foreground">
+              Sales rep responsible for managing this contact.
             </p>
           </div>
 

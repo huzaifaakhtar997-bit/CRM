@@ -3,6 +3,8 @@ import { Deal, Priority, PipelineStage } from "../../types/api.types";
 import { Button } from "../ui/button";
 import { X, AlertCircle } from "lucide-react";
 import { api } from "../../api/axios";
+import { usersApi, CRMUser } from "../../api/users.api";
+import { useAuth } from "../../context/AuthContext";
 
 interface DealFormProps {
   initialData: Deal | null;
@@ -19,6 +21,7 @@ export const DealForm: React.FC<DealFormProps> = ({
   onClose,
   isOpen,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<Partial<Deal>>({
     title: "",
     value: 0,
@@ -30,6 +33,7 @@ export const DealForm: React.FC<DealFormProps> = ({
     notes: "",
     companyId: null,
     contactId: null,
+    assignedUserId: null,
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,12 +42,14 @@ export const DealForm: React.FC<DealFormProps> = ({
   // Lists for dropdowns (loaded when modal opens)
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [contacts, setContacts] = useState<{ id: string; firstName: string; lastName: string }[]>([]);
+  const [users, setUsers] = useState<CRMUser[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       // Load quick lists
       api.get("/companies?limit=100").then(res => setCompanies(res.data.data.companies || []));
       api.get("/contacts?limit=100").then(res => setContacts(res.data.data.contacts || []));
+      usersApi.getAllUsers().then(setUsers).catch(console.error);
 
       if (initialData) {
         setFormData({
@@ -57,6 +63,7 @@ export const DealForm: React.FC<DealFormProps> = ({
           notes: initialData.notes || "",
           companyId: initialData.companyId || null,
           contactId: initialData.contactId || null,
+          assignedUserId: initialData.assignedUserId || null,
         });
       } else {
         setFormData({
@@ -70,11 +77,12 @@ export const DealForm: React.FC<DealFormProps> = ({
           notes: "",
           companyId: null,
           contactId: null,
+          assignedUserId: user?.id || null,
         });
       }
       setError(null);
     }
-  }, [initialData, isOpen, stages]);
+  }, [initialData, isOpen, stages, user?.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -219,7 +227,7 @@ export const DealForm: React.FC<DealFormProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t mt-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Associated Company</label>
               <select
@@ -248,6 +256,22 @@ export const DealForm: React.FC<DealFormProps> = ({
                 {contacts.map((contact) => (
                   <option key={contact.id} value={contact.id}>
                     {contact.firstName} {contact.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Deal Owner</label>
+              <select
+                name="assignedUserId"
+                value={formData.assignedUserId || ""}
+                onChange={handleChange}
+                className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Unassigned</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
                   </option>
                 ))}
               </select>

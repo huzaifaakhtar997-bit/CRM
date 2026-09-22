@@ -75,8 +75,23 @@ export class ContactService {
     return contact;
   }
 
-  async getContacts(query: QueryContactInput): Promise<ContactListResult> {
-    return this.contactRepo.findAll(query);
+  async getContacts(
+    query: QueryContactInput,
+    currentUser?: { userId: string; role: string }
+  ): Promise<ContactListResult> {
+    const effectiveQuery = { ...query };
+
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+
+    return this.contactRepo.findAll(effectiveQuery);
   }
 
   async getContactById(id: string): Promise<Contact> {
@@ -160,8 +175,20 @@ export class ContactService {
     return updatedContact;
   }
 
-  async exportContacts(query: QueryContactInput): Promise<string> {
-    const contacts = await this.contactRepo.findAllForExport(query);
+  async exportContacts(query: QueryContactInput, currentUser?: { userId: string; role: string }): Promise<string> {
+    const effectiveQuery = { ...query };
+
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+
+    const contacts = await this.contactRepo.findAllForExport(effectiveQuery);
 
     const headers = [
       "ID",

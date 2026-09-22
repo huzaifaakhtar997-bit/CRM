@@ -1,5 +1,6 @@
 import React from "react";
 import { Conversation, ConversationStatus } from "../../types/api.types";
+import { CRMUser } from "../../api/users.api";
 import { ConversationItem } from "./ConversationItem";
 import { Search, Loader2 } from "lucide-react";
 import { RefreshButton } from "../ui/RefreshButton";
@@ -14,6 +15,10 @@ interface ConversationListProps {
   statusFilter: ConversationStatus | "ALL";
   onStatusChange: (status: ConversationStatus | "ALL") => void;
   onRefresh?: () => void | Promise<void>;
+  assigneeFilter: string;
+  onAssigneeFilterChange: (filter: string) => void;
+  users?: CRMUser[];
+  isAdminOrManager?: boolean;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -26,14 +31,78 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   statusFilter,
   onStatusChange,
   onRefresh,
+  assigneeFilter,
+  onAssigneeFilterChange,
+  users = [],
+  isAdminOrManager = false,
 }) => {
   return (
     <div className="flex flex-col h-full bg-card border-r border-border">
-      <div className="p-4 border-b border-border space-y-4">
+      <div className="p-4 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-foreground">Inbox</h2>
           <RefreshButton onRefresh={onRefresh} variant="header" label="Refresh" />
         </div>
+
+        {/* Ownership Scope Tabs */}
+        <div className="flex bg-muted/60 p-1 rounded-lg gap-1 text-xs">
+          {isAdminOrManager && (
+            <button
+              type="button"
+              onClick={() => onAssigneeFilterChange("all")}
+              className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+                assigneeFilter === "all"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onAssigneeFilterChange("mine")}
+            className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+              assigneeFilter === "mine"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            My Chats
+          </button>
+          <button
+            type="button"
+            onClick={() => onAssigneeFilterChange("unassigned")}
+            className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+              assigneeFilter === "unassigned"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Unassigned
+          </button>
+        </div>
+
+        {/* For Admin/Manager: Rep filter dropdown if selecting a specific team member */}
+        {isAdminOrManager && users.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap">Filter Rep:</span>
+            <select
+              value={["all", "mine", "unassigned"].includes(assigneeFilter) ? "" : assigneeFilter}
+              onChange={(e) => {
+                if (e.target.value) onAssigneeFilterChange(e.target.value);
+              }}
+              className="w-full text-xs h-7 px-2 rounded border border-input bg-background text-foreground"
+            >
+              <option value="">Select Rep...</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         
         {/* Search */}
         <div className="relative">
@@ -47,7 +116,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           />
         </div>
 
-        {/* Filters */}
+        {/* Status Filters */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {(["ALL", ...Object.values(ConversationStatus)] as Array<ConversationStatus | "ALL">).map((status) => (
             <button

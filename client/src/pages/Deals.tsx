@@ -9,12 +9,14 @@ import { useAuth } from "../context/AuthContext";
 import { Plus, Search, AlertCircle, X } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
+import { usersApi, CRMUser } from "../api/users.api";
 
 export default function Deals() {
   const { user } = useAuth();
   
   // RBAC checks
   const canWrite = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
+  const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role || "");
 
   // State
   const [stages, setStages] = useState<PipelineStage[]>([]);
@@ -22,6 +24,14 @@ export default function Deals() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Rep / Ownership filter
+  const [repFilter, setRepFilter] = useState<string>(isAdminOrManager ? "all" : "mine");
+  const [users, setUsers] = useState<CRMUser[]>([]);
+
+  useEffect(() => {
+    usersApi.getAllUsers().then(setUsers).catch(console.error);
+  }, []);
+
   // Search
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -53,12 +63,22 @@ export default function Deals() {
       let totalPages = 1;
       const limit = 100; // Fetch large chunks
 
+      let queryAssignedUserId: string | undefined = undefined;
+      if (repFilter === "mine") {
+        queryAssignedUserId = user?.id;
+      } else if (repFilter === "unassigned") {
+        queryAssignedUserId = "unassigned";
+      } else if (repFilter !== "all") {
+        queryAssignedUserId = repFilter;
+      }
+
       const trimmedSearch = debouncedSearch.trim();
       do {
         const response = await dealsApi.getDeals({
           page: currentPage,
           limit,
           search: trimmedSearch || undefined,
+          assignedUserId: queryAssignedUserId,
         });
         
         allDeals = [...allDeals, ...(response.deals || [])];
@@ -72,20 +92,29 @@ export default function Deals() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch]);
+  }, [debouncedSearch, repFilter, user?.id]);
 
-  // Instant client-side search filter over loaded deals
+  // Instant client-side search and ownership filter over loaded deals
   const displayedDeals = useMemo(() => {
+    let filtered = deals;
+    if (repFilter === "mine" && user?.id) {
+      filtered = filtered.filter((d) => d.assignedUserId === user.id);
+    } else if (repFilter === "unassigned") {
+      filtered = filtered.filter((d) => !d.assignedUserId);
+    } else if (repFilter !== "all") {
+      filtered = filtered.filter((d) => d.assignedUserId === repFilter);
+    }
+
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return deals;
-    return deals.filter((deal) => {
+    if (!q) return filtered;
+    return filtered.filter((deal) => {
       const matchTitle = deal.title?.toLowerCase().includes(q);
       const matchCompany = deal.company?.name?.toLowerCase().includes(q);
       const contactFullName = `${deal.contact?.firstName || ""} ${deal.contact?.lastName || ""}`.trim().toLowerCase();
       const matchContact = contactFullName.includes(q) || deal.contact?.email?.toLowerCase().includes(q);
       return matchTitle || matchCompany || matchContact;
     });
-  }, [deals, searchQuery]);
+  }, [deals, searchQuery, repFilter, user?.id]);
 
   useEffect(() => {
     loadData();
@@ -153,8 +182,54 @@ export default function Deals() {
             Manage your sales opportunities and track revenue.
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
           <RefreshButton onRefresh={loadData} />
+          
+          {/* Rep / Ownership Filter */}
+          {isAdminOrManager ? (
+            <div className="relative">
+              <select
+                value={repFilter}
+                onChange={(e) => setRepFilter(e.target.value)}
+                className="h-10 pl-3 pr-8 text-xs font-medium rounded-md border border-input bg-card text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary shadow-2xs"
+              >
+                <option value="all">All Reps</option>
+                <option value="mine">My Deals</option>
+                <option value="unassigned">Unassigned</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} ({u.role})
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex bg-muted/60 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => setRepFilter("mine")}
+                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                  repFilter === "mine"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                My Deals
+              </button>
+              <button
+                type="button"
+                onClick={() => setRepFilter("unassigned")}
+                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                  repFilter === "unassigned"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Unassigned
+              </button>
+            </div>
+          )}
+
           <div className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input

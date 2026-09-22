@@ -70,6 +70,7 @@ export const ContactTable: React.FC<ContactTableProps> = ({
               <th className="px-6 py-4 font-medium">Contact Details</th>
               <th className="px-6 py-4 font-medium hidden md:table-cell">Company & Title</th>
               <th className="px-6 py-4 font-medium hidden lg:table-cell">Lifecycle Stage</th>
+              <th className="px-6 py-4 font-medium hidden xl:table-cell">Owner</th>
               <th className="px-6 py-4 font-medium hidden sm:table-cell">Created</th>
               <th className="px-6 py-4 font-medium text-right">Actions</th>
             </tr>
@@ -122,6 +123,20 @@ export const ContactTable: React.FC<ContactTableProps> = ({
                       </span>
                     )}
                   </div>
+                </td>
+                <td className="px-6 py-4 hidden xl:table-cell">
+                  {contact.assignedUser ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                        {contact.assignedUser.name?.[0]?.toUpperCase() || "U"}
+                      </div>
+                      <span className="text-foreground text-xs font-medium truncate max-w-[120px]" title={contact.assignedUser.name}>
+                        {contact.assignedUser.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground/60 text-xs italic">Unassigned</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 hidden sm:table-cell text-muted-foreground">
                   <div className="flex items-center">

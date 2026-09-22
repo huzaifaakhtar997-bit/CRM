@@ -64,7 +64,11 @@ export class ContactRepository {
       }
     }
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
     }
     if (query.companyId) {
       where.companyId = query.companyId;
@@ -112,7 +116,13 @@ export class ContactRepository {
       ];
     }
     if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
-    if (query.assignedUserId) where.assignedUserId = query.assignedUserId;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
 
     return prisma.contact.findMany({
       where,

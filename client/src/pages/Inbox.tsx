@@ -30,6 +30,8 @@ export default function Inbox() {
   const [updatingAssignee, setUpdatingAssignee] = useState(false);
 
   // Filters
+  const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role || "");
+  const [assigneeFilter, setAssigneeFilter] = useState<string>(isAdminOrManager ? "all" : "mine");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ConversationStatus | "ALL">("ALL");
@@ -37,7 +39,6 @@ export default function Inbox() {
   useEffect(() => {
     usersApi.getAllUsers().then(setUsers).catch(console.error);
   }, []);
-
 
   // Debounce search
   useEffect(() => {
@@ -51,10 +52,20 @@ export default function Inbox() {
   const loadConversations = useCallback(async () => {
     setLoadingList(true);
     try {
+      let queryAssignedUserId: string | undefined = undefined;
+      if (assigneeFilter === "mine") {
+        queryAssignedUserId = user?.id;
+      } else if (assigneeFilter === "unassigned") {
+        queryAssignedUserId = "unassigned";
+      } else if (assigneeFilter !== "all") {
+        queryAssignedUserId = assigneeFilter;
+      }
+
       const data = await conversationsApi.getConversations({
         limit: 50,
         search: debouncedSearch || undefined,
         status: statusFilter === "ALL" ? undefined : statusFilter,
+        assignedUserId: queryAssignedUserId,
       });
       setConversations(data.conversations || []);
     } catch (err) {
@@ -62,7 +73,7 @@ export default function Inbox() {
     } finally {
       setLoadingList(false);
     }
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, assigneeFilter, user?.id]);
 
   useEffect(() => {
     loadConversations();
@@ -265,6 +276,10 @@ export default function Inbox() {
           statusFilter={statusFilter}
           onStatusChange={setStatusFilter}
           onRefresh={handleFullRefresh}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={setAssigneeFilter}
+          users={users}
+          isAdminOrManager={isAdminOrManager}
         />
       </div>
 
@@ -286,6 +301,18 @@ export default function Inbox() {
 
               {/* Status and Assignee Controls */}
               <div className="flex items-center gap-2">
+                {/* Quick Claim Button if unassigned */}
+                {!selectedConversation?.assignedUserId && user && (
+                  <button
+                    type="button"
+                    onClick={() => handleAssigneeChange(user.id)}
+                    disabled={updatingAssignee}
+                    className="h-8 px-2.5 text-xs font-semibold rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-2xs"
+                  >
+                    Claim Chat
+                  </button>
+                )}
+
                 {/* Status Selector */}
                 <div className="relative">
                   <select
@@ -302,7 +329,7 @@ export default function Inbox() {
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
 
-                {/* Assignee Selector */}
+                {/* Assignee Selector (Admin/Manager or current assignee) */}
                 <div className="relative">
                   <select
                     value={selectedConversation?.assignedUserId || ""}

@@ -56,8 +56,22 @@ export class ConversationService {
     return conversation;
   }
 
-  async getConversations(query: QueryConversationInput): Promise<ConversationListResult> {
-    return this.convoRepo.findAll(query);
+  async getConversations(
+    query: QueryConversationInput,
+    currentUser?: { userId: string; role: string }
+  ): Promise<ConversationListResult> {
+    const effectiveQuery = { ...query };
+
+    // Role-based scoping for SALES_REP:
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+
+    return this.convoRepo.findAll(effectiveQuery);
   }
 
   async getConversationById(id: string): Promise<Conversation> {

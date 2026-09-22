@@ -118,8 +118,22 @@ export class DealService {
     return deal;
   }
 
-  async getDeals(query: QueryDealInput): Promise<DealListResult> {
-    return this.dealRepo.findAll(query);
+  async getDeals(
+    query: QueryDealInput,
+    currentUser?: { userId: string; role: string }
+  ): Promise<DealListResult> {
+    const effectiveQuery = { ...query };
+
+    // Role-based scoping for SALES_REP:
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+
+    return this.dealRepo.findAll(effectiveQuery);
   }
 
   async getDealById(id: string): Promise<Deal> {
