@@ -453,3 +453,69 @@ export interface CampaignTrackingSummary {
   bounced: number;
 }
 
+export interface RepLeaderboardEntry {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl: string | null;
+  wonRevenue: number;
+  wonDealsCount: number;
+  pipelineValue: number;
+  openDealsCount: number;
+  winRate: number;
+  completedTasksCount: number;
+  activeChatsCount: number;
+}
+
+export interface CompanyKPISummary {
+  totalWonRevenue: number;
+  totalWonDeals: number;
+  totalPipelineValue: number;
+  totalOpenDeals: number;
+  companyWinRate: number;
+  overdueTasksCount: number;
+  unassignedDealsCount: number;
+  unassignedChatsCount: number;
+}
+
+export interface PersonalPerformance {
+  wonRevenue: number;
+  wonDealsCount: number;
+  pipelineValue: number;
+  openDealsCount: number;
+  winRate: number;
+  completedTasksCount: number;
+  pendingTasksCount: number;
+  overdueTasksCount: number;
+}
+
+export interface DailyFocusTask {
+  id: string;
+  title: string;
+  priority: string;
+  taskType: string;
+  dueDate: string | null;
+  isOverdue: boolean;
+  contactName?: string | null;
+  dealTitle?: string | null;
+}
+
+export interface DailyFocusConversation {
+  id: string;
+  subject: string;
+  senderAddress: string | null;
+  status: string;
+  lastMessageAt: string;
+  contactName?: string | null;
+}
+
+export interface DashboardPerformanceData {
+  isAdminOrManager: boolean;
+  leaderboard?: RepLeaderboardEntry[];
+  companyKPIs?: CompanyKPISummary;
+  personal?: PersonalPerformance;
+  focusTasks?: DailyFocusTask[];
+  focusConversations?: DailyFocusConversation[];
+}
+

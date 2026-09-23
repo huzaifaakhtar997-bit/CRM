@@ -25,6 +25,7 @@ import integrationRoutes from "./integration.routes";
 import hubspotSyncRoutes from "./hubspot-sync.routes";
 import importRoutes from "./import.routes";
 import notificationRoutes from "./notification.routes";
+import dashboardRoutes from "./dashboard.routes";
 import { campaignLaunchController } from "../controllers/campaign-launch.controller";
 
 
@@ -52,6 +53,7 @@ router.use("/pipeline", pipelineRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/conversations", conversationRoutes);
 router.use("/templates", templateRoutes);
+router.use("/dashboard", dashboardRoutes);
 
 // Public / webhook / cron endpoint to process scheduled campaigns (must precede root-level routers)
 router.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);

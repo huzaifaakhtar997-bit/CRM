@@ -1,7 +1,11 @@
 import { api } from "./axios";
-import { Contact, Company, Deal, Task, ListResponse, UnreadCountResponse } from "../types/api.types";
+import { Contact, Company, Deal, Task, ListResponse, UnreadCountResponse, DashboardPerformanceData } from "../types/api.types";
 
 export const dashboardApi = {
+  getPerformanceData: async (): Promise<DashboardPerformanceData> => {
+    const res = await api.get<{ success: boolean; data: DashboardPerformanceData }>("/dashboard/performance");
+    return res.data.data;
+  },
   getContactsCount: async (): Promise<number> => {
     const res = await api.get<ListResponse<Contact>>("/contacts?limit=1");
     return res.data.data.total;

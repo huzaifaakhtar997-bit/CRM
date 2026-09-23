@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { dashboardApi } from "../api/dashboard.api";
-import { Contact, Deal, Task } from "../types/api.types";
+import { Contact, Deal, Task, DashboardPerformanceData } from "../types/api.types";
 import { MetricCard } from "../components/dashboard/MetricCard";
 import { RecentContacts } from "../components/dashboard/RecentContacts";
 import { DealsOverview } from "../components/dashboard/DealsOverview";
 import { TasksOverview } from "../components/dashboard/TasksOverview";
+import { SalesLeaderboard } from "../components/dashboard/SalesLeaderboard";
+import { RepDailyFocus } from "../components/dashboard/RepDailyFocus";
 import { Users, Building2, Briefcase, CheckSquare, Bell } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
@@ -13,6 +15,10 @@ import { useRefreshListener } from "../hooks/useRefreshListener";
 export default function Dashboard() {
   const { user } = useAuth();
   const [greeting, setGreeting] = useState("Welcome back");
+
+  // State for performance command center
+  const [performance, setPerformance] = useState<DashboardPerformanceData | null>(null);
+  const [perfLoading, setPerfLoading] = useState(true);
 
   // State for metrics
   const [metrics, setMetrics] = useState({
@@ -54,6 +60,14 @@ export default function Dashboard() {
       deals: { ...recentData.deals, loading: true },
       tasks: { ...recentData.tasks, loading: true },
     });
+    setPerfLoading(true);
+
+    // Fetch Performance Data
+    dashboardApi
+      .getPerformanceData()
+      .then(setPerformance)
+      .catch(console.error)
+      .finally(() => setPerfLoading(false));
 
     // Fetch Metrics concurrently
     Promise.allSettled([
@@ -197,6 +211,23 @@ export default function Dashboard() {
           subtitle="Notifications"
         />
       </div>
+
+      {/* Role-Tailored Command Center */}
+      {performance?.isAdminOrManager ? (
+        <SalesLeaderboard
+          leaderboard={performance.leaderboard || []}
+          companyKPIs={performance.companyKPIs}
+          loading={perfLoading}
+        />
+      ) : (
+        <RepDailyFocus
+          personal={performance?.personal}
+          focusTasks={performance?.focusTasks}
+          focusConversations={performance?.focusConversations}
+          loading={perfLoading}
+          onRefresh={fetchDashboardData}
+        />
+      )}
 
       {/* Recent Data Sections */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">

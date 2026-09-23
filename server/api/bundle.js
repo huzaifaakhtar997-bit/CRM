@@ -18922,17 +18922,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router29(req, res, next) {
-        router29.handle(req, res, next);
+      function router30(req, res, next) {
+        router30.handle(req, res, next);
       }
-      setPrototypeOf(router29, proto);
-      router29.params = {};
-      router29._params = [];
-      router29.caseSensitive = opts.caseSensitive;
-      router29.mergeParams = opts.mergeParams;
-      router29.strict = opts.strict;
-      router29.stack = [];
-      return router29;
+      setPrototypeOf(router30, proto);
+      router30.params = {};
+      router30._params = [];
+      router30.caseSensitive = opts.caseSensitive;
+      router30.mergeParams = opts.mergeParams;
+      router30.strict = opts.strict;
+      router30.stack = [];
+      return router30;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21949,7 +21949,7 @@ var require_application = __commonJS({
   "node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router29 = require_router();
+    var Router30 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -22014,7 +22014,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router29({
+        this._router = new Router30({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -22023,17 +22023,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router29 = this._router;
+      var router30 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router29) {
+      if (!router30) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router29.handle(req, res, done);
+      router30.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22053,15 +22053,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router29 = this._router;
+      var router30 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router29.use(path3, fn2);
+          return router30.use(path3, fn2);
         }
         debug(".use app under %s", path3);
         fn2.mountpath = path3;
         fn2.parent = this;
-        router29.use(path3, function mounted_app(req, res, next) {
+        router30.use(path3, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23878,7 +23878,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router29 = require_router();
+    var Router30 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23901,7 +23901,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router29;
+    exports2.Router = Router30;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -94435,11 +94435,11 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/app.ts
-var import_express30 = __toESM(require_express2());
+var import_express31 = __toESM(require_express2());
 var import_cors = __toESM(require_lib3());
 
 // src/routes/index.ts
-var import_express27 = __toESM(require_express2());
+var import_express28 = __toESM(require_express2());
 
 // src/routes/auth.routes.ts
 var import_express = __toESM(require_express2());
@@ -130784,9 +130784,276 @@ router26.patch("/notifications/:id/read", notificationController.markAsRead);
 router26.delete("/notifications/:id", notificationController.deleteNotification);
 var notification_routes_default = router26;
 
-// src/routes/index.ts
+// src/routes/dashboard.routes.ts
+var import_express27 = __toESM(require_express2());
+
+// src/services/dashboard.service.ts
+var DashboardService = class {
+  async getPerformanceData(currentUser) {
+    const isAdminOrManager = ["ADMIN", "MANAGER"].includes(currentUser.role);
+    const now = /* @__PURE__ */ new Date();
+    if (isAdminOrManager) {
+      const users = await prisma.user.findMany({
+        where: { status: "ACTIVE" },
+        select: { id: true, name: true, email: true, role: true, avatarUrl: true },
+        orderBy: { name: "asc" }
+      });
+      const allDeals = await prisma.deal.findMany({
+        include: {
+          stage: { select: { isWon: true, isLost: true } },
+          contact: {
+            select: {
+              assignedUserId: true,
+              conversations: { select: { assignedUserId: true } }
+            }
+          }
+        }
+      });
+      const completedTasks = await prisma.task.groupBy({
+        by: ["assignedUserId"],
+        where: { completed: true, assignedUserId: { not: null } },
+        _count: { id: true }
+      });
+      const completedTaskMap = /* @__PURE__ */ new Map();
+      completedTasks.forEach((t) => {
+        if (t.assignedUserId) completedTaskMap.set(t.assignedUserId, t._count.id);
+      });
+      const activeChats = await prisma.conversation.groupBy({
+        by: ["assignedUserId"],
+        where: { status: { in: ["OPEN", "PENDING"] }, assignedUserId: { not: null } },
+        _count: { id: true }
+      });
+      const activeChatMap = /* @__PURE__ */ new Map();
+      activeChats.forEach((c) => {
+        if (c.assignedUserId) activeChatMap.set(c.assignedUserId, c._count.id);
+      });
+      const leaderboard = users.map((u) => {
+        const repDeals = allDeals.filter(
+          (d) => d.assignedUserId === u.id || d.contact?.assignedUserId === u.id || d.contact?.conversations?.some((c) => c.assignedUserId === u.id)
+        );
+        let wonRevenue = 0;
+        let wonDealsCount = 0;
+        let pipelineValue = 0;
+        let openDealsCount = 0;
+        let lostDealsCount = 0;
+        for (const deal of repDeals) {
+          if (deal.stage?.isWon) {
+            wonRevenue += deal.value || 0;
+            wonDealsCount++;
+          } else if (deal.stage?.isLost) {
+            lostDealsCount++;
+          } else {
+            pipelineValue += deal.value || 0;
+            openDealsCount++;
+          }
+        }
+        const totalClosed = wonDealsCount + lostDealsCount;
+        const winRate = totalClosed > 0 ? Math.round(wonDealsCount / totalClosed * 100) : 0;
+        return {
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          avatarUrl: u.avatarUrl,
+          wonRevenue,
+          wonDealsCount,
+          pipelineValue,
+          openDealsCount,
+          winRate,
+          completedTasksCount: completedTaskMap.get(u.id) || 0,
+          activeChatsCount: activeChatMap.get(u.id) || 0
+        };
+      });
+      leaderboard.sort((a, b) => b.wonRevenue - a.wonRevenue || b.wonDealsCount - a.wonDealsCount);
+      let totalWonRevenue = 0;
+      let totalWonDeals = 0;
+      let totalPipelineValue = 0;
+      let totalOpenDeals = 0;
+      let totalLostDeals = 0;
+      let unassignedDealsCount = 0;
+      for (const deal of allDeals) {
+        if (deal.stage?.isWon) {
+          totalWonRevenue += deal.value || 0;
+          totalWonDeals++;
+        } else if (deal.stage?.isLost) {
+          totalLostDeals++;
+        } else {
+          totalPipelineValue += deal.value || 0;
+          totalOpenDeals++;
+        }
+        if (!deal.assignedUserId && !deal.contact?.assignedUserId) {
+          unassignedDealsCount++;
+        }
+      }
+      const totalClosedCompany = totalWonDeals + totalLostDeals;
+      const companyWinRate = totalClosedCompany > 0 ? Math.round(totalWonDeals / totalClosedCompany * 100) : 0;
+      const overdueTasksCount = await prisma.task.count({
+        where: { completed: false, dueDate: { lt: now } }
+      });
+      const unassignedChatsCount = await prisma.conversation.count({
+        where: { assignedUserId: null, status: { in: ["OPEN", "PENDING"] } }
+      });
+      const companyKPIs = {
+        totalWonRevenue,
+        totalWonDeals,
+        totalPipelineValue,
+        totalOpenDeals,
+        companyWinRate,
+        overdueTasksCount,
+        unassignedDealsCount,
+        unassignedChatsCount
+      };
+      return {
+        isAdminOrManager: true,
+        leaderboard,
+        companyKPIs
+      };
+    } else {
+      const userId = currentUser.userId;
+      const userDeals = await prisma.deal.findMany({
+        where: {
+          OR: [
+            { assignedUserId: userId },
+            { contact: { assignedUserId: userId } },
+            { contact: { conversations: { some: { assignedUserId: userId } } } }
+          ]
+        },
+        include: {
+          stage: { select: { isWon: true, isLost: true } }
+        }
+      });
+      let wonRevenue = 0;
+      let wonDealsCount = 0;
+      let pipelineValue = 0;
+      let openDealsCount = 0;
+      let lostDealsCount = 0;
+      for (const deal of userDeals) {
+        if (deal.stage?.isWon) {
+          wonRevenue += deal.value || 0;
+          wonDealsCount++;
+        } else if (deal.stage?.isLost) {
+          lostDealsCount++;
+        } else {
+          pipelineValue += deal.value || 0;
+          openDealsCount++;
+        }
+      }
+      const totalClosed = wonDealsCount + lostDealsCount;
+      const winRate = totalClosed > 0 ? Math.round(wonDealsCount / totalClosed * 100) : 0;
+      const completedTasksCount = await prisma.task.count({
+        where: { assignedUserId: userId, completed: true }
+      });
+      const pendingTasksCount = await prisma.task.count({
+        where: {
+          OR: [{ assignedUserId: userId }, { isAnnouncement: true }],
+          completed: false
+        }
+      });
+      const overdueTasksCount = await prisma.task.count({
+        where: {
+          OR: [{ assignedUserId: userId }, { isAnnouncement: true }],
+          completed: false,
+          dueDate: { lt: now }
+        }
+      });
+      const focusTasksRaw = await prisma.task.findMany({
+        where: {
+          OR: [{ assignedUserId: userId }, { isAnnouncement: true }],
+          completed: false
+        },
+        include: {
+          contact: { select: { firstName: true, lastName: true } },
+          deal: { select: { title: true } }
+        },
+        orderBy: [{ dueDate: "asc" }, { priority: "desc" }],
+        take: 5
+      });
+      const focusTasks = focusTasksRaw.map((t) => ({
+        id: t.id,
+        title: t.title,
+        priority: t.priority,
+        taskType: t.taskType,
+        dueDate: t.dueDate,
+        isOverdue: t.dueDate ? new Date(t.dueDate) < now : false,
+        contactName: t.contact ? `${t.contact.firstName} ${t.contact.lastName}`.trim() : null,
+        dealTitle: t.deal?.title || null
+      }));
+      const focusConversationsRaw = await prisma.conversation.findMany({
+        where: {
+          assignedUserId: userId,
+          status: { in: ["OPEN", "PENDING"] }
+        },
+        include: {
+          contact: { select: { firstName: true, lastName: true, email: true } }
+        },
+        orderBy: { lastMessageAt: "desc" },
+        take: 5
+      });
+      const focusConversations = focusConversationsRaw.map((c) => ({
+        id: c.id,
+        subject: c.subject || "No Subject",
+        senderAddress: c.contact?.email || null,
+        status: c.status,
+        lastMessageAt: c.lastMessageAt,
+        contactName: c.contact ? `${c.contact.firstName} ${c.contact.lastName}`.trim() : null
+      }));
+      const personal = {
+        wonRevenue,
+        wonDealsCount,
+        pipelineValue,
+        openDealsCount,
+        winRate,
+        completedTasksCount,
+        pendingTasksCount,
+        overdueTasksCount
+      };
+      return {
+        isAdminOrManager: false,
+        personal,
+        focusTasks,
+        focusConversations
+      };
+    }
+  }
+};
+var dashboardService = new DashboardService();
+
+// src/controllers/dashboard.controller.ts
+var DashboardController = class {
+  constructor(dashboardServ) {
+    this.dashboardServ = dashboardServ;
+    this.getPerformance = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const performance = await this.dashboardServ.getPerformanceData({
+          userId: req.user.userId,
+          role: req.user.role
+        });
+        res.status(200).json({
+          success: true,
+          message: "Dashboard performance metrics retrieved successfully.",
+          data: performance,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var dashboardController = new DashboardController(dashboardService);
+
+// src/routes/dashboard.routes.ts
 var router27 = (0, import_express27.Router)();
-router27.get("/health", (_req, res) => {
+router27.use(authenticate);
+router27.get("/performance", dashboardController.getPerformance);
+var dashboard_routes_default = router27;
+
+// src/routes/index.ts
+var router28 = (0, import_express28.Router)();
+router28.get("/health", (_req, res) => {
   res.status(200).json({
     success: true,
     message: "CRM API server is operational and healthy",
@@ -130797,38 +131064,39 @@ router27.get("/health", (_req, res) => {
     }
   });
 });
-router27.use("/auth", auth_routes_default);
-router27.use("/users", user_routes_default);
-router27.use("/contacts", contact_routes_default);
-router27.use("/companies", company_routes_default);
-router27.use("/leads", lead_routes_default);
-router27.use("/deals", deal_routes_default);
-router27.use("/pipeline", pipeline_routes_default);
-router27.use("/tasks", task_routes_default);
-router27.use("/conversations", conversation_routes_default);
-router27.use("/templates", template_routes_default);
-router27.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router27.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router27.use("/campaigns", campaign_routes_default);
-router27.use("/", message_routes_default);
-router27.use("/", reply_routes_default);
-router27.use("/", note_routes_default);
-router27.use("/", reply_template_routes_default);
-router27.use("/", conversation_contact_routes_default);
-router27.use("/", campaign_audience_routes_default);
-router27.use("/", campaign_recipient_routes_default);
-router27.use("/", campaign_test_routes_default);
-router27.use("/", campaign_launch_routes_default);
-router27.use("/", campaign_tracking_routes_default);
-router27.use("/", campaign_reply_routes_default);
-router27.use("/", integration_routes_default);
-router27.use("/", hubspot_sync_routes_default);
-router27.use("/", import_routes_default);
-router27.use("/", notification_routes_default);
-var routes_default = router27;
+router28.use("/auth", auth_routes_default);
+router28.use("/users", user_routes_default);
+router28.use("/contacts", contact_routes_default);
+router28.use("/companies", company_routes_default);
+router28.use("/leads", lead_routes_default);
+router28.use("/deals", deal_routes_default);
+router28.use("/pipeline", pipeline_routes_default);
+router28.use("/tasks", task_routes_default);
+router28.use("/conversations", conversation_routes_default);
+router28.use("/templates", template_routes_default);
+router28.use("/dashboard", dashboard_routes_default);
+router28.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router28.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router28.use("/campaigns", campaign_routes_default);
+router28.use("/", message_routes_default);
+router28.use("/", reply_routes_default);
+router28.use("/", note_routes_default);
+router28.use("/", reply_template_routes_default);
+router28.use("/", conversation_contact_routes_default);
+router28.use("/", campaign_audience_routes_default);
+router28.use("/", campaign_recipient_routes_default);
+router28.use("/", campaign_test_routes_default);
+router28.use("/", campaign_launch_routes_default);
+router28.use("/", campaign_tracking_routes_default);
+router28.use("/", campaign_reply_routes_default);
+router28.use("/", integration_routes_default);
+router28.use("/", hubspot_sync_routes_default);
+router28.use("/", import_routes_default);
+router28.use("/", notification_routes_default);
+var routes_default = router28;
 
 // src/routes/webhook.routes.ts
-var import_express28 = __toESM(require_express2());
+var import_express29 = __toESM(require_express2());
 
 // src/controllers/webhook.controller.ts
 var import_svix = __toESM(require_dist5());
@@ -131189,12 +131457,12 @@ var WebhookController = class {
 };
 
 // src/routes/webhook.routes.ts
-var import_express29 = __toESM(require_express2());
-var router28 = (0, import_express28.Router)();
+var import_express30 = __toESM(require_express2());
+var router29 = (0, import_express29.Router)();
 var webhookController = new WebhookController();
-router28.post(
+router29.post(
   "/resend",
-  import_express29.default.raw({ type: "*/*" }),
+  import_express30.default.raw({ type: "*/*" }),
   (req, res, next) => {
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body.toString("utf8");
@@ -131203,7 +131471,7 @@ router28.post(
   },
   webhookController.handleResendWebhook.bind(webhookController)
 );
-var webhook_routes_default = router28;
+var webhook_routes_default = router29;
 
 // src/middleware/error.middleware.ts
 var errorHandler = (err, _req, res, _next) => {
@@ -131218,11 +131486,11 @@ var errorHandler = (err, _req, res, _next) => {
 };
 
 // src/app.ts
-var app = (0, import_express30.default)();
+var app = (0, import_express31.default)();
 app.use((0, import_cors.default)({ origin: config.corsOrigin }));
 app.use("/api/v1/webhooks", webhook_routes_default);
-app.use(import_express30.default.json());
-app.use(import_express30.default.urlencoded({ extended: true }));
+app.use(import_express31.default.json());
+app.use(import_express31.default.urlencoded({ extended: true }));
 app.use("/api/v1", routes_default);
 app.get("/", (_req, res) => {
   res.status(200).json({
