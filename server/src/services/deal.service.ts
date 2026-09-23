@@ -217,8 +217,24 @@ export class DealService {
         },
       });
 
-      // Lightweight rule: if any deal for this contact is Won, status = Customer
+      // Ensure deal ownership aligns with contact or conversation owner if not explicitly passed
       const effectiveContactId = updated.contactId;
+      if (effectiveContactId && !input.assignedUserId) {
+        const contact = await tx.contact.findUnique({
+          where: { id: effectiveContactId },
+          include: { conversations: { select: { assignedUserId: true } } },
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId },
+          });
+          (updated as any).assignedUserId = targetUserId;
+        }
+      }
+
+      // Lightweight rule: if any deal for this contact is Won, status = Customer
       if (effectiveContactId) {
         const hasWonDeal = await tx.deal.findFirst({
           where: {

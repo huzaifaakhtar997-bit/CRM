@@ -113,6 +113,8 @@ export interface Deal {
     lastName: string;
     email: string | null;
     avatarUrl: string | null;
+    assignedUserId?: string | null;
+    conversations?: Array<{ id?: string; assignedUserId?: string | null }>;
   } | null;
   company?: {
     id: string;

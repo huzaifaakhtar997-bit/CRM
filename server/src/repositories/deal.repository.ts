@@ -16,7 +16,17 @@ const dealInclude = {
     select: { id: true, name: true, order: true, color: true, probability: true, isWon: true, isLost: true },
   },
   contact: {
-    select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatarUrl: true,
+      assignedUserId: true,
+      conversations: {
+        select: { assignedUserId: true },
+      },
+    },
   },
   company: {
     select: { id: true, name: true, logoUrl: true },
@@ -67,9 +77,38 @@ export class DealRepository {
     if (query.stageId) where.stageId = query.stageId;
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
+        const unassignedFilter: Prisma.DealWhereInput = {
+          AND: [
+            { assignedUserId: null },
+            {
+              OR: [
+                { contactId: null },
+                {
+                  contact: {
+                    assignedUserId: null,
+                    conversations: { none: { assignedUserId: { not: null } } },
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        where.AND = [
+          ...(where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : []),
+          unassignedFilter,
+        ];
       } else {
-        where.assignedUserId = query.assignedUserId;
+        const userFilter: Prisma.DealWhereInput = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { contact: { assignedUserId: query.assignedUserId } },
+            { contact: { conversations: { some: { assignedUserId: query.assignedUserId } } } },
+          ],
+        };
+        where.AND = [
+          ...(where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : []),
+          userFilter,
+        ];
       }
     }
     if (query.companyId) where.companyId = query.companyId;

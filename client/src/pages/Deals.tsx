@@ -111,14 +111,28 @@ export default function Deals() {
   }, [debouncedSearch, repFilter, user?.id]);
 
   // Instant client-side search and ownership filter over loaded deals
+  const isDealAssignedToUser = useCallback((deal: Deal, targetUserId: string) => {
+    if (deal.assignedUserId === targetUserId) return true;
+    if (deal.contact?.assignedUserId === targetUserId) return true;
+    if (deal.contact?.conversations?.some((c) => c.assignedUserId === targetUserId)) return true;
+    return false;
+  }, []);
+
+  const isDealUnassigned = useCallback((deal: Deal) => {
+    if (deal.assignedUserId) return false;
+    if (deal.contact?.assignedUserId) return false;
+    if (deal.contact?.conversations?.some((c) => c.assignedUserId)) return false;
+    return true;
+  }, []);
+
   const displayedDeals = useMemo(() => {
     let filtered = deals;
     if (repFilter === "mine" && user?.id) {
-      filtered = filtered.filter((d) => d.assignedUserId === user.id);
+      filtered = filtered.filter((d) => isDealAssignedToUser(d, user.id));
     } else if (repFilter === "unassigned") {
-      filtered = filtered.filter((d) => !d.assignedUserId);
+      filtered = filtered.filter(isDealUnassigned);
     } else if (repFilter !== "all") {
-      filtered = filtered.filter((d) => d.assignedUserId === repFilter);
+      filtered = filtered.filter((d) => isDealAssignedToUser(d, repFilter));
     }
 
     const q = searchQuery.trim().toLowerCase();
@@ -130,7 +144,7 @@ export default function Deals() {
       const matchContact = contactFullName.includes(q) || deal.contact?.email?.toLowerCase().includes(q);
       return matchTitle || matchCompany || matchContact;
     });
-  }, [deals, searchQuery, repFilter, user?.id]);
+  }, [deals, searchQuery, repFilter, user?.id, isDealAssignedToUser, isDealUnassigned]);
 
   useEffect(() => {
     loadData();

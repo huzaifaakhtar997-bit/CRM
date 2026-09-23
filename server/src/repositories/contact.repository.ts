@@ -65,9 +65,27 @@ export class ContactRepository {
     }
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
+        const unassignedFilter: Prisma.ContactWhereInput = {
+          AND: [
+            { assignedUserId: null },
+            { conversations: { none: { assignedUserId: { not: null } } } },
+          ],
+        };
+        where.AND = [
+          ...(where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : []),
+          unassignedFilter,
+        ];
       } else {
-        where.assignedUserId = query.assignedUserId;
+        const userFilter: Prisma.ContactWhereInput = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { conversations: { some: { assignedUserId: query.assignedUserId } } },
+          ],
+        };
+        where.AND = [
+          ...(where.AND ? (Array.isArray(where.AND) ? where.AND : [where.AND]) : []),
+          userFilter,
+        ];
       }
     }
     if (query.companyId) {
@@ -86,6 +104,9 @@ export class ContactRepository {
           },
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          conversations: {
+            select: { id: true, assignedUserId: true },
           },
           deals: {
             where: { stage: { isWon: true } },

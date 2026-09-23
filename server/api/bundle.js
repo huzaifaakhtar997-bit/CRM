@@ -111228,9 +111228,27 @@ var ContactRepository = class {
     }
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
+        const unassignedFilter = {
+          AND: [
+            { assignedUserId: null },
+            { conversations: { none: { assignedUserId: { not: null } } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          unassignedFilter
+        ];
       } else {
-        where.assignedUserId = query.assignedUserId;
+        const userFilter = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { conversations: { some: { assignedUserId: query.assignedUserId } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          userFilter
+        ];
       }
     }
     if (query.companyId) {
@@ -111248,6 +111266,9 @@ var ContactRepository = class {
           },
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true }
+          },
+          conversations: {
+            select: { id: true, assignedUserId: true }
           },
           deals: {
             where: { stage: { isWon: true } },
@@ -112831,7 +112852,17 @@ var dealInclude = {
     select: { id: true, name: true, order: true, color: true, probability: true, isWon: true, isLost: true }
   },
   contact: {
-    select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatarUrl: true,
+      assignedUserId: true,
+      conversations: {
+        select: { assignedUserId: true }
+      }
+    }
   },
   company: {
     select: { id: true, name: true, logoUrl: true }
@@ -112875,9 +112906,38 @@ var DealRepository = class {
     if (query.stageId) where.stageId = query.stageId;
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
+        const unassignedFilter = {
+          AND: [
+            { assignedUserId: null },
+            {
+              OR: [
+                { contactId: null },
+                {
+                  contact: {
+                    assignedUserId: null,
+                    conversations: { none: { assignedUserId: { not: null } } }
+                  }
+                }
+              ]
+            }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          unassignedFilter
+        ];
       } else {
-        where.assignedUserId = query.assignedUserId;
+        const userFilter = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { contact: { assignedUserId: query.assignedUserId } },
+            { contact: { conversations: { some: { assignedUserId: query.assignedUserId } } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          userFilter
+        ];
       }
     }
     if (query.companyId) where.companyId = query.companyId;
@@ -113106,6 +113166,20 @@ var DealService = class {
         }
       });
       const effectiveContactId = updated.contactId;
+      if (effectiveContactId && !input.assignedUserId) {
+        const contact = await tx.contact.findUnique({
+          where: { id: effectiveContactId },
+          include: { conversations: { select: { assignedUserId: true } } }
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId }
+          });
+          updated.assignedUserId = targetUserId;
+        }
+      }
       if (effectiveContactId) {
         const hasWonDeal = await tx.deal.findFirst({
           where: {
@@ -113355,6 +113429,18 @@ var PipelineService = class {
         }
       });
       if (updated.contactId) {
+        const contact = await tx.contact.findUnique({
+          where: { id: updated.contactId },
+          include: { conversations: { select: { assignedUserId: true } } }
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId }
+          });
+          updated.assignedUserId = targetUserId;
+        }
         if (targetStage.isWon) {
           await tx.contact.update({
             where: { id: updated.contactId },

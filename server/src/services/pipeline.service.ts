@@ -64,6 +64,20 @@ export class PipelineService {
 
       // Lightweight rule: if any deal for this contact is Won, status = Customer
       if (updated.contactId) {
+        // Ensure deal is assigned to contact/conversation owner
+        const contact = await tx.contact.findUnique({
+          where: { id: updated.contactId },
+          include: { conversations: { select: { assignedUserId: true } } },
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId },
+          });
+          (updated as any).assignedUserId = targetUserId;
+        }
+
         if (targetStage.isWon) {
           await tx.contact.update({
             where: { id: updated.contactId },
