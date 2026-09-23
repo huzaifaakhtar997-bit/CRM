@@ -1,6 +1,6 @@
 import React from "react";
 import { Task } from "../../types/api.types";
-import { Edit, Trash2, Eye, Calendar, CheckSquare, Check, Clock, Phone, Mail, Users } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, CheckSquare, Check, Clock, Phone, Mail, Users, Megaphone } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/button";
 
@@ -95,6 +95,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               <th className="px-6 py-4 font-medium">Task</th>
               <th className="px-6 py-4 font-medium hidden md:table-cell">Related To</th>
               <th className="px-6 py-4 font-medium hidden sm:table-cell">Due Date</th>
+              <th className="px-6 py-4 font-medium hidden xl:table-cell">Assignee</th>
               <th className="px-6 py-4 font-medium hidden lg:table-cell">Priority</th>
               <th className="px-6 py-4 font-medium text-right">Actions</th>
             </tr>
@@ -127,8 +128,15 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         {getTaskIcon(task.taskType)}
                       </div>
                       <div>
-                        <div className={`font-medium text-foreground ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {task.title}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-medium text-foreground ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                            {task.title}
+                          </span>
+                          {task.isAnnouncement && (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                              <Megaphone className="w-2.5 h-2.5" /> Announcement
+                            </span>
+                          )}
                         </div>
                         {task.description && (
                           <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
@@ -167,6 +175,26 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         <Clock className="w-3 h-3 mr-1.5" />
                         {task.dueTime}
                       </div>
+                    )}
+                  </td>
+
+                  <td className="px-6 py-4 hidden xl:table-cell">
+                    {task.isAnnouncement ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+                        <Megaphone className="w-3.5 h-3.5 text-amber-600" />
+                        All Employees
+                      </span>
+                    ) : task.assignedUser ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                          {task.assignedUser.name?.[0]?.toUpperCase() || "U"}
+                        </div>
+                        <span className="text-foreground text-xs font-medium truncate max-w-[120px]" title={task.assignedUser.name}>
+                          {task.assignedUser.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/60 text-xs italic">Unassigned</span>
                     )}
                   </td>
                   

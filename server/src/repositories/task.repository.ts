@@ -49,8 +49,24 @@ export class TaskRepository {
       where.priority = query.priority;
     }
 
+    if (query.isAnnouncement !== undefined) {
+      where.isAnnouncement = query.isAnnouncement;
+    }
+
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+        where.isAnnouncement = false;
+      } else if (query.assignedUserId === "announcements") {
+        where.isAnnouncement = true;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    } else if ((query as any).userScopedId) {
+      where.OR = [
+        { assignedUserId: (query as any).userScopedId },
+        { isAnnouncement: true },
+      ];
     }
 
     if (query.contactId) {

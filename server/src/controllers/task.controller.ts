@@ -39,7 +39,7 @@ export class TaskController {
         throw new AppError(`Query validation failed: ${errors}`, 400);
       }
 
-      const data = await this.taskServ.getTasks(result.data);
+      const data = await this.taskServ.getTasks(result.data, req.user);
 
       res.status(200).json({
         success: true,

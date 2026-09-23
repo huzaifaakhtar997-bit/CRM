@@ -9,12 +9,19 @@ export class TaskService {
   constructor(private taskRepo: TaskRepository) {}
 
   async createTask(input: CreateTaskInput, currentUserId: string): Promise<Task> {
-    const assignedUserId = input.assignedUserId || currentUserId;
+    let assignedUserId: string | null = null;
+    if (input.isAnnouncement) {
+      assignedUserId = input.assignedUserId || null;
+    } else {
+      assignedUserId = input.assignedUserId || currentUserId;
+    }
 
-    // Verify assigned user exists
-    const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
-    if (!userExists) {
-      throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
+    // Verify assigned user exists if specified
+    if (assignedUserId) {
+      const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
+      if (!userExists) {
+        throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
+      }
     }
 
     // Verify contact connection if provided
@@ -43,12 +50,13 @@ export class TaskService {
           dueDate: input.dueDate,
           dueTime: input.dueTime,
           companyName: input.companyName,
+          isAnnouncement: Boolean(input.isAnnouncement),
           ...(input.contactId && { contact: { connect: { id: input.contactId } } }),
           ...(input.dealId && { deal: { connect: { id: input.dealId } } }),
-          assignedUser: { connect: { id: assignedUserId } },
+          ...(assignedUserId ? { assignedUser: { connect: { id: assignedUserId } } } : {}),
         },
         include: {
-          assignedUser: { select: { id: true, name: true } },
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
           contact: { select: { id: true, firstName: true, lastName: true } },
           deal: { select: { id: true, title: true } },
         },
@@ -57,9 +65,11 @@ export class TaskService {
       // Automatically create Activity log record
       await tx.activity.create({
         data: {
-          type: ActivityType.TASK_COMPLETED, // Use TASK_COMPLETED or general logs as appropriate; our ActivityType has TASK_COMPLETED
-          title: "Task Created",
-          content: `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
+          type: ActivityType.TASK_COMPLETED,
+          title: newTask.isAnnouncement ? "Company Announcement Created" : "Task Created",
+          content: newTask.isAnnouncement
+            ? `Company Announcement "${newTask.title}" broadcast to all employees`
+            : `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
           userId: currentUserId,
           ...(newTask.contactId && { contactId: newTask.contactId }),
           ...(newTask.dealId && { dealId: newTask.dealId }),
@@ -67,6 +77,7 @@ export class TaskService {
             taskId: newTask.id,
             dueDate: newTask.dueDate,
             priority: newTask.priority,
+            isAnnouncement: newTask.isAnnouncement,
           },
         },
       });
@@ -74,8 +85,22 @@ export class TaskService {
       return newTask;
     });
 
-    // Notify assigned user if they are not the creator
-    if (assignedUserId !== currentUserId) {
+    // Notify users
+    if (input.isAnnouncement) {
+      const allUsers = await prisma.user.findMany({
+        where: { status: "ACTIVE", id: { not: currentUserId } },
+        select: { id: true },
+      });
+      for (const u of allUsers) {
+        await notificationService.createNotification({
+          userId: u.id,
+          title: "Company Announcement",
+          message: `📢 Company Announcement: "${task.title}"`,
+          type: "task",
+          link: `/tasks`,
+        });
+      }
+    } else if (assignedUserId && assignedUserId !== currentUserId) {
       await notificationService.createNotification({
         userId: assignedUserId,
         title: "New Task Assigned",
@@ -88,8 +113,31 @@ export class TaskService {
     return task;
   }
 
-  async getTasks(query: QueryTaskInput): Promise<TaskListResult> {
-    return this.taskRepo.findAll(query);
+  async getTasks(
+    query: QueryTaskInput,
+    currentUser?: { userId: string; role: string }
+  ): Promise<TaskListResult> {
+    const effectiveQuery: any = { ...query };
+
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else if (effectiveQuery.assignedUserId === "announcements" || effectiveQuery.isAnnouncement === true) {
+        effectiveQuery.isAnnouncement = true;
+        delete effectiveQuery.assignedUserId;
+      } else {
+        // Default for Sales Rep: show their tasks OR company announcements!
+        effectiveQuery.userScopedId = currentUser.userId;
+        delete effectiveQuery.assignedUserId;
+      }
+    } else {
+      // ADMIN or MANAGER
+      if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+
+    return this.taskRepo.findAll(effectiveQuery);
   }
 
   async getTaskById(id: string): Promise<Task> {
@@ -135,7 +183,10 @@ export class TaskService {
           companyName: input.companyName,
           completed: input.completed,
           completedAt,
-          ...(input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } }),
+          ...(input.isAnnouncement !== undefined && { isAnnouncement: input.isAnnouncement }),
+          ...(input.assignedUserId !== undefined && {
+            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true },
+          }),
           ...(input.contactId !== undefined && {
             contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true },
           }),
@@ -144,7 +195,7 @@ export class TaskService {
           }),
         },
         include: {
-          assignedUser: { select: { id: true, name: true } },
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
           contact: { select: { id: true, firstName: true, lastName: true } },
           deal: { select: { id: true, title: true } },
         },

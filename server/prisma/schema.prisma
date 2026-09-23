@@ -333,9 +333,10 @@ model Task {
   priority     Priority  @default(MEDIUM)
   completed    Boolean   @default(false)
   completedAt  DateTime? // Timestamp when task was completed
-  companyName  String?   // Denormalized for quick display without joining
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  companyName    String?   // Denormalized for quick display without joining
+  isAnnouncement Boolean   @default(false) // If true, this task is an announcement shown to all employees
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Foreign keys
   assignedUserId String? // Who needs to complete this task
@@ -352,6 +353,7 @@ model Task {
   @@index([dealId])
   @@index([dueDate])
   @@index([completed])
+  @@index([isAnnouncement])
   @@map("tasks")
 }
 

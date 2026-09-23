@@ -145,6 +145,7 @@ export interface Task {
   completed: boolean;
   completedAt: string | null;
   companyName: string | null;
+  isAnnouncement?: boolean;
   
   createdAt: string;
   updatedAt: string;

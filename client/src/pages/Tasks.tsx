@@ -10,17 +10,21 @@ import { useAuth } from "../context/AuthContext";
 import { Plus, AlertCircle } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
+import { usersApi, CRMUser } from "../api/users.api";
 
 export default function Tasks() {
   const { user } = useAuth();
   
   // RBAC
   const canWrite = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
+  const isRep = user?.role === "SALES_REP";
 
   // State
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<CRMUser[]>([]);
+  const [ownerFilter, setOwnerFilter] = useState<string>(isRep ? "mine" : "all");
   
   // Pagination & Filters
   const [page, setPage] = useState(1);
@@ -34,6 +38,18 @@ export default function Tasks() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    if (user?.role === "SALES_REP") {
+      setOwnerFilter("mine");
+    } else {
+      setOwnerFilter("all");
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
+    usersApi.getAllUsers().then(setUsers).catch(console.error);
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -53,12 +69,28 @@ export default function Tasks() {
         statusFilter === "COMPLETED" ? true : 
         undefined;
 
+      let queryAssignedUserId: string | undefined = undefined;
+      let isAnnouncementParam: boolean | undefined = undefined;
+
+      if (ownerFilter === "announcements") {
+        queryAssignedUserId = "announcements";
+        isAnnouncementParam = true;
+      } else if (ownerFilter === "unassigned") {
+        queryAssignedUserId = "unassigned";
+      } else if (ownerFilter === "mine") {
+        queryAssignedUserId = isRep ? undefined : user?.id;
+      } else if (ownerFilter !== "all") {
+        queryAssignedUserId = ownerFilter;
+      }
+
       const data = await tasksApi.getTasks({
         page,
         limit: 15,
         search: debouncedSearch || undefined,
         completed: completedParam,
         priority: priorityFilter || undefined,
+        assignedUserId: queryAssignedUserId,
+        isAnnouncement: isAnnouncementParam,
       });
       setTasks(data.tasks || []);
       setTotalPages(data.totalPages || 1);
@@ -67,7 +99,7 @@ export default function Tasks() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, statusFilter, priorityFilter]);
+  }, [page, debouncedSearch, statusFilter, priorityFilter, ownerFilter, isRep, user?.id]);
 
   useEffect(() => {
     loadTasks();
@@ -164,6 +196,10 @@ export default function Tasks() {
         onStatusChange={(status) => { setStatusFilter(status); setPage(1); }}
         priorityFilter={priorityFilter}
         onPriorityChange={(priority) => { setPriorityFilter(priority); setPage(1); }}
+        ownerFilter={ownerFilter}
+        onOwnerFilterChange={(val) => { setOwnerFilter(val); setPage(1); }}
+        users={users}
+        currentUserRole={user?.role}
       />
 
       {/* Error state */}

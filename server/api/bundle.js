@@ -113535,8 +113535,23 @@ var TaskRepository = class {
     if (query.priority) {
       where.priority = query.priority;
     }
+    if (query.isAnnouncement !== void 0) {
+      where.isAnnouncement = query.isAnnouncement;
+    }
     if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+        where.isAnnouncement = false;
+      } else if (query.assignedUserId === "announcements") {
+        where.isAnnouncement = true;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    } else if (query.userScopedId) {
+      where.OR = [
+        { assignedUserId: query.userScopedId },
+        { isAnnouncement: true }
+      ];
     }
     if (query.contactId) {
       where.contactId = query.contactId;
@@ -113589,10 +113604,17 @@ var TaskService = class {
     this.taskRepo = taskRepo;
   }
   async createTask(input, currentUserId) {
-    const assignedUserId = input.assignedUserId || currentUserId;
-    const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
-    if (!userExists) {
-      throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
+    let assignedUserId = null;
+    if (input.isAnnouncement) {
+      assignedUserId = input.assignedUserId || null;
+    } else {
+      assignedUserId = input.assignedUserId || currentUserId;
+    }
+    if (assignedUserId) {
+      const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
+      if (!userExists) {
+        throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
+      }
     }
     if (input.contactId) {
       const contactExists = await prisma.contact.findUnique({ where: { id: input.contactId } });
@@ -113616,12 +113638,13 @@ var TaskService = class {
           dueDate: input.dueDate,
           dueTime: input.dueTime,
           companyName: input.companyName,
+          isAnnouncement: Boolean(input.isAnnouncement),
           ...input.contactId && { contact: { connect: { id: input.contactId } } },
           ...input.dealId && { deal: { connect: { id: input.dealId } } },
-          assignedUser: { connect: { id: assignedUserId } }
+          ...assignedUserId ? { assignedUser: { connect: { id: assignedUserId } } } : {}
         },
         include: {
-          assignedUser: { select: { id: true, name: true } },
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
           contact: { select: { id: true, firstName: true, lastName: true } },
           deal: { select: { id: true, title: true } }
         }
@@ -113629,22 +113652,36 @@ var TaskService = class {
       await tx.activity.create({
         data: {
           type: import_client19.ActivityType.TASK_COMPLETED,
-          // Use TASK_COMPLETED or general logs as appropriate; our ActivityType has TASK_COMPLETED
-          title: "Task Created",
-          content: `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
+          title: newTask.isAnnouncement ? "Company Announcement Created" : "Task Created",
+          content: newTask.isAnnouncement ? `Company Announcement "${newTask.title}" broadcast to all employees` : `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
           userId: currentUserId,
           ...newTask.contactId && { contactId: newTask.contactId },
           ...newTask.dealId && { dealId: newTask.dealId },
           metadata: {
             taskId: newTask.id,
             dueDate: newTask.dueDate,
-            priority: newTask.priority
+            priority: newTask.priority,
+            isAnnouncement: newTask.isAnnouncement
           }
         }
       });
       return newTask;
     });
-    if (assignedUserId !== currentUserId) {
+    if (input.isAnnouncement) {
+      const allUsers = await prisma.user.findMany({
+        where: { status: "ACTIVE", id: { not: currentUserId } },
+        select: { id: true }
+      });
+      for (const u of allUsers) {
+        await notificationService.createNotification({
+          userId: u.id,
+          title: "Company Announcement",
+          message: `\u{1F4E2} Company Announcement: "${task.title}"`,
+          type: "task",
+          link: `/tasks`
+        });
+      }
+    } else if (assignedUserId && assignedUserId !== currentUserId) {
       await notificationService.createNotification({
         userId: assignedUserId,
         title: "New Task Assigned",
@@ -113655,8 +113692,24 @@ var TaskService = class {
     }
     return task;
   }
-  async getTasks(query) {
-    return this.taskRepo.findAll(query);
+  async getTasks(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else if (effectiveQuery.assignedUserId === "announcements" || effectiveQuery.isAnnouncement === true) {
+        effectiveQuery.isAnnouncement = true;
+        delete effectiveQuery.assignedUserId;
+      } else {
+        effectiveQuery.userScopedId = currentUser.userId;
+        delete effectiveQuery.assignedUserId;
+      }
+    } else {
+      if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.taskRepo.findAll(effectiveQuery);
   }
   async getTaskById(id) {
     const task = await this.taskRepo.findById(id);
@@ -113697,7 +113750,10 @@ var TaskService = class {
           companyName: input.companyName,
           completed: input.completed,
           completedAt,
-          ...input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } },
+          ...input.isAnnouncement !== void 0 && { isAnnouncement: input.isAnnouncement },
+          ...input.assignedUserId !== void 0 && {
+            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
+          },
           ...input.contactId !== void 0 && {
             contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
           },
@@ -113706,7 +113762,7 @@ var TaskService = class {
           }
         },
         include: {
-          assignedUser: { select: { id: true, name: true } },
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
           contact: { select: { id: true, firstName: true, lastName: true } },
           deal: { select: { id: true, title: true } }
         }
@@ -113774,7 +113830,8 @@ var createTaskSchema = external_exports.object({
   assignedUserId: external_exports.string().nullable().optional(),
   contactId: external_exports.string().nullable().optional(),
   dealId: external_exports.string().nullable().optional(),
-  companyName: external_exports.string().nullable().optional()
+  companyName: external_exports.string().nullable().optional(),
+  isAnnouncement: external_exports.boolean().optional().default(false)
 });
 var updateTaskSchema = external_exports.object({
   title: external_exports.string().min(1, "Task title cannot be empty").optional(),
@@ -113787,7 +113844,8 @@ var updateTaskSchema = external_exports.object({
   completed: external_exports.boolean().optional(),
   contactId: external_exports.string().nullable().optional(),
   dealId: external_exports.string().nullable().optional(),
-  companyName: external_exports.string().nullable().optional()
+  companyName: external_exports.string().nullable().optional(),
+  isAnnouncement: external_exports.boolean().optional()
 });
 var queryTaskSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
@@ -113796,6 +113854,7 @@ var queryTaskSchema = external_exports.object({
   completed: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
   priority: external_exports.nativeEnum(import_client20.Priority).optional(),
   assignedUserId: external_exports.string().optional(),
+  isAnnouncement: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
   contactId: external_exports.string().optional(),
   dealId: external_exports.string().optional()
 });
@@ -113832,7 +113891,7 @@ var TaskController = class {
           const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
           throw new AppError(`Query validation failed: ${errors}`, 400);
         }
-        const data = await this.taskServ.getTasks(result.data);
+        const data = await this.taskServ.getTasks(result.data, req.user);
         res.status(200).json({
           success: true,
           message: "Tasks retrieved successfully.",

@@ -1,7 +1,7 @@
 import React from "react";
 import { Task } from "../../types/api.types";
 import { Button } from "../ui/button";
-import { X, Calendar, User, FileText, CheckCircle2, Clock, Phone, Mail, Users, Flag, Building2, Briefcase } from "lucide-react";
+import { X, Calendar, User, FileText, CheckCircle2, Clock, Phone, Mail, Users, Flag, Building2, Briefcase, Megaphone } from "lucide-react";
 
 interface TaskDetailsProps {
   task: Task | null;
@@ -73,6 +73,12 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
               <span className="inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 {task.taskType}
               </span>
+              {task.isAnnouncement && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 px-2 py-1 text-xs font-semibold uppercase tracking-wider border border-amber-200 dark:border-amber-800">
+                  <Megaphone className="w-3 h-3" />
+                  Announcement
+                </span>
+              )}
             </div>
             
             <div className="flex items-start">
@@ -188,11 +194,21 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
               )}
 
               <div className="flex items-start bg-accent/10 p-3 rounded-lg border border-accent">
-                <User className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />
+                {task.isAnnouncement ? (
+                  <Megaphone className="w-5 h-5 text-amber-600 mr-3 mt-0.5" />
+                ) : (
+                  <User className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />
+                )}
                 <div>
-                  <div className="text-sm font-medium text-foreground">Assigned User</div>
+                  <div className="text-sm font-medium text-foreground">
+                    {task.isAnnouncement ? "Scope" : "Assigned User"}
+                  </div>
                   <div className="text-sm text-foreground">
-                    {task.assignedUser ? task.assignedUser.name : "Unassigned"}
+                    {task.isAnnouncement
+                      ? "All Employees (Company Announcement)"
+                      : task.assignedUser
+                      ? task.assignedUser.name
+                      : "Unassigned"}
                   </div>
                 </div>
               </div>

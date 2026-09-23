@@ -12,6 +12,7 @@ export const createTaskSchema = z.object({
   contactId: z.string().nullable().optional(),
   dealId: z.string().nullable().optional(),
   companyName: z.string().nullable().optional(),
+  isAnnouncement: z.boolean().optional().default(false),
 });
 
 export const updateTaskSchema = z.object({
@@ -26,6 +27,7 @@ export const updateTaskSchema = z.object({
   contactId: z.string().nullable().optional(),
   dealId: z.string().nullable().optional(),
   companyName: z.string().nullable().optional(),
+  isAnnouncement: z.boolean().optional(),
 });
 
 export const queryTaskSchema = z.object({
@@ -35,6 +37,7 @@ export const queryTaskSchema = z.object({
   completed: z.string().optional().transform((val) => (val !== undefined ? val === "true" : undefined)),
   priority: z.nativeEnum(Priority).optional(),
   assignedUserId: z.string().optional(),
+  isAnnouncement: z.string().optional().transform((val) => (val !== undefined ? val === "true" : undefined)),
   contactId: z.string().optional(),
   dealId: z.string().optional(),
 });

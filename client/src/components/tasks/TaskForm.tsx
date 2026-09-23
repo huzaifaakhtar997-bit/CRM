@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Task, Priority, TaskType } from "../../types/api.types";
 import { Button } from "../ui/button";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, Megaphone } from "lucide-react";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 interface TaskFormProps {
   initialData: Task | null;
@@ -17,6 +18,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   onClose,
   isOpen,
 }) => {
+  const { user } = useAuth();
+  const canMakeAnnouncement = ["ADMIN", "MANAGER"].includes(user?.role || "");
+
   const [formData, setFormData] = useState<Partial<Task>>({
     title: "",
     description: "",
@@ -28,6 +32,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     dealId: null,
     companyName: "",
     assignedUserId: null,
+    isAnnouncement: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -57,6 +62,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           dealId: initialData.dealId || null,
           companyName: initialData.companyName || "",
           assignedUserId: initialData.assignedUserId || null,
+          isAnnouncement: Boolean(initialData.isAnnouncement),
         });
       } else {
         setFormData({
@@ -69,12 +75,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           contactId: null,
           dealId: null,
           companyName: "",
-          assignedUserId: null,
+          assignedUserId: user?.id || null,
+          isAnnouncement: false,
         });
       }
       setError(null);
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, user?.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -195,6 +202,34 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               />
             </div>
           </div>
+
+          {canMakeAnnouncement && (
+            <div className="flex items-start space-x-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-3.5 rounded-lg">
+              <input
+                type="checkbox"
+                id="isAnnouncement"
+                checked={Boolean(formData.isAnnouncement)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setFormData(prev => ({
+                    ...prev,
+                    isAnnouncement: checked,
+                    assignedUserId: checked ? null : (prev.assignedUserId || user?.id || null),
+                  }));
+                }}
+                className="h-4 w-4 mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+              />
+              <label htmlFor="isAnnouncement" className="cursor-pointer">
+                <span className="text-sm font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                  <Megaphone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  Post as Company Announcement
+                </span>
+                <span className="text-xs text-amber-700 dark:text-amber-400 block mt-0.5">
+                  Broadcasts this task to all employees across the CRM with an announcement badge.
+                </span>
+              </label>
+            </div>
+          )}
 
           <div className="space-y-2 pt-2 border-t mt-4">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Associations</h4>

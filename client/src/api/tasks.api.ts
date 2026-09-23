@@ -8,6 +8,7 @@ export interface QueryTaskInput {
   completed?: boolean;
   priority?: string;
   assignedUserId?: string;
+  isAnnouncement?: boolean;
   contactId?: string;
   dealId?: string;
 }
