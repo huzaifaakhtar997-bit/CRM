@@ -3,6 +3,7 @@ import { conversationRepository, ConversationRepository, ConversationListResult 
 import { prisma } from "../config/database";
 import { CreateConversationInput, UpdateConversationInput, QueryConversationInput } from "../validators/conversation.validator";
 import { AppError } from "../types/auth.types";
+import { notificationService } from "./notification.service";
 
 export class ConversationService {
   constructor(private convoRepo: ConversationRepository) {}
@@ -120,8 +121,20 @@ export class ConversationService {
         },
       });
 
-      // Log assignment change
+      // Log assignment change and cascade to linked contact and deals
       if (input.assignedUserId && input.assignedUserId !== (existing as any).assignedUserId) {
+        if (updated.contactId) {
+          // Cascade ownership so the new assignee gets all contact and deal data
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { assignedUserId: input.assignedUserId },
+          });
+          await tx.deal.updateMany({
+            where: { contactId: updated.contactId },
+            data: { assignedUserId: input.assignedUserId },
+          });
+        }
+
         await tx.activity.create({
           data: {
             type: ActivityType.NOTE,
@@ -172,6 +185,16 @@ export class ConversationService {
 
       return updated;
     });
+
+    if (input.assignedUserId && input.assignedUserId !== (existing as any).assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "New Conversation & Client Handed Off",
+        message: `Conversation "${updatedConvo.subject}" and related client data have been assigned to you`,
+        type: "chat",
+        link: `/inbox`,
+      });
+    }
 
     return updatedConvo;
   }

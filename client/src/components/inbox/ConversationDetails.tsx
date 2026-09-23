@@ -292,6 +292,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
         value: dealValue ? parseFloat(dealValue) : 0,
         stageId: dealStageId,
         contactId: effectiveContactId,
+        assignedUserId: conversation?.assignedUserId || undefined,
         expectedCloseDate: new Date(dealCloseDate).toISOString(),
       });
       setDeals((prev) => [...prev, newDeal]);
@@ -314,6 +315,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
         dueDate: new Date(taskDate).toISOString(),
         priority: taskPriority,
         contactId: effectiveContactId,
+        assignedUserId: conversation?.assignedUserId || undefined,
       });
       setTasks((prev) => [...prev, newTask]);
       setShowTaskModal(false); setTaskTitle(""); setTaskDate(addDays(1));

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { dealsApi } from "../api/deals.api";
 import { Deal, PipelineStage } from "../types/api.types";
 import { DealBoard } from "../components/deals/DealBoard";
@@ -28,13 +28,29 @@ export default function Deals() {
   const [repFilter, setRepFilter] = useState<string>(isAdminOrManager ? "all" : "mine");
   const [users, setUsers] = useState<CRMUser[]>([]);
 
+  // Search state & interactive popup
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [showSearchPopup, setShowSearchPopup] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchPopup(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     usersApi.getAllUsers().then(setUsers).catch(console.error);
   }, []);
 
-  // Search
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Modals/Drawers State
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -230,23 +246,87 @@ export default function Deals() {
             </div>
           )}
 
-          <div className="relative w-full sm:max-w-xs">
+          <div ref={searchContainerRef} className="relative w-full sm:max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search deals, contacts, companies..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchPopup(true);
+              }}
+              onFocus={() => setShowSearchPopup(true)}
               className="w-full flex h-10 rounded-md border border-input bg-card pl-10 pr-9 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setSearchQuery("");
+                  setShowSearchPopup(false);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
+            )}
+
+            {/* Interactive Search Results Popup */}
+            {showSearchPopup && searchQuery.trim() && (
+              <div
+                className="absolute left-0 top-full mt-2 w-full sm:w-80 md:w-96 bg-card border rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-border animate-in fade-in zoom-in-95 duration-150"
+              >
+                <div className="px-3 py-2 bg-muted/40 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                  <span>Deals Found ({displayedDeals.length})</span>
+                  <span className="text-[10px] font-normal text-muted-foreground">Click to open deal</span>
+                </div>
+                <div className="max-h-80 overflow-y-auto divide-y divide-border/60">
+                  {displayedDeals.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground">
+                      No matching deals found.
+                    </div>
+                  ) : (
+                    displayedDeals.slice(0, 6).map((deal) => (
+                      <div
+                        key={deal.id}
+                        onClick={() => {
+                          handleView(deal);
+                          setShowSearchPopup(false);
+                        }}
+                        className="p-3 hover:bg-accent/40 cursor-pointer transition-colors flex flex-col gap-1 text-left group"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                            {deal.title}
+                          </span>
+                          <span className="text-xs font-bold text-foreground shrink-0">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: deal.currency || 'USD', maximumFractionDigits: 0 }).format(deal.value)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="truncate max-w-[180px]">
+                            {deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName}` : deal.company?.name || "No client"}
+                          </span>
+                          {deal.stage && (
+                            <span
+                              className="px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shrink-0 shadow-2xs"
+                              style={{ backgroundColor: deal.stage.color || '#3b82f6' }}
+                            >
+                              {deal.stage.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {displayedDeals.length > 6 && (
+                  <div className="p-2 text-center text-[11px] text-muted-foreground bg-muted/20">
+                    +{displayedDeals.length - 6} more matching deals on board
+                  </div>
+                )}
+              </div>
             )}
           </div>
           {canWrite && (

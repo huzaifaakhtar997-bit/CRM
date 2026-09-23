@@ -111165,7 +111165,7 @@ var authorize = (...allowedRoles) => {
 var import_client4 = require("@prisma/client");
 var router2 = (0, import_express2.Router)();
 router2.use(authenticate);
-router2.get("/", authorize(import_client4.UserRole.ADMIN, import_client4.UserRole.MANAGER), userController.getAllUsers);
+router2.get("/", userController.getAllUsers);
 router2.get("/:id", authorize(import_client4.UserRole.ADMIN, import_client4.UserRole.MANAGER), userController.getUserById);
 router2.patch("/:id", authorize(import_client4.UserRole.ADMIN, import_client4.UserRole.MANAGER), userController.updateUser);
 router2.patch("/:id/status", authorize(import_client4.UserRole.ADMIN), userController.updateStatus);
@@ -113026,7 +113026,7 @@ var DealService = class {
     if (currentUser?.role === "SALES_REP") {
       if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
         effectiveQuery.assignedUserId = "unassigned";
-      } else {
+      } else if (!effectiveQuery.contactId) {
         effectiveQuery.assignedUserId = currentUser.userId;
       }
     }
@@ -114213,6 +114213,16 @@ var ConversationService = class {
         }
       });
       if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
+        if (updated.contactId) {
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { assignedUserId: input.assignedUserId }
+          });
+          await tx.deal.updateMany({
+            where: { contactId: updated.contactId },
+            data: { assignedUserId: input.assignedUserId }
+          });
+        }
         await tx.activity.create({
           data: {
             type: import_client22.ActivityType.NOTE,
@@ -114258,6 +114268,15 @@ var ConversationService = class {
       });
       return updated;
     });
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "New Conversation & Client Handed Off",
+        message: `Conversation "${updatedConvo.subject}" and related client data have been assigned to you`,
+        type: "chat",
+        link: `/inbox`
+      });
+    }
     return updatedConvo;
   }
   async deleteConversation(id) {

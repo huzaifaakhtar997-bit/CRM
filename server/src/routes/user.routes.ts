@@ -9,8 +9,8 @@ const router = Router();
 // All user management routes require authentication first
 router.use(authenticate);
 
-// GET /api/v1/users - Accessible by ADMIN and MANAGER
-router.get("/", authorize(UserRole.ADMIN, UserRole.MANAGER), userController.getAllUsers);
+// GET /api/v1/users - Accessible by all authenticated users for assignment dropdowns
+router.get("/", userController.getAllUsers);
 
 // GET /api/v1/users/:id - Accessible by ADMIN and MANAGER
 router.get("/:id", authorize(UserRole.ADMIN, UserRole.MANAGER), userController.getUserById);

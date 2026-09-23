@@ -128,7 +128,7 @@ export class DealService {
     if (currentUser?.role === "SALES_REP") {
       if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
         effectiveQuery.assignedUserId = "unassigned";
-      } else {
+      } else if (!effectiveQuery.contactId) {
         effectiveQuery.assignedUserId = currentUser.userId;
       }
     }
