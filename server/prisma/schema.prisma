@@ -239,6 +239,7 @@ model Lead {
   assignedUser       User?      @relation("AssignedLeads", fields: [assignedUserId], references: [id], onDelete: SetNull)
   convertedContact   Contact?   @relation(fields: [convertedContactId], references: [id], onDelete: SetNull)
   activities         Activity[]
+  conversations      Conversation[]
 
   @@index([email])
   @@index([status])
@@ -518,16 +519,19 @@ model Conversation {
 
   // Foreign keys
   contactId      String? // The contact who initiated the conversation
+  leadId         String? // The lead if initiated or captured for a lead
   assignedUserId String? // The CRM user responsible for this thread
   campaignId     String? // If this conversation was initiated as a reply to a campaign
 
   // Relations
   contact      Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  lead         Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
   assignedUser User?     @relation("AssignedConversations", fields: [assignedUserId], references: [id], onDelete: SetNull)
   campaign     Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   messages     Message[]
 
   @@index([contactId])
+  @@index([leadId])
   @@index([assignedUserId])
   @@index([campaignId])
   @@index([status])

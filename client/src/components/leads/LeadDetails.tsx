@@ -4,6 +4,7 @@ import { X, Building2, Mail, Phone, Calendar, Loader2, Edit, Trash2, UserCircle,
 import { getLeadStatusBadge, getLeadSourceLabel } from "./LeadTable";
 import { leadsApi } from "../../api/leads.api";
 import { ConvertLeadModal } from "./ConvertLeadModal";
+import { SendLeadEmailModal } from "./SendLeadEmailModal";
 
 interface LeadDetailsProps {
   leadId: string | null;
@@ -27,6 +28,7 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(false);
   const [isConvertOpen, setIsConvertOpen] = useState(false);
+  const [isSendEmailOpen, setIsSendEmailOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -117,6 +119,14 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
                       <span>This lead has been successfully converted into a Contact.</span>
                     </div>
                   )}
+
+                  <button
+                    onClick={() => setIsSendEmailOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white h-10 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Send Email
+                  </button>
 
                   <div className="flex gap-2">
                     <button
@@ -218,6 +228,16 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
         lead={lead}
         isOpen={isConvertOpen}
         onClose={() => setIsConvertOpen(false)}
+        onSuccess={() => {
+          loadLead();
+          if (onConverted) onConverted();
+        }}
+      />
+
+      <SendLeadEmailModal
+        lead={lead}
+        isOpen={isSendEmailOpen}
+        onClose={() => setIsSendEmailOpen(false)}
         onSuccess={() => {
           loadLead();
           if (onConverted) onConverted();

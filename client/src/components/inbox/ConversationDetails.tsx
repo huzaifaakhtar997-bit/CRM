@@ -448,6 +448,43 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                 </div>
               </div>
             </div>
+          ) : conversation?.lead ? (
+            <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>Inbound Lead</span>
+                </div>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  {conversation.lead.status || "NEW"}
+                </span>
+              </div>
+              <div>
+                <div className="font-medium text-sm text-foreground">
+                  {conversation.lead.firstName} {conversation.lead.lastName || ""}
+                </div>
+                <div className="text-xs text-muted-foreground break-all">{conversation.lead.email}</div>
+                {conversation.lead.company && (
+                  <div className="text-xs text-muted-foreground mt-0.5">{conversation.lead.company}</div>
+                )}
+              </div>
+              <div className="space-y-1.5 pt-1">
+                <Link
+                  to="/leads"
+                  className="w-full flex items-center justify-center gap-1.5 text-xs h-8 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors shadow-xs"
+                >
+                  <UserCheck className="w-3.5 h-3.5" /> View / Convert in Leads
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs h-8 gap-1.5"
+                  onClick={() => setShowLinkModal(true)}
+                >
+                  <LinkIcon className="w-3.5 h-3.5" /> Link to Existing Contact
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="p-3 bg-accent/30 rounded-xl border border-border space-y-3">
               <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">

@@ -203,6 +203,7 @@ export interface Conversation {
   updatedAt: string;
   
   contactId: string | null;
+  leadId?: string | null;
   assignedUserId: string | null;
 
   contact?: {
@@ -212,6 +213,15 @@ export interface Conversation {
     email: string | null;
     avatarUrl: string | null;
     lifecycleStage?: string | null;
+  } | null;
+  lead?: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    email: string;
+    company?: string | null;
+    status?: LeadStatus;
+    source?: LeadSource | null;
   } | null;
   assignedUser?: {
     id: string;

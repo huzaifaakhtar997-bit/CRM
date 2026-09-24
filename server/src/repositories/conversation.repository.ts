@@ -29,6 +29,17 @@ const conversationInclude: Prisma.ConversationInclude = {
       },
     },
   },
+  lead: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      company: true,
+      status: true,
+      source: true,
+    },
+  },
   campaign: {
     select: { id: true, name: true, subject: true },
   },
@@ -68,12 +79,21 @@ export class ConversationRepository {
 
     const where: Prisma.ConversationWhereInput = {};
 
-    // Search subject, contact first/last name, or contact email
+    // Search subject, contact first/last name, or contact email, or lead first/last name/email
     if (query.search) {
       where.OR = [
         { subject: { contains: query.search, mode: "insensitive" } },
         {
           contact: {
+            OR: [
+              { firstName: { contains: query.search, mode: "insensitive" } },
+              { lastName: { contains: query.search, mode: "insensitive" } },
+              { email: { contains: query.search, mode: "insensitive" } },
+            ],
+          },
+        },
+        {
+          lead: {
             OR: [
               { firstName: { contains: query.search, mode: "insensitive" } },
               { lastName: { contains: query.search, mode: "insensitive" } },
@@ -102,6 +122,10 @@ export class ConversationRepository {
 
     if (query.contactId) {
       where.contactId = query.contactId;
+    }
+
+    if (query.leadId) {
+      where.leadId = query.leadId;
     }
 
     const [conversations, total] = await Promise.all([

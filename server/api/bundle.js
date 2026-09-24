@@ -119588,6 +119588,17 @@ var conversationInclude = {
       }
     }
   },
+  lead: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      company: true,
+      status: true,
+      source: true
+    }
+  },
   campaign: {
     select: { id: true, name: true, subject: true }
   },
@@ -119633,6 +119644,15 @@ var ConversationRepository = class {
               { email: { contains: query.search, mode: "insensitive" } }
             ]
           }
+        },
+        {
+          lead: {
+            OR: [
+              { firstName: { contains: query.search, mode: "insensitive" } },
+              { lastName: { contains: query.search, mode: "insensitive" } },
+              { email: { contains: query.search, mode: "insensitive" } }
+            ]
+          }
         }
       ];
     }
@@ -119651,6 +119671,9 @@ var ConversationRepository = class {
     }
     if (query.contactId) {
       where.contactId = query.contactId;
+    }
+    if (query.leadId) {
+      where.leadId = query.leadId;
     }
     const [conversations, total] = await Promise.all([
       prisma.conversation.findMany({
@@ -119701,6 +119724,10 @@ var ConversationService = class {
       const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
       if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
     }
+    if (input.leadId) {
+      const lead = await prisma.lead.findUnique({ where: { id: input.leadId } });
+      if (!lead) throw new AppError(`Lead with ID '${input.leadId}' not found.`, 400);
+    }
     if (input.assignedUserId) {
       const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
       if (!user) throw new AppError(`User with ID '${input.assignedUserId}' not found.`, 400);
@@ -119712,11 +119739,13 @@ var ConversationService = class {
           channel: input.channel,
           status: input.status,
           ...input.contactId && { contact: { connect: { id: input.contactId } } },
+          ...input.leadId && { lead: { connect: { id: input.leadId } } },
           ...input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } }
         },
         include: {
           assignedUser: { select: { id: true, name: true, email: true } },
-          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } }
         }
       });
       await tx.activity.create({
@@ -119729,7 +119758,8 @@ var ConversationService = class {
           metadata: {
             conversationId: newConvo.id,
             channel: newConvo.channel,
-            status: newConvo.status
+            status: newConvo.status,
+            ...newConvo.leadId && { leadId: newConvo.leadId }
           }
         }
       });
@@ -119768,6 +119798,10 @@ var ConversationService = class {
       const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
       if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
     }
+    if (input.leadId) {
+      const lead = await prisma.lead.findUnique({ where: { id: input.leadId } });
+      if (!lead) throw new AppError(`Lead with ID '${input.leadId}' not found.`, 400);
+    }
     const updatedConvo = await prisma.$transaction(async (tx) => {
       const updated = await tx.conversation.update({
         where: { id },
@@ -119778,13 +119812,17 @@ var ConversationService = class {
           ...input.contactId !== void 0 && {
             contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
           },
+          ...input.leadId !== void 0 && {
+            lead: input.leadId ? { connect: { id: input.leadId } } : { disconnect: true }
+          },
           ...input.assignedUserId !== void 0 && {
             assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
           }
         },
         include: {
           assignedUser: { select: { id: true, name: true, email: true } },
-          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } }
         }
       });
       if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
@@ -119795,6 +119833,11 @@ var ConversationService = class {
           });
           await tx.deal.updateMany({
             where: { contactId: updated.contactId },
+            data: { assignedUserId: input.assignedUserId }
+          });
+        } else if (updated.leadId) {
+          await tx.lead.update({
+            where: { id: updated.leadId },
             data: { assignedUserId: input.assignedUserId }
           });
         }
@@ -119872,6 +119915,7 @@ var createConversationSchema = external_exports.object({
   channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional().default(import_client24.ConversationChannel.EMAIL),
   status: external_exports.nativeEnum(import_client24.ConversationStatus).optional().default(import_client24.ConversationStatus.OPEN),
   contactId: external_exports.string().nullable().optional(),
+  leadId: external_exports.string().nullable().optional(),
   assignedUserId: external_exports.string().nullable().optional()
 });
 var updateConversationSchema = external_exports.object({
@@ -119879,6 +119923,7 @@ var updateConversationSchema = external_exports.object({
   channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional(),
   status: external_exports.nativeEnum(import_client24.ConversationStatus).optional(),
   contactId: external_exports.string().nullable().optional(),
+  leadId: external_exports.string().nullable().optional(),
   assignedUserId: external_exports.string().nullable().optional()
 });
 var queryConversationSchema = external_exports.object({
@@ -119888,7 +119933,8 @@ var queryConversationSchema = external_exports.object({
   status: external_exports.nativeEnum(import_client24.ConversationStatus).optional(),
   channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional(),
   assignedUserId: external_exports.string().optional(),
-  contactId: external_exports.string().optional()
+  contactId: external_exports.string().optional(),
+  leadId: external_exports.string().optional()
 });
 
 // src/controllers/conversation.controller.ts
@@ -131824,6 +131870,7 @@ var WebhookController = class {
         const safeHtml = html ? sanitizeHtml(html) : text || "No content provided.";
         let matchedConversationId = null;
         let matchedContactId = null;
+        let matchedLeadId = null;
         let matchedCampaignId = null;
         let matchedCampaignName = null;
         if (in_reply_to) {
@@ -131841,6 +131888,7 @@ var WebhookController = class {
           if (originalMessage) {
             matchedConversationId = originalMessage.conversationId;
             matchedContactId = originalMessage.conversation.contactId;
+            matchedLeadId = originalMessage.conversation.leadId || null;
           } else {
             const matchedCampaignRecipient = await prisma.campaignRecipient.findFirst({
               where: {
@@ -131905,7 +131953,7 @@ var WebhookController = class {
           }
         }
         if (senderEmail) {
-          if (!matchedContactId) {
+          if (!matchedContactId && !matchedLeadId) {
             const contact = await prisma.contact.findFirst({
               where: { email: { equals: senderEmail, mode: "insensitive" } }
             });
@@ -131918,6 +131966,8 @@ var WebhookController = class {
               if (existingLead) {
                 if (existingLead.convertedContactId) {
                   matchedContactId = existingLead.convertedContactId;
+                } else {
+                  matchedLeadId = existingLead.id;
                 }
               } else {
                 try {
@@ -131935,6 +131985,7 @@ var WebhookController = class {
                       notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`
                     }
                   });
+                  matchedLeadId = newLead.id;
                   console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
                 } catch (leadErr) {
                   console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
@@ -131967,6 +132018,17 @@ var WebhookController = class {
               matchedConversationId = latestConvo.id;
             }
           }
+          if (matchedLeadId && !matchedConversationId) {
+            const latestLeadConvo = await prisma.conversation.findFirst({
+              where: {
+                leadId: matchedLeadId
+              },
+              orderBy: { updatedAt: "desc" }
+            });
+            if (latestLeadConvo) {
+              matchedConversationId = latestLeadConvo.id;
+            }
+          }
         }
         await prisma.$transaction(async (tx) => {
           let finalConversationId = matchedConversationId;
@@ -131977,7 +132039,10 @@ var WebhookController = class {
                 channel: "EMAIL",
                 status: "OPEN",
                 contactId: matchedContactId || null,
-                campaignId: matchedCampaignId || null
+                leadId: matchedLeadId || null,
+                campaignId: matchedCampaignId || null,
+                assignedUserId: null
+                // Explicitly unassigned so it appears in "Unassigned" inbox tab
               }
             });
             finalConversationId = newConvo.id;
@@ -132007,6 +132072,7 @@ var WebhookController = class {
             include: {
               assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
               contact: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
+              lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } },
               campaign: { select: { id: true, name: true, subject: true } }
             }
           });
@@ -132111,11 +132177,12 @@ var WebhookController = class {
     }
   }
 };
+var webhookController = new WebhookController();
 
 // src/routes/webhook.routes.ts
 var import_express32 = __toESM(require_express2());
 var router31 = (0, import_express31.Router)();
-var webhookController = new WebhookController();
+var webhookController2 = new WebhookController();
 router31.post(
   "/resend",
   import_express32.default.raw({ type: "*/*" }),
@@ -132125,7 +132192,7 @@ router31.post(
     }
     next();
   },
-  webhookController.handleResendWebhook.bind(webhookController)
+  webhookController2.handleResendWebhook.bind(webhookController2)
 );
 var webhook_routes_default = router31;
 

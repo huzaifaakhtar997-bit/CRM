@@ -99,6 +99,7 @@ export class WebhookController {
 
         let matchedConversationId: string | null = null;
         let matchedContactId: string | null = null;
+        let matchedLeadId: string | null = null;
         let matchedCampaignId: string | null = null;
         let matchedCampaignName: string | null = null;
 
@@ -120,6 +121,7 @@ export class WebhookController {
           if (originalMessage) {
             matchedConversationId = originalMessage.conversationId;
             matchedContactId = originalMessage.conversation.contactId;
+            matchedLeadId = (originalMessage.conversation as any).leadId || null;
             // Explicit reply to a direct conversation message — NOT a campaign!
           } else {
             // MATCHING STRATEGY 1B: In-Reply-To matching a Campaign dispatch!
@@ -195,9 +197,9 @@ export class WebhookController {
           }
         }
 
-        // MATCHING STRATEGY 2: Find Contact -> Latest Direct Conversation
+        // MATCHING STRATEGY 2: Find Contact or Lead -> Latest Conversation
         if (senderEmail) {
-          if (!matchedContactId) {
+          if (!matchedContactId && !matchedLeadId) {
             const contact = await prisma.contact.findFirst({
               where: { email: { equals: senderEmail, mode: "insensitive" } },
             });
@@ -213,6 +215,8 @@ export class WebhookController {
               if (existingLead) {
                 if (existingLead.convertedContactId) {
                   matchedContactId = existingLead.convertedContactId;
+                } else {
+                  matchedLeadId = existingLead.id;
                 }
               } else {
                 // No Contact and no Lead exists — auto-create an inbound Lead!
@@ -232,6 +236,7 @@ export class WebhookController {
                       notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
                     },
                   });
+                  matchedLeadId = newLead.id;
                   console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
                 } catch (leadErr: any) {
                   console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
@@ -267,6 +272,19 @@ export class WebhookController {
               matchedConversationId = latestConvo.id;
             }
           }
+
+          // If matched to an unconverted Lead, route to lead's latest conversation
+          if (matchedLeadId && !matchedConversationId) {
+            const latestLeadConvo = await prisma.conversation.findFirst({
+              where: {
+                leadId: matchedLeadId,
+              },
+              orderBy: { updatedAt: "desc" },
+            });
+            if (latestLeadConvo) {
+              matchedConversationId = latestLeadConvo.id;
+            }
+          }
         }
 
         // If no conversation found, create a new one
@@ -280,7 +298,9 @@ export class WebhookController {
                 channel: "EMAIL",
                 status: "OPEN",
                 contactId: matchedContactId || null,
+                leadId: matchedLeadId || null,
                 campaignId: matchedCampaignId || null,
+                assignedUserId: null, // Explicitly unassigned so it appears in "Unassigned" inbox tab
               },
             });
             finalConversationId = newConvo.id;
@@ -314,6 +334,7 @@ export class WebhookController {
             include: {
               assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
               contact: { select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true } },
+              lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } },
               campaign: { select: { id: true, name: true, subject: true } },
             },
           });
@@ -461,3 +482,5 @@ export class WebhookController {
     }
   }
 }
+
+export const webhookController = new WebhookController();

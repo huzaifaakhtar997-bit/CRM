@@ -7,6 +7,7 @@ interface LeadTableProps {
   onEdit: (lead: Lead) => void;
   onDelete: (id: string) => void;
   onView: (lead: Lead) => void;
+  onSendEmail?: (lead: Lead) => void;
   canWrite: boolean;
 }
 
@@ -30,7 +31,7 @@ export const getLeadSourceLabel = (source: LeadSource | null) => {
   return source.replace("_", " ").toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
 };
 
-export const LeadTable: React.FC<LeadTableProps> = ({ leads, onEdit, onDelete, onView, canWrite }) => {
+export const LeadTable: React.FC<LeadTableProps> = ({ leads, onEdit, onDelete, onView, onSendEmail, canWrite }) => {
   return (
     <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -108,6 +109,15 @@ export const LeadTable: React.FC<LeadTableProps> = ({ leads, onEdit, onDelete, o
                 <td className="px-6 py-4 text-right">
                   {canWrite && (
                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                      {onSendEmail && (
+                        <button
+                          onClick={() => onSendEmail(lead)}
+                          className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-md transition-colors"
+                          title="Send Email to Lead"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => onEdit(lead)}
                         className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"

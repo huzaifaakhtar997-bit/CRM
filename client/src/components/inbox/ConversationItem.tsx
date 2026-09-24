@@ -21,6 +21,8 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
 }) => {
   const contactName = conversation.contact
     ? `${conversation.contact.firstName} ${conversation.contact.lastName}`
+    : conversation.lead
+    ? `${conversation.lead.firstName} ${conversation.lead.lastName || ""}`.trim()
     : "Unknown Contact";
 
   const getStatusColor = (status: ConversationStatus) => {
@@ -57,9 +59,11 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
     >
       <div className="flex justify-between items-start mb-1">
         <div className="flex items-center gap-2 max-w-[70%]">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 text-xs font-bold">
             {conversation.contact?.avatarUrl ? (
               <img src={conversation.contact.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : conversation.lead ? (
+              <span>{conversation.lead.firstName.charAt(0).toUpperCase()}</span>
             ) : (
               <User className="w-4 h-4" />
             )}
@@ -93,6 +97,11 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
             >
               {conversation.status}
             </span>
+            {conversation.lead && !conversation.contact && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1 shadow-2xs">
+                Lead
+              </span>
+            )}
             {(conversation.isFromCampaign || (conversation as any).campaignName) && (
               <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1 shadow-2xs">
                 <Megaphone className="w-2.5 h-2.5 text-purple-600 dark:text-purple-400" />

@@ -15,6 +15,12 @@ export class ConversationService {
       if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
     }
 
+    // Validate lead exists if provided
+    if (input.leadId) {
+      const lead = await prisma.lead.findUnique({ where: { id: input.leadId } });
+      if (!lead) throw new AppError(`Lead with ID '${input.leadId}' not found.`, 400);
+    }
+
     // Validate assigned user exists if provided
     if (input.assignedUserId) {
       const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
@@ -28,11 +34,13 @@ export class ConversationService {
           channel: input.channel,
           status: input.status,
           ...(input.contactId && { contact: { connect: { id: input.contactId } } }),
+          ...(input.leadId && { lead: { connect: { id: input.leadId } } }),
           ...(input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } }),
         },
         include: {
           assignedUser: { select: { id: true, name: true, email: true } },
           contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } },
         },
       });
 
@@ -47,6 +55,7 @@ export class ConversationService {
             conversationId: newConvo.id,
             channel: newConvo.channel,
             status: newConvo.status,
+            ...(newConvo.leadId && { leadId: newConvo.leadId }),
           },
         },
       });
@@ -101,6 +110,12 @@ export class ConversationService {
       if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
     }
 
+    // Validate lead if changing
+    if (input.leadId) {
+      const lead = await prisma.lead.findUnique({ where: { id: input.leadId } });
+      if (!lead) throw new AppError(`Lead with ID '${input.leadId}' not found.`, 400);
+    }
+
     const updatedConvo = await prisma.$transaction(async (tx) => {
       const updated = await tx.conversation.update({
         where: { id },
@@ -111,6 +126,9 @@ export class ConversationService {
           ...(input.contactId !== undefined && {
             contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true },
           }),
+          ...(input.leadId !== undefined && {
+            lead: input.leadId ? { connect: { id: input.leadId } } : { disconnect: true },
+          }),
           ...(input.assignedUserId !== undefined && {
             assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true },
           }),
@@ -118,10 +136,11 @@ export class ConversationService {
         include: {
           assignedUser: { select: { id: true, name: true, email: true } },
           contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true, company: true, status: true, source: true } },
         },
       });
 
-      // Log assignment change and cascade to linked contact and deals
+      // Log assignment change and cascade to linked contact/deals or lead
       if (input.assignedUserId && input.assignedUserId !== (existing as any).assignedUserId) {
         if (updated.contactId) {
           // Cascade ownership so the new assignee gets all contact and deal data
@@ -131,6 +150,11 @@ export class ConversationService {
           });
           await tx.deal.updateMany({
             where: { contactId: updated.contactId },
+            data: { assignedUserId: input.assignedUserId },
+          });
+        } else if (updated.leadId) {
+          await tx.lead.update({
+            where: { id: updated.leadId },
             data: { assignedUserId: input.assignedUserId },
           });
         }

@@ -6,6 +6,7 @@ export const createConversationSchema = z.object({
   channel: z.nativeEnum(ConversationChannel).optional().default(ConversationChannel.EMAIL),
   status: z.nativeEnum(ConversationStatus).optional().default(ConversationStatus.OPEN),
   contactId: z.string().nullable().optional(),
+  leadId: z.string().nullable().optional(),
   assignedUserId: z.string().nullable().optional(),
 });
 
@@ -14,6 +15,7 @@ export const updateConversationSchema = z.object({
   channel: z.nativeEnum(ConversationChannel).optional(),
   status: z.nativeEnum(ConversationStatus).optional(),
   contactId: z.string().nullable().optional(),
+  leadId: z.string().nullable().optional(),
   assignedUserId: z.string().nullable().optional(),
 });
 
@@ -25,6 +27,7 @@ export const queryConversationSchema = z.object({
   channel: z.nativeEnum(ConversationChannel).optional(),
   assignedUserId: z.string().optional(),
   contactId: z.string().optional(),
+  leadId: z.string().optional(),
 });
 
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;

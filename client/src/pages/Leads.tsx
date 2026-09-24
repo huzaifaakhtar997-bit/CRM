@@ -6,6 +6,7 @@ import { LeadTable } from "../components/leads/LeadTable";
 import { LeadForm } from "../components/leads/LeadForm";
 import { LeadDetails } from "../components/leads/LeadDetails";
 import { LeadFilters } from "../components/leads/LeadFilters";
+import { SendLeadEmailModal } from "../components/leads/SendLeadEmailModal";
 import { Button } from "../components/ui/button";
 import { Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
@@ -34,6 +35,7 @@ export const Leads: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [viewingLeadId, setViewingLeadId] = useState<string | null>(null);
+  const [emailingLead, setEmailingLead] = useState<Lead | null>(null);
   
   // RBAC
   const canWrite = user?.role === "ADMIN" || user?.role === "MANAGER" || user?.role === "SALES_REP";
@@ -141,6 +143,7 @@ export const Leads: React.FC = () => {
             }}
             onDelete={handleDelete}
             onView={(lead) => setViewingLeadId(lead.id)}
+            onSendEmail={(lead) => setEmailingLead(lead)}
           />
 
           {/* Pagination */}
@@ -197,6 +200,13 @@ export const Leads: React.FC = () => {
         }}
         onDelete={handleDelete}
         onConverted={fetchLeads}
+      />
+
+      <SendLeadEmailModal
+        lead={emailingLead}
+        isOpen={!!emailingLead}
+        onClose={() => setEmailingLead(null)}
+        onSuccess={fetchLeads}
       />
     </div>
   );

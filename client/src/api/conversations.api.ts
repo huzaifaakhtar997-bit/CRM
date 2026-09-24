@@ -9,6 +9,7 @@ export interface QueryConversationInput {
   channel?: ConversationChannel;
   assignedUserId?: string;
   contactId?: string;
+  leadId?: string;
 }
 
 export interface QueryMessageInput {
