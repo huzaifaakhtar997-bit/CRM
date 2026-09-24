@@ -18922,17 +18922,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router31(req, res, next) {
-        router31.handle(req, res, next);
+      function router32(req, res, next) {
+        router32.handle(req, res, next);
       }
-      setPrototypeOf(router31, proto);
-      router31.params = {};
-      router31._params = [];
-      router31.caseSensitive = opts.caseSensitive;
-      router31.mergeParams = opts.mergeParams;
-      router31.strict = opts.strict;
-      router31.stack = [];
-      return router31;
+      setPrototypeOf(router32, proto);
+      router32.params = {};
+      router32._params = [];
+      router32.caseSensitive = opts.caseSensitive;
+      router32.mergeParams = opts.mergeParams;
+      router32.strict = opts.strict;
+      router32.stack = [];
+      return router32;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -20065,14 +20065,14 @@ var require_etag = __commonJS({
   "node_modules/etag/index.js"(exports2, module2) {
     "use strict";
     module2.exports = etag;
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     var Stats = require("fs").Stats;
     var toString3 = Object.prototype.toString;
     function entitytag(entity) {
       if (entity.length === 0) {
         return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"';
       }
-      var hash3 = crypto4.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
+      var hash3 = crypto5.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
       var len = typeof entity === "string" ? Buffer.byteLength(entity, "utf8") : entity.length;
       return '"' + len.toString(16) + "-" + hash3 + '"';
     }
@@ -21949,7 +21949,7 @@ var require_application = __commonJS({
   "node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router31 = require_router();
+    var Router32 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -22014,7 +22014,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router31({
+        this._router = new Router32({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -22023,17 +22023,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router31 = this._router;
+      var router32 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router31) {
+      if (!router32) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router31.handle(req, res, done);
+      router32.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22053,15 +22053,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router31 = this._router;
+      var router32 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router31.use(path3, fn2);
+          return router32.use(path3, fn2);
         }
         debug(".use app under %s", path3);
         fn2.mountpath = path3;
         fn2.parent = this;
-        router31.use(path3, function mounted_app(req, res, next) {
+        router32.use(path3, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -22965,11 +22965,11 @@ var require_request = __commonJS({
 // node_modules/cookie-signature/index.js
 var require_cookie_signature = __commonJS({
   "node_modules/cookie-signature/index.js"(exports2) {
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     exports2.sign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Cookie value must be provided as a string.");
       if (null == secret) throw new TypeError("Secret key must be provided.");
-      return val + "." + crypto4.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+      return val + "." + crypto5.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
     };
     exports2.unsign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Signed cookie string must be provided.");
@@ -22978,7 +22978,7 @@ var require_cookie_signature = __commonJS({
       return sha1(mac3) == sha1(val) ? str : false;
     };
     function sha1(str) {
-      return crypto4.createHash("sha1").update(str).digest("hex");
+      return crypto5.createHash("sha1").update(str).digest("hex");
     }
   }
 });
@@ -23878,7 +23878,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router31 = require_router();
+    var Router32 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23901,7 +23901,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router31;
+    exports2.Router = Router32;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -24474,14 +24474,14 @@ var require_buffer_equal_constant_time = __commonJS({
 var require_jwa = __commonJS({
   "node_modules/jwa/index.js"(exports2, module2) {
     var Buffer2 = require_safe_buffer().Buffer;
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     var formatEcdsa = require_ecdsa_sig_formatter();
     var util4 = require("util");
     var MSG_INVALID_ALGORITHM = '"%s" is not a valid algorithm.\n  Supported algorithms are:\n  "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512" and "none".';
     var MSG_INVALID_SECRET = "secret must be a string or buffer";
     var MSG_INVALID_VERIFIER_KEY = "key must be a string or a buffer";
     var MSG_INVALID_SIGNER_KEY = "key must be a string, a buffer or an object";
-    var supportsKeyObjects = typeof crypto4.createPublicKey === "function";
+    var supportsKeyObjects = typeof crypto5.createPublicKey === "function";
     if (supportsKeyObjects) {
       MSG_INVALID_VERIFIER_KEY += " or a KeyObject";
       MSG_INVALID_SECRET += "or a KeyObject";
@@ -24571,17 +24571,17 @@ var require_jwa = __commonJS({
       return function sign(thing, secret) {
         checkIsSecretKey(secret);
         thing = normalizeInput(thing);
-        var hmac = crypto4.createHmac("sha" + bits, secret);
+        var hmac = crypto5.createHmac("sha" + bits, secret);
         var sig = (hmac.update(thing), hmac.digest("base64"));
         return fromBase64(sig);
       };
     }
     var bufferEqual;
-    var timingSafeEqual = "timingSafeEqual" in crypto4 ? function timingSafeEqual2(a, b) {
+    var timingSafeEqual = "timingSafeEqual" in crypto5 ? function timingSafeEqual2(a, b) {
       if (a.byteLength !== b.byteLength) {
         return false;
       }
-      return crypto4.timingSafeEqual(a, b);
+      return crypto5.timingSafeEqual(a, b);
     } : function timingSafeEqual2(a, b) {
       if (!bufferEqual) {
         bufferEqual = require_buffer_equal_constant_time();
@@ -24598,7 +24598,7 @@ var require_jwa = __commonJS({
       return function sign(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
-        var signer = crypto4.createSign("RSA-SHA" + bits);
+        var signer = crypto5.createSign("RSA-SHA" + bits);
         var sig = (signer.update(thing), signer.sign(privateKey, "base64"));
         return fromBase64(sig);
       };
@@ -24608,7 +24608,7 @@ var require_jwa = __commonJS({
         checkIsPublicKey(publicKey);
         thing = normalizeInput(thing);
         signature = toBase64(signature);
-        var verifier = crypto4.createVerify("RSA-SHA" + bits);
+        var verifier = crypto5.createVerify("RSA-SHA" + bits);
         verifier.update(thing);
         return verifier.verify(publicKey, signature, "base64");
       };
@@ -24617,11 +24617,11 @@ var require_jwa = __commonJS({
       return function sign(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
-        var signer = crypto4.createSign("RSA-SHA" + bits);
+        var signer = crypto5.createSign("RSA-SHA" + bits);
         var sig = (signer.update(thing), signer.sign({
           key: privateKey,
-          padding: crypto4.constants.RSA_PKCS1_PSS_PADDING,
-          saltLength: crypto4.constants.RSA_PSS_SALTLEN_DIGEST
+          padding: crypto5.constants.RSA_PKCS1_PSS_PADDING,
+          saltLength: crypto5.constants.RSA_PSS_SALTLEN_DIGEST
         }, "base64"));
         return fromBase64(sig);
       };
@@ -24631,12 +24631,12 @@ var require_jwa = __commonJS({
         checkIsPublicKey(publicKey);
         thing = normalizeInput(thing);
         signature = toBase64(signature);
-        var verifier = crypto4.createVerify("RSA-SHA" + bits);
+        var verifier = crypto5.createVerify("RSA-SHA" + bits);
         verifier.update(thing);
         return verifier.verify({
           key: publicKey,
-          padding: crypto4.constants.RSA_PKCS1_PSS_PADDING,
-          saltLength: crypto4.constants.RSA_PSS_SALTLEN_DIGEST
+          padding: crypto5.constants.RSA_PKCS1_PSS_PADDING,
+          saltLength: crypto5.constants.RSA_PSS_SALTLEN_DIGEST
         }, signature, "base64");
       };
     }
@@ -28053,7 +28053,7 @@ var require_main = __commonJS({
     var fs = require("fs");
     var path3 = require("path");
     var os = require("os");
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     var packageJson = require_package();
     var version3 = packageJson.version;
     var LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg;
@@ -28272,7 +28272,7 @@ var require_main = __commonJS({
       const authTag = ciphertext.subarray(-16);
       ciphertext = ciphertext.subarray(12, -16);
       try {
-        const aesgcm = crypto4.createDecipheriv("aes-256-gcm", key, nonce);
+        const aesgcm = crypto5.createDecipheriv("aes-256-gcm", key, nonce);
         aesgcm.setAuthTag(authTag);
         return `${aesgcm.update(ciphertext)}${aesgcm.final()}`;
       } catch (error51) {
@@ -28337,10 +28337,789 @@ var require_main = __commonJS({
   }
 });
 
+// node_modules/standardwebhooks/dist/timing_safe_equal.js
+var require_timing_safe_equal = __commonJS({
+  "node_modules/standardwebhooks/dist/timing_safe_equal.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.timingSafeEqual = void 0;
+    function assert2(expr, msg = "") {
+      if (!expr) {
+        throw new Error(msg);
+      }
+    }
+    function timingSafeEqual(a, b) {
+      if (a.byteLength !== b.byteLength) {
+        return false;
+      }
+      if (!(a instanceof DataView)) {
+        a = new DataView(ArrayBuffer.isView(a) ? a.buffer : a);
+      }
+      if (!(b instanceof DataView)) {
+        b = new DataView(ArrayBuffer.isView(b) ? b.buffer : b);
+      }
+      assert2(a instanceof DataView);
+      assert2(b instanceof DataView);
+      const length = a.byteLength;
+      let out = 0;
+      let i = -1;
+      while (++i < length) {
+        out |= a.getUint8(i) ^ b.getUint8(i);
+      }
+      return out === 0;
+    }
+    exports2.timingSafeEqual = timingSafeEqual;
+  }
+});
+
+// node_modules/@stablelib/base64/lib/base64.js
+var require_base64 = __commonJS({
+  "node_modules/@stablelib/base64/lib/base64.js"(exports2) {
+    "use strict";
+    var __extends = exports2 && exports2.__extends || /* @__PURE__ */ (function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+          d2.__proto__ = b2;
+        } || function(d2, b2) {
+          for (var p in b2) if (b2.hasOwnProperty(p)) d2[p] = b2[p];
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    })();
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    var INVALID_BYTE = 256;
+    var Coder = (
+      /** @class */
+      (function() {
+        function Coder2(_paddingCharacter) {
+          if (_paddingCharacter === void 0) {
+            _paddingCharacter = "=";
+          }
+          this._paddingCharacter = _paddingCharacter;
+        }
+        Coder2.prototype.encodedLength = function(length) {
+          if (!this._paddingCharacter) {
+            return (length * 8 + 5) / 6 | 0;
+          }
+          return (length + 2) / 3 * 4 | 0;
+        };
+        Coder2.prototype.encode = function(data) {
+          var out = "";
+          var i = 0;
+          for (; i < data.length - 2; i += 3) {
+            var c = data[i] << 16 | data[i + 1] << 8 | data[i + 2];
+            out += this._encodeByte(c >>> 3 * 6 & 63);
+            out += this._encodeByte(c >>> 2 * 6 & 63);
+            out += this._encodeByte(c >>> 1 * 6 & 63);
+            out += this._encodeByte(c >>> 0 * 6 & 63);
+          }
+          var left = data.length - i;
+          if (left > 0) {
+            var c = data[i] << 16 | (left === 2 ? data[i + 1] << 8 : 0);
+            out += this._encodeByte(c >>> 3 * 6 & 63);
+            out += this._encodeByte(c >>> 2 * 6 & 63);
+            if (left === 2) {
+              out += this._encodeByte(c >>> 1 * 6 & 63);
+            } else {
+              out += this._paddingCharacter || "";
+            }
+            out += this._paddingCharacter || "";
+          }
+          return out;
+        };
+        Coder2.prototype.maxDecodedLength = function(length) {
+          if (!this._paddingCharacter) {
+            return (length * 6 + 7) / 8 | 0;
+          }
+          return length / 4 * 3 | 0;
+        };
+        Coder2.prototype.decodedLength = function(s) {
+          return this.maxDecodedLength(s.length - this._getPaddingLength(s));
+        };
+        Coder2.prototype.decode = function(s) {
+          if (s.length === 0) {
+            return new Uint8Array(0);
+          }
+          var paddingLength = this._getPaddingLength(s);
+          var length = s.length - paddingLength;
+          var out = new Uint8Array(this.maxDecodedLength(length));
+          var op = 0;
+          var i = 0;
+          var haveBad = 0;
+          var v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+          for (; i < length - 4; i += 4) {
+            v0 = this._decodeChar(s.charCodeAt(i + 0));
+            v1 = this._decodeChar(s.charCodeAt(i + 1));
+            v2 = this._decodeChar(s.charCodeAt(i + 2));
+            v3 = this._decodeChar(s.charCodeAt(i + 3));
+            out[op++] = v0 << 2 | v1 >>> 4;
+            out[op++] = v1 << 4 | v2 >>> 2;
+            out[op++] = v2 << 6 | v3;
+            haveBad |= v0 & INVALID_BYTE;
+            haveBad |= v1 & INVALID_BYTE;
+            haveBad |= v2 & INVALID_BYTE;
+            haveBad |= v3 & INVALID_BYTE;
+          }
+          if (i < length - 1) {
+            v0 = this._decodeChar(s.charCodeAt(i));
+            v1 = this._decodeChar(s.charCodeAt(i + 1));
+            out[op++] = v0 << 2 | v1 >>> 4;
+            haveBad |= v0 & INVALID_BYTE;
+            haveBad |= v1 & INVALID_BYTE;
+          }
+          if (i < length - 2) {
+            v2 = this._decodeChar(s.charCodeAt(i + 2));
+            out[op++] = v1 << 4 | v2 >>> 2;
+            haveBad |= v2 & INVALID_BYTE;
+          }
+          if (i < length - 3) {
+            v3 = this._decodeChar(s.charCodeAt(i + 3));
+            out[op++] = v2 << 6 | v3;
+            haveBad |= v3 & INVALID_BYTE;
+          }
+          if (haveBad !== 0) {
+            throw new Error("Base64Coder: incorrect characters for decoding");
+          }
+          return out;
+        };
+        Coder2.prototype._encodeByte = function(b) {
+          var result = b;
+          result += 65;
+          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
+          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
+          result += 61 - b >>> 8 & 52 - 48 - 62 + 43;
+          result += 62 - b >>> 8 & 62 - 43 - 63 + 47;
+          return String.fromCharCode(result);
+        };
+        Coder2.prototype._decodeChar = function(c) {
+          var result = INVALID_BYTE;
+          result += (42 - c & c - 44) >>> 8 & -INVALID_BYTE + c - 43 + 62;
+          result += (46 - c & c - 48) >>> 8 & -INVALID_BYTE + c - 47 + 63;
+          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
+          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
+          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
+          return result;
+        };
+        Coder2.prototype._getPaddingLength = function(s) {
+          var paddingLength = 0;
+          if (this._paddingCharacter) {
+            for (var i = s.length - 1; i >= 0; i--) {
+              if (s[i] !== this._paddingCharacter) {
+                break;
+              }
+              paddingLength++;
+            }
+            if (s.length < 4 || paddingLength > 2) {
+              throw new Error("Base64Coder: incorrect padding");
+            }
+          }
+          return paddingLength;
+        };
+        return Coder2;
+      })()
+    );
+    exports2.Coder = Coder;
+    var stdCoder = new Coder();
+    function encode5(data) {
+      return stdCoder.encode(data);
+    }
+    exports2.encode = encode5;
+    function decode3(s) {
+      return stdCoder.decode(s);
+    }
+    exports2.decode = decode3;
+    var URLSafeCoder = (
+      /** @class */
+      (function(_super) {
+        __extends(URLSafeCoder2, _super);
+        function URLSafeCoder2() {
+          return _super !== null && _super.apply(this, arguments) || this;
+        }
+        URLSafeCoder2.prototype._encodeByte = function(b) {
+          var result = b;
+          result += 65;
+          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
+          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
+          result += 61 - b >>> 8 & 52 - 48 - 62 + 45;
+          result += 62 - b >>> 8 & 62 - 45 - 63 + 95;
+          return String.fromCharCode(result);
+        };
+        URLSafeCoder2.prototype._decodeChar = function(c) {
+          var result = INVALID_BYTE;
+          result += (44 - c & c - 46) >>> 8 & -INVALID_BYTE + c - 45 + 62;
+          result += (94 - c & c - 96) >>> 8 & -INVALID_BYTE + c - 95 + 63;
+          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
+          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
+          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
+          return result;
+        };
+        return URLSafeCoder2;
+      })(Coder)
+    );
+    exports2.URLSafeCoder = URLSafeCoder;
+    var urlSafeCoder = new URLSafeCoder();
+    function encodeURLSafe(data) {
+      return urlSafeCoder.encode(data);
+    }
+    exports2.encodeURLSafe = encodeURLSafe;
+    function decodeURLSafe(s) {
+      return urlSafeCoder.decode(s);
+    }
+    exports2.decodeURLSafe = decodeURLSafe;
+    exports2.encodedLength = function(length) {
+      return stdCoder.encodedLength(length);
+    };
+    exports2.maxDecodedLength = function(length) {
+      return stdCoder.maxDecodedLength(length);
+    };
+    exports2.decodedLength = function(s) {
+      return stdCoder.decodedLength(s);
+    };
+  }
+});
+
+// node_modules/fast-sha256/sha256.js
+var require_sha256 = __commonJS({
+  "node_modules/fast-sha256/sha256.js"(exports2, module2) {
+    (function(root, factory2) {
+      var exports3 = {};
+      factory2(exports3);
+      var sha256 = exports3["default"];
+      for (var k in exports3) {
+        sha256[k] = exports3[k];
+      }
+      if (typeof module2 === "object" && typeof module2.exports === "object") {
+        module2.exports = sha256;
+      } else if (typeof define === "function" && define.amd) {
+        define(function() {
+          return sha256;
+        });
+      } else {
+        root.sha256 = sha256;
+      }
+    })(exports2, function(exports3) {
+      "use strict";
+      exports3.__esModule = true;
+      exports3.digestLength = 32;
+      exports3.blockSize = 64;
+      var K = new Uint32Array([
+        1116352408,
+        1899447441,
+        3049323471,
+        3921009573,
+        961987163,
+        1508970993,
+        2453635748,
+        2870763221,
+        3624381080,
+        310598401,
+        607225278,
+        1426881987,
+        1925078388,
+        2162078206,
+        2614888103,
+        3248222580,
+        3835390401,
+        4022224774,
+        264347078,
+        604807628,
+        770255983,
+        1249150122,
+        1555081692,
+        1996064986,
+        2554220882,
+        2821834349,
+        2952996808,
+        3210313671,
+        3336571891,
+        3584528711,
+        113926993,
+        338241895,
+        666307205,
+        773529912,
+        1294757372,
+        1396182291,
+        1695183700,
+        1986661051,
+        2177026350,
+        2456956037,
+        2730485921,
+        2820302411,
+        3259730800,
+        3345764771,
+        3516065817,
+        3600352804,
+        4094571909,
+        275423344,
+        430227734,
+        506948616,
+        659060556,
+        883997877,
+        958139571,
+        1322822218,
+        1537002063,
+        1747873779,
+        1955562222,
+        2024104815,
+        2227730452,
+        2361852424,
+        2428436474,
+        2756734187,
+        3204031479,
+        3329325298
+      ]);
+      function hashBlocks(w, v, p, pos, len) {
+        var a, b, c, d, e, f, g, h, u, i, j, t1, t2;
+        while (len >= 64) {
+          a = v[0];
+          b = v[1];
+          c = v[2];
+          d = v[3];
+          e = v[4];
+          f = v[5];
+          g = v[6];
+          h = v[7];
+          for (i = 0; i < 16; i++) {
+            j = pos + i * 4;
+            w[i] = (p[j] & 255) << 24 | (p[j + 1] & 255) << 16 | (p[j + 2] & 255) << 8 | p[j + 3] & 255;
+          }
+          for (i = 16; i < 64; i++) {
+            u = w[i - 2];
+            t1 = (u >>> 17 | u << 32 - 17) ^ (u >>> 19 | u << 32 - 19) ^ u >>> 10;
+            u = w[i - 15];
+            t2 = (u >>> 7 | u << 32 - 7) ^ (u >>> 18 | u << 32 - 18) ^ u >>> 3;
+            w[i] = (t1 + w[i - 7] | 0) + (t2 + w[i - 16] | 0);
+          }
+          for (i = 0; i < 64; i++) {
+            t1 = (((e >>> 6 | e << 32 - 6) ^ (e >>> 11 | e << 32 - 11) ^ (e >>> 25 | e << 32 - 25)) + (e & f ^ ~e & g) | 0) + (h + (K[i] + w[i] | 0) | 0) | 0;
+            t2 = ((a >>> 2 | a << 32 - 2) ^ (a >>> 13 | a << 32 - 13) ^ (a >>> 22 | a << 32 - 22)) + (a & b ^ a & c ^ b & c) | 0;
+            h = g;
+            g = f;
+            f = e;
+            e = d + t1 | 0;
+            d = c;
+            c = b;
+            b = a;
+            a = t1 + t2 | 0;
+          }
+          v[0] += a;
+          v[1] += b;
+          v[2] += c;
+          v[3] += d;
+          v[4] += e;
+          v[5] += f;
+          v[6] += g;
+          v[7] += h;
+          pos += 64;
+          len -= 64;
+        }
+        return pos;
+      }
+      var Hash = (
+        /** @class */
+        (function() {
+          function Hash2() {
+            this.digestLength = exports3.digestLength;
+            this.blockSize = exports3.blockSize;
+            this.state = new Int32Array(8);
+            this.temp = new Int32Array(64);
+            this.buffer = new Uint8Array(128);
+            this.bufferLength = 0;
+            this.bytesHashed = 0;
+            this.finished = false;
+            this.reset();
+          }
+          Hash2.prototype.reset = function() {
+            this.state[0] = 1779033703;
+            this.state[1] = 3144134277;
+            this.state[2] = 1013904242;
+            this.state[3] = 2773480762;
+            this.state[4] = 1359893119;
+            this.state[5] = 2600822924;
+            this.state[6] = 528734635;
+            this.state[7] = 1541459225;
+            this.bufferLength = 0;
+            this.bytesHashed = 0;
+            this.finished = false;
+            return this;
+          };
+          Hash2.prototype.clean = function() {
+            for (var i = 0; i < this.buffer.length; i++) {
+              this.buffer[i] = 0;
+            }
+            for (var i = 0; i < this.temp.length; i++) {
+              this.temp[i] = 0;
+            }
+            this.reset();
+          };
+          Hash2.prototype.update = function(data, dataLength) {
+            if (dataLength === void 0) {
+              dataLength = data.length;
+            }
+            if (this.finished) {
+              throw new Error("SHA256: can't update because hash was finished.");
+            }
+            var dataPos = 0;
+            this.bytesHashed += dataLength;
+            if (this.bufferLength > 0) {
+              while (this.bufferLength < 64 && dataLength > 0) {
+                this.buffer[this.bufferLength++] = data[dataPos++];
+                dataLength--;
+              }
+              if (this.bufferLength === 64) {
+                hashBlocks(this.temp, this.state, this.buffer, 0, 64);
+                this.bufferLength = 0;
+              }
+            }
+            if (dataLength >= 64) {
+              dataPos = hashBlocks(this.temp, this.state, data, dataPos, dataLength);
+              dataLength %= 64;
+            }
+            while (dataLength > 0) {
+              this.buffer[this.bufferLength++] = data[dataPos++];
+              dataLength--;
+            }
+            return this;
+          };
+          Hash2.prototype.finish = function(out) {
+            if (!this.finished) {
+              var bytesHashed = this.bytesHashed;
+              var left = this.bufferLength;
+              var bitLenHi = bytesHashed / 536870912 | 0;
+              var bitLenLo = bytesHashed << 3;
+              var padLength = bytesHashed % 64 < 56 ? 64 : 128;
+              this.buffer[left] = 128;
+              for (var i = left + 1; i < padLength - 8; i++) {
+                this.buffer[i] = 0;
+              }
+              this.buffer[padLength - 8] = bitLenHi >>> 24 & 255;
+              this.buffer[padLength - 7] = bitLenHi >>> 16 & 255;
+              this.buffer[padLength - 6] = bitLenHi >>> 8 & 255;
+              this.buffer[padLength - 5] = bitLenHi >>> 0 & 255;
+              this.buffer[padLength - 4] = bitLenLo >>> 24 & 255;
+              this.buffer[padLength - 3] = bitLenLo >>> 16 & 255;
+              this.buffer[padLength - 2] = bitLenLo >>> 8 & 255;
+              this.buffer[padLength - 1] = bitLenLo >>> 0 & 255;
+              hashBlocks(this.temp, this.state, this.buffer, 0, padLength);
+              this.finished = true;
+            }
+            for (var i = 0; i < 8; i++) {
+              out[i * 4 + 0] = this.state[i] >>> 24 & 255;
+              out[i * 4 + 1] = this.state[i] >>> 16 & 255;
+              out[i * 4 + 2] = this.state[i] >>> 8 & 255;
+              out[i * 4 + 3] = this.state[i] >>> 0 & 255;
+            }
+            return this;
+          };
+          Hash2.prototype.digest = function() {
+            var out = new Uint8Array(this.digestLength);
+            this.finish(out);
+            return out;
+          };
+          Hash2.prototype._saveState = function(out) {
+            for (var i = 0; i < this.state.length; i++) {
+              out[i] = this.state[i];
+            }
+          };
+          Hash2.prototype._restoreState = function(from, bytesHashed) {
+            for (var i = 0; i < this.state.length; i++) {
+              this.state[i] = from[i];
+            }
+            this.bytesHashed = bytesHashed;
+            this.finished = false;
+            this.bufferLength = 0;
+          };
+          return Hash2;
+        })()
+      );
+      exports3.Hash = Hash;
+      var HMAC = (
+        /** @class */
+        (function() {
+          function HMAC2(key) {
+            this.inner = new Hash();
+            this.outer = new Hash();
+            this.blockSize = this.inner.blockSize;
+            this.digestLength = this.inner.digestLength;
+            var pad = new Uint8Array(this.blockSize);
+            if (key.length > this.blockSize) {
+              new Hash().update(key).finish(pad).clean();
+            } else {
+              for (var i = 0; i < key.length; i++) {
+                pad[i] = key[i];
+              }
+            }
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] ^= 54;
+            }
+            this.inner.update(pad);
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] ^= 54 ^ 92;
+            }
+            this.outer.update(pad);
+            this.istate = new Uint32Array(8);
+            this.ostate = new Uint32Array(8);
+            this.inner._saveState(this.istate);
+            this.outer._saveState(this.ostate);
+            for (var i = 0; i < pad.length; i++) {
+              pad[i] = 0;
+            }
+          }
+          HMAC2.prototype.reset = function() {
+            this.inner._restoreState(this.istate, this.inner.blockSize);
+            this.outer._restoreState(this.ostate, this.outer.blockSize);
+            return this;
+          };
+          HMAC2.prototype.clean = function() {
+            for (var i = 0; i < this.istate.length; i++) {
+              this.ostate[i] = this.istate[i] = 0;
+            }
+            this.inner.clean();
+            this.outer.clean();
+          };
+          HMAC2.prototype.update = function(data) {
+            this.inner.update(data);
+            return this;
+          };
+          HMAC2.prototype.finish = function(out) {
+            if (this.outer.finished) {
+              this.outer.finish(out);
+            } else {
+              this.inner.finish(out);
+              this.outer.update(out, this.digestLength).finish(out);
+            }
+            return this;
+          };
+          HMAC2.prototype.digest = function() {
+            var out = new Uint8Array(this.digestLength);
+            this.finish(out);
+            return out;
+          };
+          return HMAC2;
+        })()
+      );
+      exports3.HMAC = HMAC;
+      function hash3(data) {
+        var h = new Hash().update(data);
+        var digest = h.digest();
+        h.clean();
+        return digest;
+      }
+      exports3.hash = hash3;
+      exports3["default"] = hash3;
+      function hmac(key, data) {
+        var h = new HMAC(key).update(data);
+        var digest = h.digest();
+        h.clean();
+        return digest;
+      }
+      exports3.hmac = hmac;
+      function fillBuffer(buffer, hmac2, info, counter) {
+        var num = counter[0];
+        if (num === 0) {
+          throw new Error("hkdf: cannot expand more");
+        }
+        hmac2.reset();
+        if (num > 1) {
+          hmac2.update(buffer);
+        }
+        if (info) {
+          hmac2.update(info);
+        }
+        hmac2.update(counter);
+        hmac2.finish(buffer);
+        counter[0]++;
+      }
+      var hkdfSalt = new Uint8Array(exports3.digestLength);
+      function hkdf(key, salt, info, length) {
+        if (salt === void 0) {
+          salt = hkdfSalt;
+        }
+        if (length === void 0) {
+          length = 32;
+        }
+        var counter = new Uint8Array([1]);
+        var okm = hmac(salt, key);
+        var hmac_ = new HMAC(okm);
+        var buffer = new Uint8Array(hmac_.digestLength);
+        var bufpos = buffer.length;
+        var out = new Uint8Array(length);
+        for (var i = 0; i < length; i++) {
+          if (bufpos === buffer.length) {
+            fillBuffer(buffer, hmac_, info, counter);
+            bufpos = 0;
+          }
+          out[i] = buffer[bufpos++];
+        }
+        hmac_.clean();
+        buffer.fill(0);
+        counter.fill(0);
+        return out;
+      }
+      exports3.hkdf = hkdf;
+      function pbkdf2(password, salt, iterations, dkLen) {
+        var prf = new HMAC(password);
+        var len = prf.digestLength;
+        var ctr = new Uint8Array(4);
+        var t = new Uint8Array(len);
+        var u = new Uint8Array(len);
+        var dk = new Uint8Array(dkLen);
+        for (var i = 0; i * len < dkLen; i++) {
+          var c = i + 1;
+          ctr[0] = c >>> 24 & 255;
+          ctr[1] = c >>> 16 & 255;
+          ctr[2] = c >>> 8 & 255;
+          ctr[3] = c >>> 0 & 255;
+          prf.reset();
+          prf.update(salt);
+          prf.update(ctr);
+          prf.finish(u);
+          for (var j = 0; j < len; j++) {
+            t[j] = u[j];
+          }
+          for (var j = 2; j <= iterations; j++) {
+            prf.reset();
+            prf.update(u).finish(u);
+            for (var k = 0; k < len; k++) {
+              t[k] ^= u[k];
+            }
+          }
+          for (var j = 0; j < len && i * len + j < dkLen; j++) {
+            dk[i * len + j] = t[j];
+          }
+        }
+        for (var i = 0; i < len; i++) {
+          t[i] = u[i] = 0;
+        }
+        for (var i = 0; i < 4; i++) {
+          ctr[i] = 0;
+        }
+        prf.clean();
+        return dk;
+      }
+      exports3.pbkdf2 = pbkdf2;
+    });
+  }
+});
+
+// node_modules/standardwebhooks/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/standardwebhooks/dist/index.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.Webhook = exports2.WebhookVerificationError = void 0;
+    var timing_safe_equal_1 = require_timing_safe_equal();
+    var base643 = require_base64();
+    var sha256 = require_sha256();
+    var WEBHOOK_TOLERANCE_IN_SECONDS = 5 * 60;
+    var ExtendableError = class _ExtendableError extends Error {
+      constructor(message) {
+        super(message);
+        Object.setPrototypeOf(this, _ExtendableError.prototype);
+        this.name = "ExtendableError";
+        this.stack = new Error(message).stack;
+      }
+    };
+    var WebhookVerificationError = class _WebhookVerificationError extends ExtendableError {
+      constructor(message) {
+        super(message);
+        Object.setPrototypeOf(this, _WebhookVerificationError.prototype);
+        this.name = "WebhookVerificationError";
+      }
+    };
+    exports2.WebhookVerificationError = WebhookVerificationError;
+    var Webhook3 = class _Webhook {
+      constructor(secret, options) {
+        if (!secret) {
+          throw new Error("Secret can't be empty.");
+        }
+        if ((options === null || options === void 0 ? void 0 : options.format) === "raw") {
+          if (secret instanceof Uint8Array) {
+            this.key = secret;
+          } else {
+            this.key = Uint8Array.from(secret, (c) => c.charCodeAt(0));
+          }
+        } else {
+          if (typeof secret !== "string") {
+            throw new Error("Expected secret to be of type string");
+          }
+          if (secret.startsWith(_Webhook.prefix)) {
+            secret = secret.substring(_Webhook.prefix.length);
+          }
+          this.key = base643.decode(secret);
+        }
+      }
+      verify(payload, headers_) {
+        const headers = {};
+        for (const key of Object.keys(headers_)) {
+          headers[key.toLowerCase()] = headers_[key];
+        }
+        const msgId = headers["webhook-id"];
+        const msgSignature = headers["webhook-signature"];
+        const msgTimestamp = headers["webhook-timestamp"];
+        if (!msgSignature || !msgId || !msgTimestamp) {
+          throw new WebhookVerificationError("Missing required headers");
+        }
+        const timestamp = this.verifyTimestamp(msgTimestamp);
+        const computedSignature = this.sign(msgId, timestamp, payload);
+        const expectedSignature = computedSignature.split(",")[1];
+        const passedSignatures = msgSignature.split(" ");
+        const encoder = new globalThis.TextEncoder();
+        for (const versionedSignature of passedSignatures) {
+          const [version3, signature] = versionedSignature.split(",");
+          if (version3 !== "v1") {
+            continue;
+          }
+          if ((0, timing_safe_equal_1.timingSafeEqual)(encoder.encode(signature), encoder.encode(expectedSignature))) {
+            return JSON.parse(payload.toString());
+          }
+        }
+        throw new WebhookVerificationError("No matching signature found");
+      }
+      sign(msgId, timestamp, payload) {
+        if (typeof payload === "string") {
+        } else if (payload.constructor.name === "Buffer") {
+          payload = payload.toString();
+        } else {
+          throw new Error("Expected payload to be of type string or Buffer.");
+        }
+        const encoder = new TextEncoder();
+        const timestampNumber = Math.floor(timestamp.getTime() / 1e3);
+        const toSign = encoder.encode(`${msgId}.${timestampNumber}.${payload}`);
+        const expectedSignature = base643.encode(sha256.hmac(this.key, toSign));
+        return `v1,${expectedSignature}`;
+      }
+      verifyTimestamp(timestampHeader) {
+        const now = Math.floor(Date.now() / 1e3);
+        const timestamp = parseInt(timestampHeader, 10);
+        if (isNaN(timestamp)) {
+          throw new WebhookVerificationError("Invalid Signature Headers");
+        }
+        if (now - timestamp > WEBHOOK_TOLERANCE_IN_SECONDS) {
+          throw new WebhookVerificationError("Message timestamp too old");
+        }
+        if (timestamp > now + WEBHOOK_TOLERANCE_IN_SECONDS) {
+          throw new WebhookVerificationError("Message timestamp too new");
+        }
+        return new Date(timestamp * 1e3);
+      }
+    };
+    exports2.Webhook = Webhook3;
+    Webhook3.prefix = "whsec_";
+  }
+});
+
 // node_modules/base64id/lib/base64id.js
 var require_base64id = __commonJS({
   "node_modules/base64id/lib/base64id.js"(exports2, module2) {
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     var Base64Id = function() {
     };
     Base64Id.prototype.getRandomBytes = function(bytes) {
@@ -28348,12 +29127,12 @@ var require_base64id = __commonJS({
       var self2 = this;
       bytes = bytes || 12;
       if (bytes > BUFFER_SIZE) {
-        return crypto4.randomBytes(bytes);
+        return crypto5.randomBytes(bytes);
       }
       var bytesInBuffer = parseInt(BUFFER_SIZE / bytes);
       var threshold = parseInt(bytesInBuffer * 0.85);
       if (!threshold) {
-        return crypto4.randomBytes(bytes);
+        return crypto5.randomBytes(bytes);
       }
       if (this.bytesBufferIndex == null) {
         this.bytesBufferIndex = -1;
@@ -28365,14 +29144,14 @@ var require_base64id = __commonJS({
       if (this.bytesBufferIndex == -1 || this.bytesBufferIndex > threshold) {
         if (!this.isGeneratingBytes) {
           this.isGeneratingBytes = true;
-          crypto4.randomBytes(BUFFER_SIZE, function(err, bytes2) {
+          crypto5.randomBytes(BUFFER_SIZE, function(err, bytes2) {
             self2.bytesBuffer = bytes2;
             self2.bytesBufferIndex = 0;
             self2.isGeneratingBytes = false;
           });
         }
         if (this.bytesBufferIndex == -1) {
-          return crypto4.randomBytes(bytes);
+          return crypto5.randomBytes(bytes);
         }
       }
       var result = this.bytesBuffer.slice(bytes * this.bytesBufferIndex, bytes * (this.bytesBufferIndex + 1));
@@ -28386,7 +29165,7 @@ var require_base64id = __commonJS({
       }
       this.sequenceNumber = this.sequenceNumber + 1 | 0;
       rand.writeInt32BE(this.sequenceNumber, 11);
-      if (crypto4.randomBytes) {
+      if (crypto5.randomBytes) {
         this.getRandomBytes(12).copy(rand);
       } else {
         [0, 4, 8].forEach(function(i) {
@@ -40087,7 +40866,7 @@ var require_cluster_adapter = __commonJS({
 });
 
 // node_modules/socket.io-adapter/dist/index.js
-var require_dist = __commonJS({
+var require_dist2 = __commonJS({
   "node_modules/socket.io-adapter/dist/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -40122,7 +40901,7 @@ var require_parent_namespace = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ParentNamespace = void 0;
     var namespace_1 = require_namespace();
-    var socket_io_adapter_1 = require_dist();
+    var socket_io_adapter_1 = require_dist2();
     var debug_1 = __importDefault(require_src5());
     var debug = (0, debug_1.default)("socket.io:parent-namespace");
     var ParentNamespace = class _ParentNamespace extends namespace_1.Namespace {
@@ -40192,7 +40971,7 @@ var require_uws = __commonJS({
     exports2.patchAdapter = patchAdapter;
     exports2.restoreAdapter = restoreAdapter;
     exports2.serveFile = serveFile;
-    var socket_io_adapter_1 = require_dist();
+    var socket_io_adapter_1 = require_dist2();
     var fs_1 = require("fs");
     var debug_1 = __importDefault(require_src5());
     var debug = (0, debug_1.default)("socket.io:adapter-uws");
@@ -40405,7 +41184,7 @@ var require_package2 = __commonJS({
 });
 
 // node_modules/socket.io/dist/index.js
-var require_dist2 = __commonJS({
+var require_dist3 = __commonJS({
   "node_modules/socket.io/dist/index.js"(exports2, module2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
@@ -40454,7 +41233,7 @@ var require_dist2 = __commonJS({
       return namespace_1.Namespace;
     } });
     var parent_namespace_1 = require_parent_namespace();
-    var socket_io_adapter_1 = require_dist();
+    var socket_io_adapter_1 = require_dist2();
     var parser = __importStar(require_cjs3());
     var debug_1 = __importDefault(require_src5());
     var socket_1 = require_socket2();
@@ -41156,785 +41935,6 @@ var require_dist2 = __commonJS({
   }
 });
 
-// node_modules/standardwebhooks/dist/timing_safe_equal.js
-var require_timing_safe_equal = __commonJS({
-  "node_modules/standardwebhooks/dist/timing_safe_equal.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.timingSafeEqual = void 0;
-    function assert2(expr, msg = "") {
-      if (!expr) {
-        throw new Error(msg);
-      }
-    }
-    function timingSafeEqual(a, b) {
-      if (a.byteLength !== b.byteLength) {
-        return false;
-      }
-      if (!(a instanceof DataView)) {
-        a = new DataView(ArrayBuffer.isView(a) ? a.buffer : a);
-      }
-      if (!(b instanceof DataView)) {
-        b = new DataView(ArrayBuffer.isView(b) ? b.buffer : b);
-      }
-      assert2(a instanceof DataView);
-      assert2(b instanceof DataView);
-      const length = a.byteLength;
-      let out = 0;
-      let i = -1;
-      while (++i < length) {
-        out |= a.getUint8(i) ^ b.getUint8(i);
-      }
-      return out === 0;
-    }
-    exports2.timingSafeEqual = timingSafeEqual;
-  }
-});
-
-// node_modules/@stablelib/base64/lib/base64.js
-var require_base64 = __commonJS({
-  "node_modules/@stablelib/base64/lib/base64.js"(exports2) {
-    "use strict";
-    var __extends = exports2 && exports2.__extends || /* @__PURE__ */ (function() {
-      var extendStatics = function(d, b) {
-        extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-          d2.__proto__ = b2;
-        } || function(d2, b2) {
-          for (var p in b2) if (b2.hasOwnProperty(p)) d2[p] = b2[p];
-        };
-        return extendStatics(d, b);
-      };
-      return function(d, b) {
-        extendStatics(d, b);
-        function __() {
-          this.constructor = d;
-        }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-      };
-    })();
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    var INVALID_BYTE = 256;
-    var Coder = (
-      /** @class */
-      (function() {
-        function Coder2(_paddingCharacter) {
-          if (_paddingCharacter === void 0) {
-            _paddingCharacter = "=";
-          }
-          this._paddingCharacter = _paddingCharacter;
-        }
-        Coder2.prototype.encodedLength = function(length) {
-          if (!this._paddingCharacter) {
-            return (length * 8 + 5) / 6 | 0;
-          }
-          return (length + 2) / 3 * 4 | 0;
-        };
-        Coder2.prototype.encode = function(data) {
-          var out = "";
-          var i = 0;
-          for (; i < data.length - 2; i += 3) {
-            var c = data[i] << 16 | data[i + 1] << 8 | data[i + 2];
-            out += this._encodeByte(c >>> 3 * 6 & 63);
-            out += this._encodeByte(c >>> 2 * 6 & 63);
-            out += this._encodeByte(c >>> 1 * 6 & 63);
-            out += this._encodeByte(c >>> 0 * 6 & 63);
-          }
-          var left = data.length - i;
-          if (left > 0) {
-            var c = data[i] << 16 | (left === 2 ? data[i + 1] << 8 : 0);
-            out += this._encodeByte(c >>> 3 * 6 & 63);
-            out += this._encodeByte(c >>> 2 * 6 & 63);
-            if (left === 2) {
-              out += this._encodeByte(c >>> 1 * 6 & 63);
-            } else {
-              out += this._paddingCharacter || "";
-            }
-            out += this._paddingCharacter || "";
-          }
-          return out;
-        };
-        Coder2.prototype.maxDecodedLength = function(length) {
-          if (!this._paddingCharacter) {
-            return (length * 6 + 7) / 8 | 0;
-          }
-          return length / 4 * 3 | 0;
-        };
-        Coder2.prototype.decodedLength = function(s) {
-          return this.maxDecodedLength(s.length - this._getPaddingLength(s));
-        };
-        Coder2.prototype.decode = function(s) {
-          if (s.length === 0) {
-            return new Uint8Array(0);
-          }
-          var paddingLength = this._getPaddingLength(s);
-          var length = s.length - paddingLength;
-          var out = new Uint8Array(this.maxDecodedLength(length));
-          var op = 0;
-          var i = 0;
-          var haveBad = 0;
-          var v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-          for (; i < length - 4; i += 4) {
-            v0 = this._decodeChar(s.charCodeAt(i + 0));
-            v1 = this._decodeChar(s.charCodeAt(i + 1));
-            v2 = this._decodeChar(s.charCodeAt(i + 2));
-            v3 = this._decodeChar(s.charCodeAt(i + 3));
-            out[op++] = v0 << 2 | v1 >>> 4;
-            out[op++] = v1 << 4 | v2 >>> 2;
-            out[op++] = v2 << 6 | v3;
-            haveBad |= v0 & INVALID_BYTE;
-            haveBad |= v1 & INVALID_BYTE;
-            haveBad |= v2 & INVALID_BYTE;
-            haveBad |= v3 & INVALID_BYTE;
-          }
-          if (i < length - 1) {
-            v0 = this._decodeChar(s.charCodeAt(i));
-            v1 = this._decodeChar(s.charCodeAt(i + 1));
-            out[op++] = v0 << 2 | v1 >>> 4;
-            haveBad |= v0 & INVALID_BYTE;
-            haveBad |= v1 & INVALID_BYTE;
-          }
-          if (i < length - 2) {
-            v2 = this._decodeChar(s.charCodeAt(i + 2));
-            out[op++] = v1 << 4 | v2 >>> 2;
-            haveBad |= v2 & INVALID_BYTE;
-          }
-          if (i < length - 3) {
-            v3 = this._decodeChar(s.charCodeAt(i + 3));
-            out[op++] = v2 << 6 | v3;
-            haveBad |= v3 & INVALID_BYTE;
-          }
-          if (haveBad !== 0) {
-            throw new Error("Base64Coder: incorrect characters for decoding");
-          }
-          return out;
-        };
-        Coder2.prototype._encodeByte = function(b) {
-          var result = b;
-          result += 65;
-          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
-          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
-          result += 61 - b >>> 8 & 52 - 48 - 62 + 43;
-          result += 62 - b >>> 8 & 62 - 43 - 63 + 47;
-          return String.fromCharCode(result);
-        };
-        Coder2.prototype._decodeChar = function(c) {
-          var result = INVALID_BYTE;
-          result += (42 - c & c - 44) >>> 8 & -INVALID_BYTE + c - 43 + 62;
-          result += (46 - c & c - 48) >>> 8 & -INVALID_BYTE + c - 47 + 63;
-          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
-          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
-          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
-          return result;
-        };
-        Coder2.prototype._getPaddingLength = function(s) {
-          var paddingLength = 0;
-          if (this._paddingCharacter) {
-            for (var i = s.length - 1; i >= 0; i--) {
-              if (s[i] !== this._paddingCharacter) {
-                break;
-              }
-              paddingLength++;
-            }
-            if (s.length < 4 || paddingLength > 2) {
-              throw new Error("Base64Coder: incorrect padding");
-            }
-          }
-          return paddingLength;
-        };
-        return Coder2;
-      })()
-    );
-    exports2.Coder = Coder;
-    var stdCoder = new Coder();
-    function encode5(data) {
-      return stdCoder.encode(data);
-    }
-    exports2.encode = encode5;
-    function decode3(s) {
-      return stdCoder.decode(s);
-    }
-    exports2.decode = decode3;
-    var URLSafeCoder = (
-      /** @class */
-      (function(_super) {
-        __extends(URLSafeCoder2, _super);
-        function URLSafeCoder2() {
-          return _super !== null && _super.apply(this, arguments) || this;
-        }
-        URLSafeCoder2.prototype._encodeByte = function(b) {
-          var result = b;
-          result += 65;
-          result += 25 - b >>> 8 & 0 - 65 - 26 + 97;
-          result += 51 - b >>> 8 & 26 - 97 - 52 + 48;
-          result += 61 - b >>> 8 & 52 - 48 - 62 + 45;
-          result += 62 - b >>> 8 & 62 - 45 - 63 + 95;
-          return String.fromCharCode(result);
-        };
-        URLSafeCoder2.prototype._decodeChar = function(c) {
-          var result = INVALID_BYTE;
-          result += (44 - c & c - 46) >>> 8 & -INVALID_BYTE + c - 45 + 62;
-          result += (94 - c & c - 96) >>> 8 & -INVALID_BYTE + c - 95 + 63;
-          result += (47 - c & c - 58) >>> 8 & -INVALID_BYTE + c - 48 + 52;
-          result += (64 - c & c - 91) >>> 8 & -INVALID_BYTE + c - 65 + 0;
-          result += (96 - c & c - 123) >>> 8 & -INVALID_BYTE + c - 97 + 26;
-          return result;
-        };
-        return URLSafeCoder2;
-      })(Coder)
-    );
-    exports2.URLSafeCoder = URLSafeCoder;
-    var urlSafeCoder = new URLSafeCoder();
-    function encodeURLSafe(data) {
-      return urlSafeCoder.encode(data);
-    }
-    exports2.encodeURLSafe = encodeURLSafe;
-    function decodeURLSafe(s) {
-      return urlSafeCoder.decode(s);
-    }
-    exports2.decodeURLSafe = decodeURLSafe;
-    exports2.encodedLength = function(length) {
-      return stdCoder.encodedLength(length);
-    };
-    exports2.maxDecodedLength = function(length) {
-      return stdCoder.maxDecodedLength(length);
-    };
-    exports2.decodedLength = function(s) {
-      return stdCoder.decodedLength(s);
-    };
-  }
-});
-
-// node_modules/fast-sha256/sha256.js
-var require_sha256 = __commonJS({
-  "node_modules/fast-sha256/sha256.js"(exports2, module2) {
-    (function(root, factory2) {
-      var exports3 = {};
-      factory2(exports3);
-      var sha256 = exports3["default"];
-      for (var k in exports3) {
-        sha256[k] = exports3[k];
-      }
-      if (typeof module2 === "object" && typeof module2.exports === "object") {
-        module2.exports = sha256;
-      } else if (typeof define === "function" && define.amd) {
-        define(function() {
-          return sha256;
-        });
-      } else {
-        root.sha256 = sha256;
-      }
-    })(exports2, function(exports3) {
-      "use strict";
-      exports3.__esModule = true;
-      exports3.digestLength = 32;
-      exports3.blockSize = 64;
-      var K = new Uint32Array([
-        1116352408,
-        1899447441,
-        3049323471,
-        3921009573,
-        961987163,
-        1508970993,
-        2453635748,
-        2870763221,
-        3624381080,
-        310598401,
-        607225278,
-        1426881987,
-        1925078388,
-        2162078206,
-        2614888103,
-        3248222580,
-        3835390401,
-        4022224774,
-        264347078,
-        604807628,
-        770255983,
-        1249150122,
-        1555081692,
-        1996064986,
-        2554220882,
-        2821834349,
-        2952996808,
-        3210313671,
-        3336571891,
-        3584528711,
-        113926993,
-        338241895,
-        666307205,
-        773529912,
-        1294757372,
-        1396182291,
-        1695183700,
-        1986661051,
-        2177026350,
-        2456956037,
-        2730485921,
-        2820302411,
-        3259730800,
-        3345764771,
-        3516065817,
-        3600352804,
-        4094571909,
-        275423344,
-        430227734,
-        506948616,
-        659060556,
-        883997877,
-        958139571,
-        1322822218,
-        1537002063,
-        1747873779,
-        1955562222,
-        2024104815,
-        2227730452,
-        2361852424,
-        2428436474,
-        2756734187,
-        3204031479,
-        3329325298
-      ]);
-      function hashBlocks(w, v, p, pos, len) {
-        var a, b, c, d, e, f, g, h, u, i, j, t1, t2;
-        while (len >= 64) {
-          a = v[0];
-          b = v[1];
-          c = v[2];
-          d = v[3];
-          e = v[4];
-          f = v[5];
-          g = v[6];
-          h = v[7];
-          for (i = 0; i < 16; i++) {
-            j = pos + i * 4;
-            w[i] = (p[j] & 255) << 24 | (p[j + 1] & 255) << 16 | (p[j + 2] & 255) << 8 | p[j + 3] & 255;
-          }
-          for (i = 16; i < 64; i++) {
-            u = w[i - 2];
-            t1 = (u >>> 17 | u << 32 - 17) ^ (u >>> 19 | u << 32 - 19) ^ u >>> 10;
-            u = w[i - 15];
-            t2 = (u >>> 7 | u << 32 - 7) ^ (u >>> 18 | u << 32 - 18) ^ u >>> 3;
-            w[i] = (t1 + w[i - 7] | 0) + (t2 + w[i - 16] | 0);
-          }
-          for (i = 0; i < 64; i++) {
-            t1 = (((e >>> 6 | e << 32 - 6) ^ (e >>> 11 | e << 32 - 11) ^ (e >>> 25 | e << 32 - 25)) + (e & f ^ ~e & g) | 0) + (h + (K[i] + w[i] | 0) | 0) | 0;
-            t2 = ((a >>> 2 | a << 32 - 2) ^ (a >>> 13 | a << 32 - 13) ^ (a >>> 22 | a << 32 - 22)) + (a & b ^ a & c ^ b & c) | 0;
-            h = g;
-            g = f;
-            f = e;
-            e = d + t1 | 0;
-            d = c;
-            c = b;
-            b = a;
-            a = t1 + t2 | 0;
-          }
-          v[0] += a;
-          v[1] += b;
-          v[2] += c;
-          v[3] += d;
-          v[4] += e;
-          v[5] += f;
-          v[6] += g;
-          v[7] += h;
-          pos += 64;
-          len -= 64;
-        }
-        return pos;
-      }
-      var Hash = (
-        /** @class */
-        (function() {
-          function Hash2() {
-            this.digestLength = exports3.digestLength;
-            this.blockSize = exports3.blockSize;
-            this.state = new Int32Array(8);
-            this.temp = new Int32Array(64);
-            this.buffer = new Uint8Array(128);
-            this.bufferLength = 0;
-            this.bytesHashed = 0;
-            this.finished = false;
-            this.reset();
-          }
-          Hash2.prototype.reset = function() {
-            this.state[0] = 1779033703;
-            this.state[1] = 3144134277;
-            this.state[2] = 1013904242;
-            this.state[3] = 2773480762;
-            this.state[4] = 1359893119;
-            this.state[5] = 2600822924;
-            this.state[6] = 528734635;
-            this.state[7] = 1541459225;
-            this.bufferLength = 0;
-            this.bytesHashed = 0;
-            this.finished = false;
-            return this;
-          };
-          Hash2.prototype.clean = function() {
-            for (var i = 0; i < this.buffer.length; i++) {
-              this.buffer[i] = 0;
-            }
-            for (var i = 0; i < this.temp.length; i++) {
-              this.temp[i] = 0;
-            }
-            this.reset();
-          };
-          Hash2.prototype.update = function(data, dataLength) {
-            if (dataLength === void 0) {
-              dataLength = data.length;
-            }
-            if (this.finished) {
-              throw new Error("SHA256: can't update because hash was finished.");
-            }
-            var dataPos = 0;
-            this.bytesHashed += dataLength;
-            if (this.bufferLength > 0) {
-              while (this.bufferLength < 64 && dataLength > 0) {
-                this.buffer[this.bufferLength++] = data[dataPos++];
-                dataLength--;
-              }
-              if (this.bufferLength === 64) {
-                hashBlocks(this.temp, this.state, this.buffer, 0, 64);
-                this.bufferLength = 0;
-              }
-            }
-            if (dataLength >= 64) {
-              dataPos = hashBlocks(this.temp, this.state, data, dataPos, dataLength);
-              dataLength %= 64;
-            }
-            while (dataLength > 0) {
-              this.buffer[this.bufferLength++] = data[dataPos++];
-              dataLength--;
-            }
-            return this;
-          };
-          Hash2.prototype.finish = function(out) {
-            if (!this.finished) {
-              var bytesHashed = this.bytesHashed;
-              var left = this.bufferLength;
-              var bitLenHi = bytesHashed / 536870912 | 0;
-              var bitLenLo = bytesHashed << 3;
-              var padLength = bytesHashed % 64 < 56 ? 64 : 128;
-              this.buffer[left] = 128;
-              for (var i = left + 1; i < padLength - 8; i++) {
-                this.buffer[i] = 0;
-              }
-              this.buffer[padLength - 8] = bitLenHi >>> 24 & 255;
-              this.buffer[padLength - 7] = bitLenHi >>> 16 & 255;
-              this.buffer[padLength - 6] = bitLenHi >>> 8 & 255;
-              this.buffer[padLength - 5] = bitLenHi >>> 0 & 255;
-              this.buffer[padLength - 4] = bitLenLo >>> 24 & 255;
-              this.buffer[padLength - 3] = bitLenLo >>> 16 & 255;
-              this.buffer[padLength - 2] = bitLenLo >>> 8 & 255;
-              this.buffer[padLength - 1] = bitLenLo >>> 0 & 255;
-              hashBlocks(this.temp, this.state, this.buffer, 0, padLength);
-              this.finished = true;
-            }
-            for (var i = 0; i < 8; i++) {
-              out[i * 4 + 0] = this.state[i] >>> 24 & 255;
-              out[i * 4 + 1] = this.state[i] >>> 16 & 255;
-              out[i * 4 + 2] = this.state[i] >>> 8 & 255;
-              out[i * 4 + 3] = this.state[i] >>> 0 & 255;
-            }
-            return this;
-          };
-          Hash2.prototype.digest = function() {
-            var out = new Uint8Array(this.digestLength);
-            this.finish(out);
-            return out;
-          };
-          Hash2.prototype._saveState = function(out) {
-            for (var i = 0; i < this.state.length; i++) {
-              out[i] = this.state[i];
-            }
-          };
-          Hash2.prototype._restoreState = function(from, bytesHashed) {
-            for (var i = 0; i < this.state.length; i++) {
-              this.state[i] = from[i];
-            }
-            this.bytesHashed = bytesHashed;
-            this.finished = false;
-            this.bufferLength = 0;
-          };
-          return Hash2;
-        })()
-      );
-      exports3.Hash = Hash;
-      var HMAC = (
-        /** @class */
-        (function() {
-          function HMAC2(key) {
-            this.inner = new Hash();
-            this.outer = new Hash();
-            this.blockSize = this.inner.blockSize;
-            this.digestLength = this.inner.digestLength;
-            var pad = new Uint8Array(this.blockSize);
-            if (key.length > this.blockSize) {
-              new Hash().update(key).finish(pad).clean();
-            } else {
-              for (var i = 0; i < key.length; i++) {
-                pad[i] = key[i];
-              }
-            }
-            for (var i = 0; i < pad.length; i++) {
-              pad[i] ^= 54;
-            }
-            this.inner.update(pad);
-            for (var i = 0; i < pad.length; i++) {
-              pad[i] ^= 54 ^ 92;
-            }
-            this.outer.update(pad);
-            this.istate = new Uint32Array(8);
-            this.ostate = new Uint32Array(8);
-            this.inner._saveState(this.istate);
-            this.outer._saveState(this.ostate);
-            for (var i = 0; i < pad.length; i++) {
-              pad[i] = 0;
-            }
-          }
-          HMAC2.prototype.reset = function() {
-            this.inner._restoreState(this.istate, this.inner.blockSize);
-            this.outer._restoreState(this.ostate, this.outer.blockSize);
-            return this;
-          };
-          HMAC2.prototype.clean = function() {
-            for (var i = 0; i < this.istate.length; i++) {
-              this.ostate[i] = this.istate[i] = 0;
-            }
-            this.inner.clean();
-            this.outer.clean();
-          };
-          HMAC2.prototype.update = function(data) {
-            this.inner.update(data);
-            return this;
-          };
-          HMAC2.prototype.finish = function(out) {
-            if (this.outer.finished) {
-              this.outer.finish(out);
-            } else {
-              this.inner.finish(out);
-              this.outer.update(out, this.digestLength).finish(out);
-            }
-            return this;
-          };
-          HMAC2.prototype.digest = function() {
-            var out = new Uint8Array(this.digestLength);
-            this.finish(out);
-            return out;
-          };
-          return HMAC2;
-        })()
-      );
-      exports3.HMAC = HMAC;
-      function hash3(data) {
-        var h = new Hash().update(data);
-        var digest = h.digest();
-        h.clean();
-        return digest;
-      }
-      exports3.hash = hash3;
-      exports3["default"] = hash3;
-      function hmac(key, data) {
-        var h = new HMAC(key).update(data);
-        var digest = h.digest();
-        h.clean();
-        return digest;
-      }
-      exports3.hmac = hmac;
-      function fillBuffer(buffer, hmac2, info, counter) {
-        var num = counter[0];
-        if (num === 0) {
-          throw new Error("hkdf: cannot expand more");
-        }
-        hmac2.reset();
-        if (num > 1) {
-          hmac2.update(buffer);
-        }
-        if (info) {
-          hmac2.update(info);
-        }
-        hmac2.update(counter);
-        hmac2.finish(buffer);
-        counter[0]++;
-      }
-      var hkdfSalt = new Uint8Array(exports3.digestLength);
-      function hkdf(key, salt, info, length) {
-        if (salt === void 0) {
-          salt = hkdfSalt;
-        }
-        if (length === void 0) {
-          length = 32;
-        }
-        var counter = new Uint8Array([1]);
-        var okm = hmac(salt, key);
-        var hmac_ = new HMAC(okm);
-        var buffer = new Uint8Array(hmac_.digestLength);
-        var bufpos = buffer.length;
-        var out = new Uint8Array(length);
-        for (var i = 0; i < length; i++) {
-          if (bufpos === buffer.length) {
-            fillBuffer(buffer, hmac_, info, counter);
-            bufpos = 0;
-          }
-          out[i] = buffer[bufpos++];
-        }
-        hmac_.clean();
-        buffer.fill(0);
-        counter.fill(0);
-        return out;
-      }
-      exports3.hkdf = hkdf;
-      function pbkdf2(password, salt, iterations, dkLen) {
-        var prf = new HMAC(password);
-        var len = prf.digestLength;
-        var ctr = new Uint8Array(4);
-        var t = new Uint8Array(len);
-        var u = new Uint8Array(len);
-        var dk = new Uint8Array(dkLen);
-        for (var i = 0; i * len < dkLen; i++) {
-          var c = i + 1;
-          ctr[0] = c >>> 24 & 255;
-          ctr[1] = c >>> 16 & 255;
-          ctr[2] = c >>> 8 & 255;
-          ctr[3] = c >>> 0 & 255;
-          prf.reset();
-          prf.update(salt);
-          prf.update(ctr);
-          prf.finish(u);
-          for (var j = 0; j < len; j++) {
-            t[j] = u[j];
-          }
-          for (var j = 2; j <= iterations; j++) {
-            prf.reset();
-            prf.update(u).finish(u);
-            for (var k = 0; k < len; k++) {
-              t[k] ^= u[k];
-            }
-          }
-          for (var j = 0; j < len && i * len + j < dkLen; j++) {
-            dk[i * len + j] = t[j];
-          }
-        }
-        for (var i = 0; i < len; i++) {
-          t[i] = u[i] = 0;
-        }
-        for (var i = 0; i < 4; i++) {
-          ctr[i] = 0;
-        }
-        prf.clean();
-        return dk;
-      }
-      exports3.pbkdf2 = pbkdf2;
-    });
-  }
-});
-
-// node_modules/standardwebhooks/dist/index.js
-var require_dist3 = __commonJS({
-  "node_modules/standardwebhooks/dist/index.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Webhook = exports2.WebhookVerificationError = void 0;
-    var timing_safe_equal_1 = require_timing_safe_equal();
-    var base643 = require_base64();
-    var sha256 = require_sha256();
-    var WEBHOOK_TOLERANCE_IN_SECONDS = 5 * 60;
-    var ExtendableError = class _ExtendableError extends Error {
-      constructor(message) {
-        super(message);
-        Object.setPrototypeOf(this, _ExtendableError.prototype);
-        this.name = "ExtendableError";
-        this.stack = new Error(message).stack;
-      }
-    };
-    var WebhookVerificationError = class _WebhookVerificationError extends ExtendableError {
-      constructor(message) {
-        super(message);
-        Object.setPrototypeOf(this, _WebhookVerificationError.prototype);
-        this.name = "WebhookVerificationError";
-      }
-    };
-    exports2.WebhookVerificationError = WebhookVerificationError;
-    var Webhook3 = class _Webhook {
-      constructor(secret, options) {
-        if (!secret) {
-          throw new Error("Secret can't be empty.");
-        }
-        if ((options === null || options === void 0 ? void 0 : options.format) === "raw") {
-          if (secret instanceof Uint8Array) {
-            this.key = secret;
-          } else {
-            this.key = Uint8Array.from(secret, (c) => c.charCodeAt(0));
-          }
-        } else {
-          if (typeof secret !== "string") {
-            throw new Error("Expected secret to be of type string");
-          }
-          if (secret.startsWith(_Webhook.prefix)) {
-            secret = secret.substring(_Webhook.prefix.length);
-          }
-          this.key = base643.decode(secret);
-        }
-      }
-      verify(payload, headers_) {
-        const headers = {};
-        for (const key of Object.keys(headers_)) {
-          headers[key.toLowerCase()] = headers_[key];
-        }
-        const msgId = headers["webhook-id"];
-        const msgSignature = headers["webhook-signature"];
-        const msgTimestamp = headers["webhook-timestamp"];
-        if (!msgSignature || !msgId || !msgTimestamp) {
-          throw new WebhookVerificationError("Missing required headers");
-        }
-        const timestamp = this.verifyTimestamp(msgTimestamp);
-        const computedSignature = this.sign(msgId, timestamp, payload);
-        const expectedSignature = computedSignature.split(",")[1];
-        const passedSignatures = msgSignature.split(" ");
-        const encoder = new globalThis.TextEncoder();
-        for (const versionedSignature of passedSignatures) {
-          const [version3, signature] = versionedSignature.split(",");
-          if (version3 !== "v1") {
-            continue;
-          }
-          if ((0, timing_safe_equal_1.timingSafeEqual)(encoder.encode(signature), encoder.encode(expectedSignature))) {
-            return JSON.parse(payload.toString());
-          }
-        }
-        throw new WebhookVerificationError("No matching signature found");
-      }
-      sign(msgId, timestamp, payload) {
-        if (typeof payload === "string") {
-        } else if (payload.constructor.name === "Buffer") {
-          payload = payload.toString();
-        } else {
-          throw new Error("Expected payload to be of type string or Buffer.");
-        }
-        const encoder = new TextEncoder();
-        const timestampNumber = Math.floor(timestamp.getTime() / 1e3);
-        const toSign = encoder.encode(`${msgId}.${timestampNumber}.${payload}`);
-        const expectedSignature = base643.encode(sha256.hmac(this.key, toSign));
-        return `v1,${expectedSignature}`;
-      }
-      verifyTimestamp(timestampHeader) {
-        const now = Math.floor(Date.now() / 1e3);
-        const timestamp = parseInt(timestampHeader, 10);
-        if (isNaN(timestamp)) {
-          throw new WebhookVerificationError("Invalid Signature Headers");
-        }
-        if (now - timestamp > WEBHOOK_TOLERANCE_IN_SECONDS) {
-          throw new WebhookVerificationError("Message timestamp too old");
-        }
-        if (timestamp > now + WEBHOOK_TOLERANCE_IN_SECONDS) {
-          throw new WebhookVerificationError("Message timestamp too new");
-        }
-        return new Date(timestamp * 1e3);
-      }
-    };
-    exports2.Webhook = Webhook3;
-    Webhook3.prefix = "whsec_";
-  }
-});
-
 // node_modules/delayed-stream/lib/delayed_stream.js
 var require_delayed_stream = __commonJS({
   "node_modules/delayed-stream/lib/delayed_stream.js"(exports2, module2) {
@@ -42472,7 +42472,7 @@ var require_form_data = __commonJS({
     var parseUrl2 = require("url").parse;
     var fs = require("fs");
     var Stream = require("stream").Stream;
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     var mime = require_mime_types();
     var asynckit = require_asynckit();
     var setToStringTag = require_es_set_tostringtag();
@@ -42681,7 +42681,7 @@ var require_form_data = __commonJS({
       return Buffer.concat([dataBuffer, Buffer.from(this._lastBoundary())]);
     };
     FormData3.prototype._generateBoundary = function() {
-      this._boundary = "--------------------------" + crypto4.randomBytes(12).toString("hex");
+      this._boundary = "--------------------------" + crypto5.randomBytes(12).toString("hex");
     };
     FormData3.prototype.getLengthSync = function() {
       var knownLength = this._overheadLength + this._valueLength;
@@ -48008,9 +48008,9 @@ var require_disk = __commonJS({
     var fs = require("fs");
     var os = require("os");
     var path3 = require("path");
-    var crypto4 = require("crypto");
+    var crypto5 = require("crypto");
     function getFilename(req, file2, cb) {
-      crypto4.randomBytes(16, function(err, raw) {
+      crypto5.randomBytes(16, function(err, raw) {
         cb(err, err ? void 0 : raw.toString("hex"));
       });
     }
@@ -93628,8 +93628,8 @@ var require_webhook = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Webhook = exports2.WebhookVerificationError = void 0;
-    var standardwebhooks_1 = require_dist3();
-    var standardwebhooks_2 = require_dist3();
+    var standardwebhooks_1 = require_dist();
+    var standardwebhooks_2 = require_dist();
     Object.defineProperty(exports2, "WebhookVerificationError", { enumerable: true, get: function() {
       return standardwebhooks_2.WebhookVerificationError;
     } });
@@ -94435,11 +94435,11 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/app.ts
-var import_express32 = __toESM(require_express2());
+var import_express33 = __toESM(require_express2());
 var import_cors = __toESM(require_lib3());
 
 // src/routes/index.ts
-var import_express29 = __toESM(require_express2());
+var import_express30 = __toESM(require_express2());
 
 // src/routes/auth.routes.ts
 var import_express = __toESM(require_express2());
@@ -110920,3676 +110920,8 @@ var AuthController = class {
 };
 var authController = new AuthController(authService);
 
-// src/middleware/auth.middleware.ts
-var authenticate = (req, _res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new AppError("Authentication required. Bearer token missing.", 401);
-    }
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      throw new AppError("Authentication token is missing.", 401);
-    }
-    const decoded = verifyToken(token);
-    req.user = decoded;
-    next();
-  } catch (error51) {
-    if (error51 instanceof AppError) {
-      next(error51);
-    } else {
-      next(new AppError("Invalid or expired authentication token.", 401));
-    }
-  }
-};
-
-// src/routes/auth.routes.ts
-var router = (0, import_express.Router)();
-router.post("/register", authController.register);
-router.post("/login", authController.login);
-router.get("/me", authenticate, authController.me);
-var auth_routes_default = router;
-
-// src/routes/user.routes.ts
-var import_express2 = __toESM(require_express2());
-
-// src/services/user.service.ts
-var UserService = class {
-  constructor(userRepo) {
-    this.userRepo = userRepo;
-  }
-  sanitizeUser(user) {
-    const { passwordHash, ...sanitized } = user;
-    return sanitized;
-  }
-  async getAllUsers() {
-    const users = await this.userRepo.findAll();
-    return users.map((u) => this.sanitizeUser(u));
-  }
-  async getUserById(id) {
-    const user = await this.userRepo.findById(id);
-    if (!user) {
-      throw new AppError(`User with ID '${id}' not found.`, 404);
-    }
-    return this.sanitizeUser(user);
-  }
-  async updateUser(id, input) {
-    const existing = await this.userRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`User with ID '${id}' not found.`, 404);
-    }
-    const updated = await this.userRepo.update(id, input);
-    return this.sanitizeUser(updated);
-  }
-  async updateUserStatus(id, status) {
-    const existing = await this.userRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`User with ID '${id}' not found.`, 404);
-    }
-    const updated = await this.userRepo.updateStatus(id, status);
-    return this.sanitizeUser(updated);
-  }
-  async updateUserRole(id, role) {
-    const existing = await this.userRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`User with ID '${id}' not found.`, 404);
-    }
-    const updated = await this.userRepo.updateRole(id, role);
-    return this.sanitizeUser(updated);
-  }
-  async updateUserPassword(id, passwordPlain) {
-    const existing = await this.userRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`User with ID '${id}' not found.`, 404);
-    }
-    const hashedPassword = await hashPassword(passwordPlain);
-    const updated = await this.userRepo.update(id, { passwordHash: hashedPassword });
-    return this.sanitizeUser(updated);
-  }
-};
-var userService = new UserService(userRepository);
-
-// src/validators/user.validator.ts
-var import_client3 = require("@prisma/client");
-var updateUserSchema = external_exports.object({
-  name: external_exports.string().min(2, "Name must be at least 2 characters").optional(),
-  phone: external_exports.string().nullable().optional(),
-  avatarUrl: external_exports.string().url("Must be a valid URL").nullable().optional()
-});
-var updateStatusSchema = external_exports.object({
-  status: external_exports.nativeEnum(import_client3.UserStatus, {
-    message: "Invalid user status. Valid values: ACTIVE, INACTIVE"
-  })
-});
-var updateRoleSchema = external_exports.object({
-  role: external_exports.nativeEnum(import_client3.UserRole, {
-    message: "Invalid user role. Valid values: ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT"
-  })
-});
-var updatePasswordSchema = external_exports.object({
-  password: external_exports.string().min(6, "Password must be at least 6 characters long")
-});
-
-// src/controllers/user.controller.ts
-var UserController = class {
-  constructor(userServ) {
-    this.userServ = userServ;
-    this.getAllUsers = async (_req, res, next) => {
-      try {
-        const users = await this.userServ.getAllUsers();
-        res.status(200).json({
-          success: true,
-          message: "Users retrieved successfully.",
-          data: { users },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getUserById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const user = await this.userServ.getUserById(id);
-        res.status(200).json({
-          success: true,
-          message: "User details retrieved successfully.",
-          data: { user },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateUser = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateUserSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const updated = await this.userServ.updateUser(id, validationResult.data);
-        res.status(200).json({
-          success: true,
-          message: "User profile updated successfully.",
-          data: { user: updated },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateStatus = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateStatusSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const updated = await this.userServ.updateUserStatus(id, validationResult.data.status);
-        res.status(200).json({
-          success: true,
-          message: "User status updated successfully.",
-          data: { user: updated },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateRole = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateRoleSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const updated = await this.userServ.updateUserRole(id, validationResult.data.role);
-        res.status(200).json({
-          success: true,
-          message: "User role updated successfully.",
-          data: { user: updated },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updatePassword = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updatePasswordSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const updated = await this.userServ.updateUserPassword(id, validationResult.data.password);
-        res.status(200).json({
-          success: true,
-          message: "User password updated successfully.",
-          data: { user: updated },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var userController = new UserController(userService);
-
-// src/middleware/rbac.middleware.ts
-var authorize = (...allowedRoles) => {
-  return (req, _res, next) => {
-    try {
-      if (!req.user) {
-        throw new AppError("Authentication required.", 401);
-      }
-      if (!allowedRoles.includes(req.user.role)) {
-        throw new AppError(
-          `Forbidden: Role '${req.user.role}' does not have permission to access this resource. Required role(s): [${allowedRoles.join(", ")}]`,
-          403
-        );
-      }
-      next();
-    } catch (error51) {
-      next(error51);
-    }
-  };
-};
-
-// src/routes/user.routes.ts
-var import_client4 = require("@prisma/client");
-var router2 = (0, import_express2.Router)();
-router2.use(authenticate);
-router2.get("/", userController.getAllUsers);
-router2.get("/:id", authorize(import_client4.UserRole.ADMIN, import_client4.UserRole.MANAGER), userController.getUserById);
-router2.patch("/:id", authorize(import_client4.UserRole.ADMIN, import_client4.UserRole.MANAGER), userController.updateUser);
-router2.patch("/:id/status", authorize(import_client4.UserRole.ADMIN), userController.updateStatus);
-router2.patch("/:id/role", authorize(import_client4.UserRole.ADMIN), userController.updateRole);
-router2.patch("/:id/password", authorize(import_client4.UserRole.ADMIN), userController.updatePassword);
-var user_routes_default = router2;
-
-// src/routes/contact.routes.ts
-var import_express3 = __toESM(require_express2());
-
-// src/services/contact.service.ts
-var import_client6 = require("@prisma/client");
-
-// src/repositories/contact.repository.ts
-var ContactRepository = class {
-  async findById(id) {
-    return prisma.contact.findUnique({
-      where: { id },
-      include: {
-        company: {
-          select: { id: true, name: true, logoUrl: true }
-        },
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        },
-        deals: {
-          where: { stage: { isWon: true } },
-          select: { id: true }
-        }
-      }
-    });
-  }
-  async findByEmail(email3) {
-    return prisma.contact.findUnique({
-      where: { email: email3 }
-    });
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.OR = [
-        { firstName: { contains: query.search, mode: "insensitive" } },
-        { lastName: { contains: query.search, mode: "insensitive" } },
-        { email: { contains: query.search, mode: "insensitive" } }
-      ];
-    }
-    if (query.lifecycleStage) {
-      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
-        where.OR = [
-          { lifecycleStage: query.lifecycleStage },
-          { status: query.lifecycleStage },
-          { tags: { has: query.lifecycleStage } }
-        ];
-      } else {
-        where.lifecycleStage = query.lifecycleStage;
-      }
-    }
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        const unassignedFilter = {
-          AND: [
-            { assignedUserId: null },
-            { conversations: { none: { assignedUserId: { not: null } } } }
-          ]
-        };
-        where.AND = [
-          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
-          unassignedFilter
-        ];
-      } else {
-        const userFilter = {
-          OR: [
-            { assignedUserId: query.assignedUserId },
-            { conversations: { some: { assignedUserId: query.assignedUserId } } }
-          ]
-        };
-        where.AND = [
-          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
-          userFilter
-        ];
-      }
-    }
-    if (query.companyId) {
-      where.companyId = query.companyId;
-    }
-    const [contacts, total] = await Promise.all([
-      prisma.contact.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          company: {
-            select: { id: true, name: true, logoUrl: true }
-          },
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          },
-          conversations: {
-            select: { id: true, assignedUserId: true }
-          },
-          deals: {
-            where: { stage: { isWon: true } },
-            select: { id: true }
-          }
-        }
-      }),
-      prisma.contact.count({ where })
-    ]);
-    return {
-      contacts,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async findAllForExport(query) {
-    const where = {};
-    if (query.search) {
-      where.OR = [
-        { firstName: { contains: query.search, mode: "insensitive" } },
-        { lastName: { contains: query.search, mode: "insensitive" } },
-        { email: { contains: query.search, mode: "insensitive" } }
-      ];
-    }
-    if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
-      } else {
-        where.assignedUserId = query.assignedUserId;
-      }
-    }
-    return prisma.contact.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: {
-        company: { select: { name: true } },
-        assignedUser: { select: { name: true, email: true } }
-      }
-    });
-  }
-  async create(data) {
-    return prisma.contact.create({
-      data,
-      include: {
-        company: {
-          select: { id: true, name: true, logoUrl: true }
-        },
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        }
-      }
-    });
-  }
-  async update(id, data) {
-    return prisma.contact.update({
-      where: { id },
-      data,
-      include: {
-        company: {
-          select: { id: true, name: true, logoUrl: true }
-        },
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        }
-      }
-    });
-  }
-  async delete(id) {
-    return prisma.contact.delete({
-      where: { id }
-    });
-  }
-};
-var contactRepository = new ContactRepository();
-
-// src/repositories/notification.repository.ts
-var NotificationRepository = class {
-  async create(data) {
-    return prisma.notification.create({ data });
-  }
-  async findManyByUserId(userId, options) {
-    const where = { userId };
-    if (options.unreadOnly) {
-      where.read = false;
-    }
-    const [data, total] = await Promise.all([
-      prisma.notification.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        skip: options.skip,
-        take: options.take
-      }),
-      prisma.notification.count({ where })
-    ]);
-    return { data, total };
-  }
-  async countUnreadByUserId(userId) {
-    return prisma.notification.count({
-      where: {
-        userId,
-        read: false
-      }
-    });
-  }
-  async markAsRead(id, userId) {
-    const exists = await prisma.notification.findFirst({
-      where: { id, userId }
-    });
-    if (!exists) return null;
-    return prisma.notification.update({
-      where: { id },
-      data: { read: true }
-    });
-  }
-  async markAllAsRead(userId) {
-    const result = await prisma.notification.updateMany({
-      where: { userId, read: false },
-      data: { read: true }
-    });
-    return result.count;
-  }
-  async delete(id, userId) {
-    const exists = await prisma.notification.findFirst({
-      where: { id, userId }
-    });
-    if (!exists) return false;
-    await prisma.notification.delete({
-      where: { id }
-    });
-    return true;
-  }
-};
-var notificationRepository = new NotificationRepository();
-
-// node_modules/socket.io/wrapper.mjs
-var import_dist = __toESM(require_dist2(), 1);
-var { Server, Namespace, Socket } = import_dist.default;
-
-// src/services/socket.service.ts
-var import_jsonwebtoken2 = __toESM(require_jsonwebtoken());
-var import_client5 = require("@prisma/client");
-var prisma2 = new import_client5.PrismaClient();
-var SocketService = class {
-  constructor() {
-    this.io = null;
-    // Map of userId -> Set of socketIds to handle multiple connections per user (e.g. mobile + desktop)
-    this.userSockets = /* @__PURE__ */ new Map();
-  }
-  /**
-   * Initialize Socket.IO with the HTTP server
-   */
-  initialize(server) {
-    this.io = new Server(server, {
-      cors: {
-        origin: config.corsOrigin,
-        methods: ["GET", "POST"]
-      }
-    });
-    this.io.use(async (socket, next) => {
-      try {
-        const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(" ")[1];
-        if (!token) {
-          return next(new Error("Authentication error: No token provided"));
-        }
-        const decoded = import_jsonwebtoken2.default.verify(token, config.jwtSecret);
-        const user = await prisma2.user.findUnique({ where: { id: decoded.userId } });
-        if (!user || user.status !== "ACTIVE") {
-          return next(new Error("Authentication error: Invalid or inactive user"));
-        }
-        socket.userId = user.id;
-        next();
-      } catch (error51) {
-        next(new Error("Authentication error: Invalid token"));
-      }
-    });
-    this.io.on("connection", (socket) => {
-      const userId = socket.userId;
-      if (userId) {
-        console.log(`\u{1F50C} Socket connected: User ${userId} [Socket ID: ${socket.id}]`);
-        if (!this.userSockets.has(userId)) {
-          this.userSockets.set(userId, /* @__PURE__ */ new Set());
-        }
-        this.userSockets.get(userId).add(socket.id);
-        socket.on("disconnect", () => {
-          console.log(`\u{1F50C} Socket disconnected: User ${userId} [Socket ID: ${socket.id}]`);
-          const userSet = this.userSockets.get(userId);
-          if (userSet) {
-            userSet.delete(socket.id);
-            if (userSet.size === 0) {
-              this.userSockets.delete(userId);
-            }
-          }
-        });
-      }
-    });
-  }
-  /**
-   * Emit an event to a specific user across all their active socket connections
-   */
-  emitToUser(userId, event, data) {
-    if (!this.io) {
-      console.warn("Socket.IO is not initialized.");
-      return;
-    }
-    const userSocketIds = this.userSockets.get(userId);
-    if (userSocketIds && userSocketIds.size > 0) {
-      userSocketIds.forEach((socketId) => {
-        this.io.to(socketId).emit(event, data);
-      });
-    }
-  }
-  /**
-   * Emit an event to everyone
-   */
-  emitToAll(event, data) {
-    if (this.io) {
-      this.io.emit(event, data);
-    }
-  }
-};
-var socketService = new SocketService();
-
-// src/services/notification.service.ts
-var NotificationService = class {
-  async createNotification(data) {
-    const notification = await notificationRepository.create(data);
-    socketService.emitToUser(data.userId, "notification:receive", notification);
-    return notification;
-  }
-  async getNotifications(userId, page, limit, unreadOnly) {
-    const skip = (page - 1) * limit;
-    return notificationRepository.findManyByUserId(userId, {
-      skip,
-      take: limit,
-      unreadOnly
-    });
-  }
-  async getUnreadCount(userId) {
-    return notificationRepository.countUnreadByUserId(userId);
-  }
-  async markAsRead(id, userId) {
-    return notificationRepository.markAsRead(id, userId);
-  }
-  async markAllAsRead(userId) {
-    return notificationRepository.markAllAsRead(userId);
-  }
-  async deleteNotification(id, userId) {
-    return notificationRepository.delete(id, userId);
-  }
-};
-var notificationService = new NotificationService();
-
-// src/services/contact.service.ts
-var ContactService = class {
-  constructor(contactRepo) {
-    this.contactRepo = contactRepo;
-  }
-  async createContact(input, currentUserId) {
-    if (input.email) {
-      const existing = await this.contactRepo.findByEmail(input.email.toLowerCase());
-      if (existing) {
-        throw new AppError("A contact with this email address already exists.", 400);
-      }
-    }
-    const contact = await prisma.$transaction(async (tx) => {
-      const newContact = await tx.contact.create({
-        data: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          email: input.email ? input.email.toLowerCase() : null,
-          phone: input.phone,
-          jobTitle: input.jobTitle,
-          companyId: input.companyId,
-          assignedUserId: input.assignedUserId || currentUserId,
-          leadSource: input.leadSource,
-          lifecycleStage: input.lifecycleStage,
-          status: input.status,
-          notes: input.notes,
-          tags: input.tags
-        },
-        include: {
-          company: {
-            select: { id: true, name: true, logoUrl: true }
-          },
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client6.ActivityType.CONTACT_CREATED,
-          title: "Contact Created",
-          content: `Created contact ${newContact.firstName} ${newContact.lastName} (${newContact.email || "No email"})`,
-          userId: currentUserId,
-          contactId: newContact.id,
-          metadata: {
-            lifecycleStage: newContact.lifecycleStage,
-            leadSource: newContact.leadSource
-          }
-        }
-      });
-      return newContact;
-    });
-    const assignedUserId = input.assignedUserId || currentUserId;
-    if (assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: assignedUserId,
-        title: "New Lead Assigned",
-        message: `You have been assigned a new lead: ${contact.firstName} ${contact.lastName}`,
-        type: "lead",
-        link: `/contacts/${contact.id}`
-      });
-    }
-    return contact;
-  }
-  async getContacts(query, currentUser) {
-    const effectiveQuery = { ...query };
-    if (currentUser?.role === "SALES_REP") {
-      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
-        effectiveQuery.assignedUserId = "unassigned";
-      } else {
-        effectiveQuery.assignedUserId = currentUser.userId;
-      }
-    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
-      effectiveQuery.assignedUserId = currentUser.userId;
-    }
-    return this.contactRepo.findAll(effectiveQuery);
-  }
-  async getContactById(id) {
-    const contact = await this.contactRepo.findById(id);
-    if (!contact) {
-      throw new AppError(`Contact with ID '${id}' not found.`, 404);
-    }
-    return contact;
-  }
-  async updateContact(id, input, currentUserId) {
-    const existing = await this.contactRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Contact with ID '${id}' not found.`, 404);
-    }
-    if (input.email && input.email.toLowerCase() !== existing.email) {
-      const emailConflict = await this.contactRepo.findByEmail(input.email.toLowerCase());
-      if (emailConflict) {
-        throw new AppError("A contact with this email address already exists.", 400);
-      }
-    }
-    if (input.lifecycleStage && input.lifecycleStage !== "CUSTOMER") {
-      const hasWonDeal = await prisma.deal.findFirst({
-        where: {
-          contactId: id,
-          stage: { isWon: true }
-        }
-      });
-      if (hasWonDeal) {
-        input.lifecycleStage = "CUSTOMER";
-      }
-    }
-    const updatedContact = await prisma.$transaction(async (tx) => {
-      const updated = await tx.contact.update({
-        where: { id },
-        data: {
-          ...input,
-          email: input.email !== void 0 ? input.email ? input.email.toLowerCase() : null : void 0
-        },
-        include: {
-          company: {
-            select: { id: true, name: true, logoUrl: true }
-          },
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client6.ActivityType.NOTE,
-          title: "Contact Updated",
-          content: `Updated profile details for contact ${updated.firstName} ${updated.lastName}`,
-          userId: currentUserId,
-          contactId: updated.id,
-          metadata: {
-            updatedFields: Object.keys(input)
-          }
-        }
-      });
-      return updated;
-    });
-    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: input.assignedUserId,
-        title: "Lead Reassigned",
-        message: `You have been assigned the lead: ${updatedContact.firstName} ${updatedContact.lastName}`,
-        type: "lead",
-        link: `/contacts/${updatedContact.id}`
-      });
-    }
-    return updatedContact;
-  }
-  async exportContacts(query, currentUser) {
-    const effectiveQuery = { ...query };
-    if (currentUser?.role === "SALES_REP") {
-      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
-        effectiveQuery.assignedUserId = "unassigned";
-      } else {
-        effectiveQuery.assignedUserId = currentUser.userId;
-      }
-    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
-      effectiveQuery.assignedUserId = currentUser.userId;
-    }
-    const contacts = await this.contactRepo.findAllForExport(effectiveQuery);
-    const headers = [
-      "ID",
-      "First Name",
-      "Last Name",
-      "Email",
-      "Phone",
-      "Job Title",
-      "Lead Source",
-      "Lifecycle Stage",
-      "Status",
-      "Company",
-      "Assigned User",
-      "Created At",
-      "Updated At"
-    ];
-    const escapeCsv = (val) => {
-      if (val === null || val === void 0) return "";
-      const str = String(val);
-      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
-    const rows = contacts.map((c) => [
-      c.id,
-      c.firstName,
-      c.lastName,
-      c.email,
-      c.phone,
-      c.jobTitle,
-      c.leadSource,
-      c.lifecycleStage,
-      c.status,
-      c.company?.name || "",
-      c.assignedUser ? `${c.assignedUser.name} (${c.assignedUser.email})` : "",
-      c.createdAt.toISOString(),
-      c.updatedAt.toISOString()
-    ]);
-    const csvLines = [
-      headers.map(escapeCsv).join(","),
-      ...rows.map((row) => row.map(escapeCsv).join(","))
-    ];
-    return csvLines.join("\n");
-  }
-  async deleteContact(id) {
-    const existing = await this.contactRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Contact with ID '${id}' not found.`, 404);
-    }
-    await this.contactRepo.delete(id);
-    return { id };
-  }
-};
-var contactService = new ContactService(contactRepository);
-
-// src/validators/contact.validator.ts
-var import_client7 = require("@prisma/client");
-var createContactSchema = external_exports.object({
-  firstName: external_exports.string().min(1, "First name is required"),
-  lastName: external_exports.string().min(1, "Last name is required"),
-  email: external_exports.string().email("Invalid email address").nullable().optional(),
-  phone: external_exports.string().nullable().optional(),
-  jobTitle: external_exports.string().nullable().optional(),
-  companyId: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional(),
-  leadSource: external_exports.nativeEnum(import_client7.LeadSource).nullable().optional(),
-  lifecycleStage: external_exports.nativeEnum(import_client7.LifecycleStage).optional().default(import_client7.LifecycleStage.LEAD),
-  status: external_exports.string().nullable().optional(),
-  notes: external_exports.string().nullable().optional(),
-  tags: external_exports.array(external_exports.string()).optional().default([])
-});
-var updateContactSchema = createContactSchema.partial();
-var queryContactSchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  search: external_exports.string().optional(),
-  lifecycleStage: external_exports.nativeEnum(import_client7.LifecycleStage).optional(),
-  assignedUserId: external_exports.string().optional(),
-  companyId: external_exports.string().optional()
-});
-
-// src/controllers/contact.controller.ts
-var ContactController = class {
-  constructor(contactServ) {
-    this.contactServ = contactServ;
-    this.createContact = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const validationResult = createContactSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const contact = await this.contactServ.createContact(validationResult.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Contact created successfully.",
-          data: { contact },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getContacts = async (req, res, next) => {
-      try {
-        const validationResult = queryContactSchema.safeParse(req.query);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const result = await this.contactServ.getContacts(validationResult.data, req.user);
-        res.status(200).json({
-          success: true,
-          message: "Contacts retrieved successfully.",
-          data: result,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getContactById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const contact = await this.contactServ.getContactById(id);
-        res.status(200).json({
-          success: true,
-          message: "Contact details retrieved successfully.",
-          data: { contact },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateContact = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateContactSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const contact = await this.contactServ.updateContact(id, validationResult.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Contact updated successfully.",
-          data: { contact },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteContact = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.contactServ.deleteContact(id);
-        res.status(200).json({
-          success: true,
-          message: "Contact deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.exportContacts = async (req, res, next) => {
-      try {
-        const validationResult = queryContactSchema.safeParse(req.query);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const csvData = await this.contactServ.exportContacts(validationResult.data, req.user);
-        const dateStr = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-        const filename = `contacts-${dateStr}.csv`;
-        res.setHeader("Content-Type", "text/csv; charset=utf-8");
-        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-        res.status(200).send(csvData);
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var contactController = new ContactController(contactService);
-
-// src/routes/contact.routes.ts
-var import_client8 = require("@prisma/client");
-var router3 = (0, import_express3.Router)();
-router3.use(authenticate);
-router3.get(
-  "/",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP, import_client8.UserRole.MARKETING, import_client8.UserRole.SUPPORT),
-  contactController.getContacts
-);
-router3.get(
-  "/export",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP, import_client8.UserRole.MARKETING, import_client8.UserRole.SUPPORT),
-  contactController.exportContacts
-);
-router3.get(
-  "/:id",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP, import_client8.UserRole.MARKETING, import_client8.UserRole.SUPPORT),
-  contactController.getContactById
-);
-router3.post(
-  "/",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP),
-  contactController.createContact
-);
-router3.patch(
-  "/:id",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP),
-  contactController.updateContact
-);
-router3.delete(
-  "/:id",
-  authorize(import_client8.UserRole.ADMIN, import_client8.UserRole.MANAGER, import_client8.UserRole.SALES_REP),
-  contactController.deleteContact
-);
-var contact_routes_default = router3;
-
-// src/routes/company.routes.ts
-var import_express4 = __toESM(require_express2());
-
-// src/services/company.service.ts
-var import_client9 = require("@prisma/client");
-
-// src/repositories/company.repository.ts
-var CompanyRepository = class {
-  async findById(id) {
-    return prisma.company.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: { contacts: true, deals: true }
-        }
-      }
-    });
-  }
-  async findByName(name) {
-    return prisma.company.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } }
-    });
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.name = { contains: query.search, mode: "insensitive" };
-    }
-    if (query.industry) {
-      where.industry = { equals: query.industry, mode: "insensitive" };
-    }
-    const [companies, total] = await Promise.all([
-      prisma.company.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          _count: {
-            select: { contacts: true, deals: true }
-          }
-        }
-      }),
-      prisma.company.count({ where })
-    ]);
-    return {
-      companies,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async findCompanyContacts(companyId) {
-    return prisma.contact.findMany({
-      where: { companyId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        }
-      }
-    });
-  }
-  async create(data) {
-    return prisma.company.create({
-      data
-    });
-  }
-  async update(id, data) {
-    return prisma.company.update({
-      where: { id },
-      data
-    });
-  }
-  async delete(id) {
-    return prisma.company.delete({
-      where: { id }
-    });
-  }
-};
-var companyRepository = new CompanyRepository();
-
-// src/services/company.service.ts
-var CompanyService = class {
-  constructor(companyRepo) {
-    this.companyRepo = companyRepo;
-  }
-  async createCompany(input, currentUserId) {
-    const existing = await this.companyRepo.findByName(input.name);
-    if (existing) {
-      throw new AppError(`A company with the name '${input.name}' already exists.`, 400);
-    }
-    const company = await prisma.$transaction(async (tx) => {
-      const newCompany = await tx.company.create({
-        data: {
-          name: input.name,
-          website: input.website,
-          industry: input.industry,
-          size: input.size,
-          phone: input.phone,
-          email: input.email ? input.email.toLowerCase() : null,
-          address: input.address,
-          logoUrl: input.logoUrl,
-          annualRevenue: input.annualRevenue,
-          description: input.description
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client9.ActivityType.NOTE,
-          title: "Company Created",
-          content: `Created company ${newCompany.name}${newCompany.industry ? ` (${newCompany.industry})` : ""}`,
-          userId: currentUserId,
-          metadata: {
-            companyId: newCompany.id,
-            companyName: newCompany.name,
-            industry: newCompany.industry
-          }
-        }
-      });
-      return newCompany;
-    });
-    return company;
-  }
-  async getCompanies(query) {
-    return this.companyRepo.findAll(query);
-  }
-  async getCompanyById(id) {
-    const company = await this.companyRepo.findById(id);
-    if (!company) {
-      throw new AppError(`Company with ID '${id}' not found.`, 404);
-    }
-    return company;
-  }
-  async getCompanyContacts(companyId) {
-    const company = await this.companyRepo.findById(companyId);
-    if (!company) {
-      throw new AppError(`Company with ID '${companyId}' not found.`, 404);
-    }
-    return this.companyRepo.findCompanyContacts(companyId);
-  }
-  async updateCompany(id, input, currentUserId) {
-    const existing = await this.companyRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Company with ID '${id}' not found.`, 404);
-    }
-    if (input.name && input.name.toLowerCase() !== existing.name.toLowerCase()) {
-      const nameConflict = await this.companyRepo.findByName(input.name);
-      if (nameConflict) {
-        throw new AppError(`A company with the name '${input.name}' already exists.`, 400);
-      }
-    }
-    const updatedCompany = await prisma.$transaction(async (tx) => {
-      const updated = await tx.company.update({
-        where: { id },
-        data: {
-          ...input,
-          email: input.email !== void 0 ? input.email ? input.email.toLowerCase() : null : void 0
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client9.ActivityType.NOTE,
-          title: "Company Updated",
-          content: `Updated profile details for company ${updated.name}`,
-          userId: currentUserId,
-          metadata: {
-            companyId: updated.id,
-            companyName: updated.name,
-            updatedFields: Object.keys(input)
-          }
-        }
-      });
-      return updated;
-    });
-    return updatedCompany;
-  }
-  async deleteCompany(id) {
-    const existing = await this.companyRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Company with ID '${id}' not found.`, 404);
-    }
-    await this.companyRepo.delete(id);
-    return { id };
-  }
-};
-var companyService = new CompanyService(companyRepository);
-
-// src/validators/company.validator.ts
-var createCompanySchema = external_exports.object({
-  name: external_exports.string().min(1, "Company name is required"),
-  website: external_exports.string().optional().nullable().transform((val) => {
-    if (!val || val.trim() === "") return null;
-    const trimmed = val.trim();
-    if (/^https?:\/\//i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
-  }),
-  industry: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
-  size: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
-  phone: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
-  email: external_exports.string().optional().nullable().transform((val) => !val || val.trim() === "" ? null : val.trim()).refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
-    message: "Invalid email format"
-  }),
-  address: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
-  logoUrl: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
-  annualRevenue: external_exports.union([external_exports.number(), external_exports.string().transform((v) => v.trim() === "" ? null : Number(v))]).optional().nullable(),
-  description: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim())
-});
-var updateCompanySchema = createCompanySchema.partial();
-var queryCompanySchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  search: external_exports.string().optional(),
-  industry: external_exports.string().optional()
-});
-
-// src/controllers/company.controller.ts
-var CompanyController = class {
-  constructor(companyServ) {
-    this.companyServ = companyServ;
-    this.createCompany = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const validationResult = createCompanySchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const company = await this.companyServ.createCompany(validationResult.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Company created successfully.",
-          data: { company },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getCompanies = async (req, res, next) => {
-      try {
-        const validationResult = queryCompanySchema.safeParse(req.query);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const result = await this.companyServ.getCompanies(validationResult.data);
-        res.status(200).json({
-          success: true,
-          message: "Companies retrieved successfully.",
-          data: result,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getCompanyById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const company = await this.companyServ.getCompanyById(id);
-        res.status(200).json({
-          success: true,
-          message: "Company details retrieved successfully.",
-          data: { company },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getCompanyContacts = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const contacts = await this.companyServ.getCompanyContacts(id);
-        res.status(200).json({
-          success: true,
-          message: "Company contacts retrieved successfully.",
-          data: { contacts },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateCompany = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateCompanySchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const company = await this.companyServ.updateCompany(id, validationResult.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Company updated successfully.",
-          data: { company },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteCompany = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.companyServ.deleteCompany(id);
-        res.status(200).json({
-          success: true,
-          message: "Company deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var companyController = new CompanyController(companyService);
-
-// src/routes/company.routes.ts
-var import_client10 = require("@prisma/client");
-var router4 = (0, import_express4.Router)();
-router4.use(authenticate);
-router4.get(
-  "/",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP, import_client10.UserRole.MARKETING, import_client10.UserRole.SUPPORT),
-  companyController.getCompanies
-);
-router4.get(
-  "/:id",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP, import_client10.UserRole.MARKETING, import_client10.UserRole.SUPPORT),
-  companyController.getCompanyById
-);
-router4.get(
-  "/:id/contacts",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP, import_client10.UserRole.MARKETING, import_client10.UserRole.SUPPORT),
-  companyController.getCompanyContacts
-);
-router4.post(
-  "/",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP),
-  companyController.createCompany
-);
-router4.patch(
-  "/:id",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP),
-  companyController.updateCompany
-);
-router4.delete(
-  "/:id",
-  authorize(import_client10.UserRole.ADMIN, import_client10.UserRole.MANAGER, import_client10.UserRole.SALES_REP),
-  companyController.deleteCompany
-);
-var company_routes_default = router4;
-
-// src/routes/lead.routes.ts
-var import_express5 = __toESM(require_express2());
-
-// src/services/lead.service.ts
-var import_client11 = require("@prisma/client");
-
-// src/repositories/lead.repository.ts
-var LeadRepository = class {
-  async findById(id) {
-    return prisma.lead.findUnique({
-      where: { id },
-      include: {
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        },
-        convertedContact: {
-          select: { id: true, firstName: true, lastName: true, email: true }
-        }
-      }
-    });
-  }
-  async findByEmail(email3) {
-    return prisma.lead.findUnique({
-      where: { email: email3 }
-    });
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.OR = [
-        { firstName: { contains: query.search, mode: "insensitive" } },
-        { lastName: { contains: query.search, mode: "insensitive" } },
-        { email: { contains: query.search, mode: "insensitive" } },
-        { company: { contains: query.search, mode: "insensitive" } }
-      ];
-    }
-    if (query.status) {
-      where.status = query.status;
-    }
-    if (query.source) {
-      where.source = query.source;
-    }
-    if (query.assignedUserId) {
-      where.assignedUserId = query.assignedUserId;
-    }
-    const [leads, total] = await Promise.all([
-      prisma.lead.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          },
-          convertedContact: {
-            select: { id: true, firstName: true, lastName: true, email: true }
-          }
-        }
-      }),
-      prisma.lead.count({ where })
-    ]);
-    return {
-      leads,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.lead.create({
-      data,
-      include: {
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        }
-      }
-    });
-  }
-  async update(id, data) {
-    return prisma.lead.update({
-      where: { id },
-      data,
-      include: {
-        assignedUser: {
-          select: { id: true, name: true, email: true, avatarUrl: true }
-        }
-      }
-    });
-  }
-  async delete(id) {
-    return prisma.lead.delete({
-      where: { id }
-    });
-  }
-};
-var leadRepository = new LeadRepository();
-
-// src/services/lead.service.ts
-var LeadService = class {
-  constructor(leadRepo) {
-    this.leadRepo = leadRepo;
-  }
-  async createLead(input, currentUserId) {
-    const existing = await this.leadRepo.findByEmail(input.email.toLowerCase());
-    if (existing) {
-      throw new AppError(`A lead with email address '${input.email}' already exists.`, 400);
-    }
-    const assignedUserId = input.assignedUserId || currentUserId;
-    const lead = await prisma.$transaction(async (tx) => {
-      const newLead = await tx.lead.create({
-        data: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          email: input.email.toLowerCase(),
-          phone: input.phone,
-          company: input.company,
-          jobTitle: input.jobTitle,
-          source: input.source,
-          status: input.status,
-          notes: input.notes,
-          assignedUserId
-        },
-        include: {
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client11.ActivityType.NOTE,
-          title: "Lead Created",
-          content: `Created lead ${newLead.firstName} ${newLead.lastName || ""}`.trim() + ` (${newLead.email})`,
-          userId: currentUserId,
-          leadId: newLead.id,
-          metadata: {
-            status: newLead.status,
-            source: newLead.source,
-            company: newLead.company,
-            assignedUserId: newLead.assignedUserId
-          }
-        }
-      });
-      return newLead;
-    });
-    return lead;
-  }
-  async getLeads(query) {
-    return this.leadRepo.findAll(query);
-  }
-  async getLeadById(id) {
-    const lead = await this.leadRepo.findById(id);
-    if (!lead) {
-      throw new AppError(`Lead with ID '${id}' not found.`, 404);
-    }
-    return lead;
-  }
-  async updateLead(id, input, currentUserId) {
-    const existing = await this.leadRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Lead with ID '${id}' not found.`, 404);
-    }
-    if (input.email && input.email.toLowerCase() !== existing.email.toLowerCase()) {
-      const emailConflict = await this.leadRepo.findByEmail(input.email.toLowerCase());
-      if (emailConflict) {
-        throw new AppError(`A lead with email address '${input.email}' already exists.`, 400);
-      }
-    }
-    const updatedLead = await prisma.$transaction(async (tx) => {
-      const updated = await tx.lead.update({
-        where: { id },
-        data: {
-          ...input,
-          email: input.email !== void 0 ? input.email.toLowerCase() : void 0
-        },
-        include: {
-          assignedUser: {
-            select: { id: true, name: true, email: true, avatarUrl: true }
-          }
-        }
-      });
-      if (input.status && input.status !== existing.status) {
-        await tx.activity.create({
-          data: {
-            type: import_client11.ActivityType.NOTE,
-            title: "Lead Status Changed",
-            content: `Changed status for lead ${updated.firstName} from '${existing.status}' to '${updated.status}'`,
-            userId: currentUserId,
-            leadId: updated.id,
-            metadata: {
-              previousStatus: existing.status,
-              newStatus: updated.status
-            }
-          }
-        });
-      }
-      if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
-        await tx.activity.create({
-          data: {
-            type: import_client11.ActivityType.NOTE,
-            title: "Lead Reassigned",
-            content: `Reassigned lead ${updated.firstName} to user ID '${updated.assignedUserId}'`,
-            userId: currentUserId,
-            leadId: updated.id,
-            metadata: {
-              previousAssignedUserId: existing.assignedUserId,
-              newAssignedUserId: updated.assignedUserId
-            }
-          }
-        });
-      }
-      await tx.activity.create({
-        data: {
-          type: import_client11.ActivityType.NOTE,
-          title: "Lead Updated",
-          content: `Updated profile details for lead ${updated.firstName}`,
-          userId: currentUserId,
-          leadId: updated.id,
-          metadata: {
-            updatedFields: Object.keys(input)
-          }
-        }
-      });
-      return updated;
-    });
-    return updatedLead;
-  }
-  async convertLead(id, input, currentUserId) {
-    const lead = await this.leadRepo.findById(id);
-    if (!lead) {
-      throw new AppError(`Lead with ID '${id}' not found.`, 404);
-    }
-    if (lead.status === import_client11.LeadStatus.CONVERTED) {
-      throw new AppError("This lead has already been converted.", 400);
-    }
-    return prisma.$transaction(async (tx) => {
-      let companyId = input.companyId || null;
-      if (!companyId && input.createCompany) {
-        const companyName = (input.companyName || lead.company || "").trim();
-        if (companyName) {
-          let existingCompany = await tx.company.findFirst({
-            where: { name: { equals: companyName, mode: "insensitive" } }
-          });
-          if (!existingCompany) {
-            existingCompany = await tx.company.create({
-              data: {
-                name: companyName
-              }
-            });
-          }
-          companyId = existingCompany.id;
-        }
-      } else if (!companyId && lead.company) {
-        const matchedCompany = await tx.company.findFirst({
-          where: { name: { equals: lead.company.trim(), mode: "insensitive" } }
-        });
-        if (matchedCompany) {
-          companyId = matchedCompany.id;
-        }
-      }
-      let contact = await tx.contact.findFirst({
-        where: { email: { equals: lead.email.toLowerCase(), mode: "insensitive" } }
-      });
-      if (!contact) {
-        contact = await tx.contact.create({
-          data: {
-            firstName: lead.firstName,
-            lastName: lead.lastName || "",
-            email: lead.email.toLowerCase(),
-            phone: lead.phone,
-            jobTitle: lead.jobTitle,
-            leadSource: lead.source,
-            lifecycleStage: input.createDeal ? import_client11.LifecycleStage.OPPORTUNITY : import_client11.LifecycleStage.LEAD,
-            assignedUserId: lead.assignedUserId || currentUserId,
-            companyId,
-            notes: lead.notes
-          }
-        });
-      } else if (companyId && !contact.companyId) {
-        contact = await tx.contact.update({
-          where: { id: contact.id },
-          data: { companyId }
-        });
-      }
-      let deal;
-      if (input.createDeal && input.dealTitle) {
-        let stageId = input.stageId;
-        if (!stageId) {
-          const defaultStage = await tx.pipelineStage.findFirst({
-            orderBy: { order: "asc" }
-          });
-          if (defaultStage) {
-            stageId = defaultStage.id;
-          }
-        }
-        if (stageId) {
-          deal = await tx.deal.create({
-            data: {
-              title: input.dealTitle,
-              value: input.dealValue || 0,
-              currency: "USD",
-              probability: 20,
-              expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
-              priority: "MEDIUM",
-              stageId,
-              contactId: contact.id,
-              companyId,
-              assignedUserId: contact.assignedUserId || currentUserId
-            }
-          });
-        }
-      }
-      const updatedLead = await tx.lead.update({
-        where: { id: lead.id },
-        data: {
-          status: import_client11.LeadStatus.CONVERTED,
-          convertedContactId: contact.id
-        }
-      });
-      await tx.conversation.updateMany({
-        where: {
-          contactId: null,
-          messages: {
-            some: {
-              senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" }
-            }
-          }
-        },
-        data: {
-          contactId: contact.id
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client11.ActivityType.LEAD_CONVERTED,
-          title: "Lead Converted",
-          content: `Converted lead ${lead.firstName} ${lead.lastName || ""}`.trim() + ` to Contact (${contact.email})` + (deal ? ` and created deal "${deal.title}"` : ""),
-          userId: currentUserId,
-          contactId: contact.id,
-          leadId: lead.id,
-          dealId: deal?.id,
-          metadata: {
-            contactId: contact.id,
-            companyId,
-            dealId: deal?.id
-          }
-        }
-      });
-      return {
-        lead: updatedLead,
-        contact,
-        deal
-      };
-    });
-  }
-  async deleteLead(id) {
-    const existing = await this.leadRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Lead with ID '${id}' not found.`, 404);
-    }
-    await this.leadRepo.delete(id);
-    return { id };
-  }
-};
-var leadService = new LeadService(leadRepository);
-
-// src/validators/lead.validator.ts
-var import_client12 = require("@prisma/client");
-var createLeadSchema = external_exports.object({
-  firstName: external_exports.string().min(1, "First name is required"),
-  lastName: external_exports.string().nullable().optional(),
-  email: external_exports.string().email("Invalid email address"),
-  phone: external_exports.string().nullable().optional(),
-  company: external_exports.string().nullable().optional(),
-  jobTitle: external_exports.string().nullable().optional(),
-  source: external_exports.nativeEnum(import_client12.LeadSource).nullable().optional(),
-  status: external_exports.nativeEnum(import_client12.LeadStatus).optional().default(import_client12.LeadStatus.NEW),
-  notes: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional()
-});
-var updateLeadSchema = createLeadSchema.partial();
-var queryLeadSchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client12.LeadStatus).optional(),
-  source: external_exports.nativeEnum(import_client12.LeadSource).optional(),
-  assignedUserId: external_exports.string().optional()
-});
-var convertLeadSchema = external_exports.object({
-  companyId: external_exports.string().nullable().optional(),
-  createCompany: external_exports.boolean().optional(),
-  companyName: external_exports.string().optional(),
-  createDeal: external_exports.boolean().optional(),
-  dealTitle: external_exports.string().optional(),
-  dealValue: external_exports.number().optional(),
-  stageId: external_exports.string().optional()
-});
-
-// src/controllers/lead.controller.ts
-var LeadController = class {
-  constructor(leadServ) {
-    this.leadServ = leadServ;
-    this.createLead = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const validationResult = createLeadSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const lead = await this.leadServ.createLead(validationResult.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Lead created successfully.",
-          data: { lead },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getLeads = async (req, res, next) => {
-      try {
-        const validationResult = queryLeadSchema.safeParse(req.query);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const result = await this.leadServ.getLeads(validationResult.data);
-        res.status(200).json({
-          success: true,
-          message: "Leads retrieved successfully.",
-          data: result,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getLeadById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const lead = await this.leadServ.getLeadById(id);
-        res.status(200).json({
-          success: true,
-          message: "Lead details retrieved successfully.",
-          data: { lead },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateLead = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = updateLeadSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const lead = await this.leadServ.updateLead(id, validationResult.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Lead updated successfully.",
-          data: { lead },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.convertLead = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = convertLeadSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const result = await this.leadServ.convertLead(id, validationResult.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Lead converted to contact successfully.",
-          data: result,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteLead = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.leadServ.deleteLead(id);
-        res.status(200).json({
-          success: true,
-          message: "Lead deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var leadController = new LeadController(leadService);
-
-// src/routes/lead.routes.ts
-var import_client13 = require("@prisma/client");
-var router5 = (0, import_express5.Router)();
-router5.use(authenticate);
-router5.get(
-  "/",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP, import_client13.UserRole.MARKETING, import_client13.UserRole.SUPPORT),
-  leadController.getLeads
-);
-router5.get(
-  "/:id",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP, import_client13.UserRole.MARKETING, import_client13.UserRole.SUPPORT),
-  leadController.getLeadById
-);
-router5.post(
-  "/",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
-  leadController.createLead
-);
-router5.patch(
-  "/:id",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
-  leadController.updateLead
-);
-router5.post(
-  "/:id/convert",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
-  leadController.convertLead
-);
-router5.delete(
-  "/:id",
-  authorize(import_client13.UserRole.ADMIN, import_client13.UserRole.MANAGER, import_client13.UserRole.SALES_REP),
-  leadController.deleteLead
-);
-var lead_routes_default = router5;
-
-// src/routes/deal.routes.ts
-var import_express6 = __toESM(require_express2());
-
-// src/services/deal.service.ts
-var import_client14 = require("@prisma/client");
-
-// src/repositories/deal.repository.ts
-var dealInclude = {
-  stage: {
-    select: { id: true, name: true, order: true, color: true, probability: true, isWon: true, isLost: true }
-  },
-  contact: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      avatarUrl: true,
-      assignedUserId: true,
-      conversations: {
-        select: { assignedUserId: true }
-      }
-    }
-  },
-  company: {
-    select: { id: true, name: true, logoUrl: true }
-  },
-  assignedUser: {
-    select: { id: true, name: true, email: true, avatarUrl: true }
-  }
-};
-var DealRepository = class {
-  async findById(id) {
-    return prisma.deal.findUnique({
-      where: { id },
-      include: dealInclude
-    });
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    const searchTerm = query.search?.trim();
-    if (searchTerm) {
-      where.OR = [
-        { title: { contains: searchTerm, mode: "insensitive" } },
-        {
-          contact: {
-            OR: [
-              { firstName: { contains: searchTerm, mode: "insensitive" } },
-              { lastName: { contains: searchTerm, mode: "insensitive" } },
-              { email: { contains: searchTerm, mode: "insensitive" } }
-            ]
-          }
-        },
-        {
-          company: {
-            name: { contains: searchTerm, mode: "insensitive" }
-          }
-        }
-      ];
-    }
-    if (query.stageId) where.stageId = query.stageId;
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        const unassignedFilter = {
-          AND: [
-            { assignedUserId: null },
-            {
-              OR: [
-                { contactId: null },
-                {
-                  contact: {
-                    assignedUserId: null,
-                    conversations: { none: { assignedUserId: { not: null } } }
-                  }
-                }
-              ]
-            }
-          ]
-        };
-        where.AND = [
-          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
-          unassignedFilter
-        ];
-      } else {
-        const userFilter = {
-          OR: [
-            { assignedUserId: query.assignedUserId },
-            { contact: { assignedUserId: query.assignedUserId } },
-            { contact: { conversations: { some: { assignedUserId: query.assignedUserId } } } }
-          ]
-        };
-        where.AND = [
-          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
-          userFilter
-        ];
-      }
-    }
-    if (query.companyId) where.companyId = query.companyId;
-    if (query.contactId) where.contactId = query.contactId;
-    const [deals, total] = await Promise.all([
-      prisma.deal.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: dealInclude
-      }),
-      prisma.deal.count({ where })
-    ]);
-    return {
-      deals,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.deal.create({
-      data,
-      include: dealInclude
-    });
-  }
-  async update(id, data) {
-    return prisma.deal.update({
-      where: { id },
-      data,
-      include: dealInclude
-    });
-  }
-  async delete(id) {
-    return prisma.deal.delete({
-      where: { id }
-    });
-  }
-};
-var dealRepository = new DealRepository();
-
-// src/services/deal.service.ts
-var DealService = class {
-  constructor(dealRepo) {
-    this.dealRepo = dealRepo;
-  }
-  async createDeal(input, currentUserId) {
-    const stage = await prisma.pipelineStage.findUnique({ where: { id: input.stageId } });
-    if (!stage) {
-      throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
-    }
-    if (input.companyId) {
-      const company = await prisma.company.findUnique({ where: { id: input.companyId } });
-      if (!company) throw new AppError(`Company with ID '${input.companyId}' not found.`, 400);
-    }
-    if (input.contactId) {
-      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
-      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
-    }
-    const deal = await prisma.$transaction(async (tx) => {
-      const newDeal = await tx.deal.create({
-        data: {
-          title: input.title,
-          value: input.value ?? 0,
-          currency: input.currency ?? "USD",
-          probability: input.probability ?? stage.probability,
-          expectedCloseDate: input.expectedCloseDate,
-          priority: input.priority,
-          notes: input.notes,
-          lostReason: input.lostReason,
-          stage: { connect: { id: input.stageId } },
-          ...input.companyId && { company: { connect: { id: input.companyId } } },
-          ...input.contactId && { contact: { connect: { id: input.contactId } } },
-          ...input.assignedUserId ? { assignedUser: { connect: { id: input.assignedUserId } } } : { assignedUser: { connect: { id: currentUserId } } }
-        },
-        include: {
-          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
-          company: { select: { id: true, name: true } },
-          contact: { select: { id: true, firstName: true, lastName: true } },
-          assignedUser: { select: { id: true, name: true, email: true } }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client14.ActivityType.DEAL_CREATED,
-          title: "Deal Created",
-          content: `Created deal "${newDeal.title}" worth ${newDeal.currency} ${newDeal.value.toLocaleString()} in stage "${stage.name}"`,
-          userId: currentUserId,
-          dealId: newDeal.id,
-          metadata: {
-            stageId: newDeal.stageId,
-            stageName: stage.name,
-            value: newDeal.value,
-            currency: newDeal.currency
-          }
-        }
-      });
-      if (input.contactId) {
-        if (stage.isWon) {
-          await tx.contact.update({
-            where: { id: input.contactId },
-            data: { lifecycleStage: "CUSTOMER" }
-          });
-        } else {
-          const existingWon = await tx.deal.findFirst({
-            where: {
-              contactId: input.contactId,
-              stage: { isWon: true }
-            }
-          });
-          if (existingWon) {
-            await tx.contact.update({
-              where: { id: input.contactId },
-              data: { lifecycleStage: "CUSTOMER" }
-            });
-          } else {
-            const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-            const stagesToPromote = ["LEAD", "MQL", "SQL"];
-            if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
-              await tx.contact.update({
-                where: { id: input.contactId },
-                data: { lifecycleStage: "OPPORTUNITY" }
-              });
-            }
-          }
-        }
-      }
-      return newDeal;
-    });
-    const assignedUserId = input.assignedUserId || currentUserId;
-    if (assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: assignedUserId,
-        title: "New Deal Assigned",
-        message: `You have been assigned a new deal: "${deal.title}"`,
-        type: "deal",
-        link: `/deals/${deal.id}`
-      });
-    }
-    return deal;
-  }
-  async getDeals(query, currentUser) {
-    const effectiveQuery = { ...query };
-    if (currentUser?.role === "SALES_REP") {
-      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
-        effectiveQuery.assignedUserId = "unassigned";
-      } else if (!effectiveQuery.contactId) {
-        effectiveQuery.assignedUserId = currentUser.userId;
-      }
-    }
-    return this.dealRepo.findAll(effectiveQuery);
-  }
-  async getDealById(id) {
-    const deal = await this.dealRepo.findById(id);
-    if (!deal) {
-      throw new AppError(`Deal with ID '${id}' not found.`, 404);
-    }
-    return deal;
-  }
-  async updateDeal(id, input, currentUserId) {
-    const existing = await this.dealRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Deal with ID '${id}' not found.`, 404);
-    }
-    if (input.stageId && input.stageId !== existing.stageId) {
-      const stage = await prisma.pipelineStage.findUnique({ where: { id: input.stageId } });
-      if (!stage) throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
-    }
-    const updatedDeal = await prisma.$transaction(async (tx) => {
-      const updated = await tx.deal.update({
-        where: { id },
-        data: {
-          ...input.title !== void 0 && { title: input.title },
-          ...input.value !== void 0 && { value: input.value },
-          ...input.currency !== void 0 && { currency: input.currency },
-          ...input.probability !== void 0 && { probability: input.probability },
-          ...input.expectedCloseDate !== void 0 && { expectedCloseDate: input.expectedCloseDate },
-          ...input.closedAt !== void 0 && { closedAt: input.closedAt },
-          ...input.priority !== void 0 && { priority: input.priority },
-          ...input.notes !== void 0 && { notes: input.notes },
-          ...input.lostReason !== void 0 && { lostReason: input.lostReason },
-          ...input.stageId !== void 0 && { stage: { connect: { id: input.stageId } } },
-          ...input.companyId !== void 0 && {
-            company: input.companyId ? { connect: { id: input.companyId } } : { disconnect: true }
-          },
-          ...input.contactId !== void 0 && {
-            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
-          },
-          ...input.assignedUserId !== void 0 && {
-            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
-          }
-        },
-        include: {
-          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
-          company: { select: { id: true, name: true } },
-          contact: { select: { id: true, firstName: true, lastName: true } },
-          assignedUser: { select: { id: true, name: true, email: true } }
-        }
-      });
-      if (input.stageId && input.stageId !== existing.stageId) {
-        await tx.activity.create({
-          data: {
-            type: import_client14.ActivityType.STAGE_CHANGE,
-            title: "Deal Stage Changed",
-            content: `Moved deal "${updated.title}" to stage "${updated.stage?.name}"`,
-            userId: currentUserId,
-            dealId: updated.id,
-            metadata: {
-              previousStageId: existing.stageId,
-              newStageId: updated.stageId,
-              newStageName: updated.stage?.name
-            }
-          }
-        });
-      }
-      await tx.activity.create({
-        data: {
-          type: import_client14.ActivityType.NOTE,
-          title: "Deal Updated",
-          content: `Updated deal "${updated.title}"`,
-          userId: currentUserId,
-          dealId: updated.id,
-          metadata: { updatedFields: Object.keys(input) }
-        }
-      });
-      const effectiveContactId = updated.contactId;
-      if (effectiveContactId && !input.assignedUserId) {
-        const contact = await tx.contact.findUnique({
-          where: { id: effectiveContactId },
-          include: { conversations: { select: { assignedUserId: true } } }
-        });
-        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
-        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
-          await tx.deal.update({
-            where: { id: updated.id },
-            data: { assignedUserId: targetUserId }
-          });
-          updated.assignedUserId = targetUserId;
-        }
-      }
-      if (effectiveContactId) {
-        const hasWonDeal = await tx.deal.findFirst({
-          where: {
-            contactId: effectiveContactId,
-            stage: { isWon: true }
-          }
-        });
-        if (hasWonDeal) {
-          await tx.contact.update({
-            where: { id: effectiveContactId },
-            data: { lifecycleStage: "CUSTOMER" }
-          });
-        }
-      }
-      return updated;
-    });
-    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: input.assignedUserId,
-        title: "Deal Reassigned",
-        message: `You have been assigned the deal: "${updatedDeal.title}"`,
-        type: "deal",
-        link: `/deals/${updatedDeal.id}`
-      });
-    }
-    return updatedDeal;
-  }
-  async deleteDeal(id) {
-    const existing = await this.dealRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Deal with ID '${id}' not found.`, 404);
-    }
-    await this.dealRepo.delete(id);
-    return { id };
-  }
-};
-var dealService = new DealService(dealRepository);
-
-// src/validators/deal.validator.ts
-var import_client15 = require("@prisma/client");
-var createDealSchema = external_exports.object({
-  title: external_exports.string().min(1, "Deal title is required"),
-  value: external_exports.number().nonnegative("Deal value must be 0 or greater").optional().default(0),
-  currency: external_exports.string().optional().default("USD"),
-  probability: external_exports.number().min(0).max(100).optional().default(0),
-  expectedCloseDate: external_exports.string().min(1, "Expected close date is required").transform((val) => new Date(val)),
-  priority: external_exports.nativeEnum(import_client15.Priority).optional().default(import_client15.Priority.MEDIUM),
-  notes: external_exports.string().nullable().optional(),
-  lostReason: external_exports.string().nullable().optional(),
-  stageId: external_exports.string().min(1, "Pipeline stage is required"),
-  contactId: external_exports.string().nullable().optional(),
-  companyId: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional()
-});
-var updateDealSchema = external_exports.object({
-  title: external_exports.string().min(1, "Deal title is required").optional(),
-  value: external_exports.number().nonnegative("Deal value must be 0 or greater").optional(),
-  currency: external_exports.string().optional(),
-  probability: external_exports.number().min(0).max(100).optional(),
-  expectedCloseDate: external_exports.string().transform((val) => new Date(val)).optional(),
-  closedAt: external_exports.string().transform((val) => new Date(val)).nullable().optional(),
-  priority: external_exports.nativeEnum(import_client15.Priority).optional(),
-  notes: external_exports.string().nullable().optional(),
-  lostReason: external_exports.string().nullable().optional(),
-  stageId: external_exports.string().optional(),
-  contactId: external_exports.string().nullable().optional(),
-  companyId: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional()
-});
-var queryDealSchema = external_exports.object({
-  page: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 1),
-  limit: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 10),
-  search: external_exports.string().optional(),
-  stageId: external_exports.string().optional(),
-  assignedUserId: external_exports.string().optional(),
-  companyId: external_exports.string().optional(),
-  contactId: external_exports.string().optional()
-});
-
-// src/controllers/deal.controller.ts
-var DealController = class {
-  constructor(dealServ) {
-    this.dealServ = dealServ;
-    this.createDeal = async (req, res, next) => {
-      try {
-        if (!req.user) throw new AppError("Authentication required.", 401);
-        const result = createDealSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const deal = await this.dealServ.createDeal(result.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Deal created successfully.",
-          data: { deal },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getDeals = async (req, res, next) => {
-      try {
-        const result = queryDealSchema.safeParse(req.query);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const data = await this.dealServ.getDeals(result.data, req.user);
-        res.status(200).json({
-          success: true,
-          message: "Deals retrieved successfully.",
-          data,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getDealById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const deal = await this.dealServ.getDealById(id);
-        res.status(200).json({
-          success: true,
-          message: "Deal retrieved successfully.",
-          data: { deal },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateDeal = async (req, res, next) => {
-      try {
-        if (!req.user) throw new AppError("Authentication required.", 401);
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const result = updateDealSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const deal = await this.dealServ.updateDeal(id, result.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Deal updated successfully.",
-          data: { deal },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteDeal = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.dealServ.deleteDeal(id);
-        res.status(200).json({
-          success: true,
-          message: "Deal deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var dealController = new DealController(dealService);
-
-// src/services/pipeline.service.ts
-var import_client16 = require("@prisma/client");
-
-// src/repositories/pipeline.repository.ts
-var PipelineRepository = class {
-  async findAllStages() {
-    return prisma.pipelineStage.findMany({
-      orderBy: { order: "asc" },
-      include: {
-        deals: {
-          orderBy: { createdAt: "desc" },
-          include: {
-            assignedUser: {
-              select: { id: true, name: true, email: true, avatarUrl: true }
-            },
-            contact: {
-              select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
-            },
-            company: {
-              select: { id: true, name: true, logoUrl: true }
-            }
-          }
-        }
-      }
-    });
-  }
-};
-var pipelineRepository = new PipelineRepository();
-
-// src/services/pipeline.service.ts
-var PipelineService = class {
-  constructor(pipelineRepo) {
-    this.pipelineRepo = pipelineRepo;
-  }
-  async getPipelineStages() {
-    return this.pipelineRepo.findAllStages();
-  }
-  async moveDealStage(dealId, input, currentUserId) {
-    const deal = await prisma.deal.findUnique({
-      where: { id: dealId },
-      include: { stage: true }
-    });
-    if (!deal) {
-      throw new AppError(`Deal with ID '${dealId}' not found.`, 404);
-    }
-    const targetStage = await prisma.pipelineStage.findUnique({
-      where: { id: input.stageId }
-    });
-    if (!targetStage) {
-      throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
-    }
-    let closedAt = null;
-    let lostReason = null;
-    let probability = targetStage.probability;
-    if (targetStage.isWon || targetStage.isLost) {
-      closedAt = /* @__PURE__ */ new Date();
-      if (targetStage.isLost) {
-        lostReason = input.lostReason || "No reason provided";
-      }
-    }
-    const updatedDeal = await prisma.$transaction(async (tx) => {
-      const updated = await tx.deal.update({
-        where: { id: dealId },
-        data: {
-          stageId: targetStage.id,
-          probability,
-          closedAt,
-          lostReason
-        },
-        include: {
-          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
-          company: { select: { id: true, name: true } },
-          contact: { select: { id: true, firstName: true, lastName: true } },
-          assignedUser: { select: { id: true, name: true, email: true } }
-        }
-      });
-      if (updated.contactId) {
-        const contact = await tx.contact.findUnique({
-          where: { id: updated.contactId },
-          include: { conversations: { select: { assignedUserId: true } } }
-        });
-        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
-        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
-          await tx.deal.update({
-            where: { id: updated.id },
-            data: { assignedUserId: targetUserId }
-          });
-          updated.assignedUserId = targetUserId;
-        }
-        if (targetStage.isWon) {
-          await tx.contact.update({
-            where: { id: updated.contactId },
-            data: { lifecycleStage: "CUSTOMER" }
-          });
-        } else {
-          const hasOtherWon = await tx.deal.findFirst({
-            where: {
-              contactId: updated.contactId,
-              id: { not: dealId },
-              stage: { isWon: true }
-            }
-          });
-          if (hasOtherWon) {
-            await tx.contact.update({
-              where: { id: updated.contactId },
-              data: { lifecycleStage: "CUSTOMER" }
-            });
-          }
-        }
-      }
-      await tx.activity.create({
-        data: {
-          type: import_client16.ActivityType.STAGE_CHANGE,
-          title: "Deal Stage Changed",
-          content: `Moved deal "${updated.title}" from "${deal.stage.name}" to "${targetStage.name}"${lostReason ? ` (Reason: ${lostReason})` : ""}`,
-          userId: currentUserId,
-          dealId: updated.id,
-          metadata: {
-            previousStageId: deal.stage.id,
-            previousStageName: deal.stage.name,
-            newStageId: targetStage.id,
-            newStageName: targetStage.name,
-            lostReason
-          }
-        }
-      });
-      return updated;
-    });
-    return updatedDeal;
-  }
-};
-var pipelineService = new PipelineService(pipelineRepository);
-
-// src/validators/pipeline.validator.ts
-var moveDealStageSchema = external_exports.object({
-  stageId: external_exports.string().min(1, "Target stage ID is required"),
-  lostReason: external_exports.string().nullable().optional()
-});
-
-// src/controllers/pipeline.controller.ts
-var PipelineController = class {
-  constructor(pipelineServ) {
-    this.pipelineServ = pipelineServ;
-    this.getPipelineStages = async (_req, res, next) => {
-      try {
-        const stages = await this.pipelineServ.getPipelineStages();
-        res.status(200).json({
-          success: true,
-          message: "Pipeline stages with deals retrieved successfully.",
-          data: { stages },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.moveDealStage = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const validationResult = moveDealStageSchema.safeParse(req.body);
-        if (!validationResult.success) {
-          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const deal = await this.pipelineServ.moveDealStage(id, validationResult.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Deal pipeline stage updated successfully.",
-          data: { deal },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var pipelineController = new PipelineController(pipelineService);
-
-// src/routes/deal.routes.ts
-var import_client17 = require("@prisma/client");
-var router6 = (0, import_express6.Router)();
-router6.use(authenticate);
-router6.get(
-  "/",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP, import_client17.UserRole.MARKETING, import_client17.UserRole.SUPPORT),
-  dealController.getDeals
-);
-router6.get(
-  "/:id",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP, import_client17.UserRole.MARKETING, import_client17.UserRole.SUPPORT),
-  dealController.getDealById
-);
-router6.post(
-  "/",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP),
-  dealController.createDeal
-);
-router6.patch(
-  "/:id",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP),
-  dealController.updateDeal
-);
-router6.patch(
-  "/:id/stage",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP),
-  pipelineController.moveDealStage
-);
-router6.delete(
-  "/:id",
-  authorize(import_client17.UserRole.ADMIN, import_client17.UserRole.MANAGER, import_client17.UserRole.SALES_REP),
-  dealController.deleteDeal
-);
-var deal_routes_default = router6;
-
-// src/routes/pipeline.routes.ts
-var import_express7 = __toESM(require_express2());
-var import_client18 = require("@prisma/client");
-var router7 = (0, import_express7.Router)();
-router7.use(authenticate);
-router7.get(
-  "/stages",
-  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP, import_client18.UserRole.MARKETING, import_client18.UserRole.SUPPORT),
-  pipelineController.getPipelineStages
-);
-var pipeline_routes_default = router7;
-
-// src/routes/task.routes.ts
-var import_express8 = __toESM(require_express2());
-
-// src/services/task.service.ts
-var import_client19 = require("@prisma/client");
-
-// src/repositories/task.repository.ts
-var taskInclude = {
-  assignedUser: {
-    select: { id: true, name: true, email: true, avatarUrl: true }
-  },
-  contact: {
-    select: { id: true, firstName: true, lastName: true, email: true }
-  },
-  deal: {
-    select: { id: true, title: true, value: true, stageId: true }
-  }
-};
-var TaskRepository = class {
-  async findById(id) {
-    return prisma.task.findUnique({
-      where: { id },
-      include: taskInclude
-    });
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.title = { contains: query.search, mode: "insensitive" };
-    }
-    if (query.completed !== void 0) {
-      where.completed = query.completed;
-    }
-    if (query.priority) {
-      where.priority = query.priority;
-    }
-    if (query.isAnnouncement !== void 0) {
-      where.isAnnouncement = query.isAnnouncement;
-    }
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
-        where.isAnnouncement = false;
-      } else if (query.assignedUserId === "announcements") {
-        where.isAnnouncement = true;
-      } else {
-        where.assignedUserId = query.assignedUserId;
-      }
-    } else if (query.userScopedId) {
-      where.OR = [
-        { assignedUserId: query.userScopedId },
-        { isAnnouncement: true }
-      ];
-    }
-    if (query.contactId) {
-      where.contactId = query.contactId;
-    }
-    if (query.dealId) {
-      where.dealId = query.dealId;
-    }
-    const [tasks, total] = await Promise.all([
-      prisma.task.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { dueDate: "asc" },
-        include: taskInclude
-      }),
-      prisma.task.count({ where })
-    ]);
-    return {
-      tasks,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.task.create({
-      data,
-      include: taskInclude
-    });
-  }
-  async update(id, data) {
-    return prisma.task.update({
-      where: { id },
-      data,
-      include: taskInclude
-    });
-  }
-  async delete(id) {
-    return prisma.task.delete({
-      where: { id }
-    });
-  }
-};
-var taskRepository = new TaskRepository();
-
-// src/services/task.service.ts
-var TaskService = class {
-  constructor(taskRepo) {
-    this.taskRepo = taskRepo;
-  }
-  async createTask(input, currentUserId) {
-    let assignedUserId = null;
-    if (input.isAnnouncement) {
-      assignedUserId = input.assignedUserId || null;
-    } else {
-      assignedUserId = input.assignedUserId || currentUserId;
-    }
-    if (assignedUserId) {
-      const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
-      if (!userExists) {
-        throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
-      }
-    }
-    if (input.contactId) {
-      const contactExists = await prisma.contact.findUnique({ where: { id: input.contactId } });
-      if (!contactExists) {
-        throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
-      }
-    }
-    if (input.dealId) {
-      const dealExists = await prisma.deal.findUnique({ where: { id: input.dealId } });
-      if (!dealExists) {
-        throw new AppError(`Deal with ID '${input.dealId}' not found.`, 400);
-      }
-    }
-    const task = await prisma.$transaction(async (tx) => {
-      const newTask = await tx.task.create({
-        data: {
-          title: input.title,
-          description: input.description,
-          taskType: input.taskType,
-          priority: input.priority,
-          dueDate: input.dueDate,
-          dueTime: input.dueTime,
-          companyName: input.companyName,
-          isAnnouncement: Boolean(input.isAnnouncement),
-          ...input.contactId && { contact: { connect: { id: input.contactId } } },
-          ...input.dealId && { deal: { connect: { id: input.dealId } } },
-          ...assignedUserId ? { assignedUser: { connect: { id: assignedUserId } } } : {}
-        },
-        include: {
-          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
-          contact: { select: { id: true, firstName: true, lastName: true } },
-          deal: { select: { id: true, title: true } }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client19.ActivityType.TASK_COMPLETED,
-          title: newTask.isAnnouncement ? "Company Announcement Created" : "Task Created",
-          content: newTask.isAnnouncement ? `Company Announcement "${newTask.title}" broadcast to all employees` : `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
-          userId: currentUserId,
-          ...newTask.contactId && { contactId: newTask.contactId },
-          ...newTask.dealId && { dealId: newTask.dealId },
-          metadata: {
-            taskId: newTask.id,
-            dueDate: newTask.dueDate,
-            priority: newTask.priority,
-            isAnnouncement: newTask.isAnnouncement
-          }
-        }
-      });
-      return newTask;
-    });
-    if (input.isAnnouncement) {
-      const allUsers = await prisma.user.findMany({
-        where: { status: "ACTIVE", id: { not: currentUserId } },
-        select: { id: true }
-      });
-      for (const u of allUsers) {
-        await notificationService.createNotification({
-          userId: u.id,
-          title: "Company Announcement",
-          message: `\u{1F4E2} Company Announcement: "${task.title}"`,
-          type: "task",
-          link: `/tasks`
-        });
-      }
-    } else if (assignedUserId && assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: assignedUserId,
-        title: "New Task Assigned",
-        message: `You have been assigned a new task: "${task.title}"`,
-        type: "task",
-        link: `/tasks/${task.id}`
-      });
-    }
-    return task;
-  }
-  async getTasks(query, currentUser) {
-    const effectiveQuery = { ...query };
-    if (currentUser?.role === "SALES_REP") {
-      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
-        effectiveQuery.assignedUserId = "unassigned";
-      } else if (effectiveQuery.assignedUserId === "announcements" || effectiveQuery.isAnnouncement === true) {
-        effectiveQuery.isAnnouncement = true;
-        delete effectiveQuery.assignedUserId;
-      } else {
-        effectiveQuery.userScopedId = currentUser.userId;
-        delete effectiveQuery.assignedUserId;
-      }
-    } else {
-      if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
-        effectiveQuery.assignedUserId = currentUser.userId;
-      }
-    }
-    return this.taskRepo.findAll(effectiveQuery);
-  }
-  async getTaskById(id) {
-    const task = await this.taskRepo.findById(id);
-    if (!task) {
-      throw new AppError(`Task with ID '${id}' not found.`, 404);
-    }
-    return task;
-  }
-  async updateTask(id, input, currentUserId) {
-    const existing = await this.taskRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Task with ID '${id}' not found.`, 404);
-    }
-    if (input.assignedUserId) {
-      const userExists = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
-      if (!userExists) {
-        throw new AppError(`Assigned user with ID '${input.assignedUserId}' not found.`, 400);
-      }
-    }
-    let completedAt = void 0;
-    if (input.completed !== void 0) {
-      if (input.completed && !existing.completed) {
-        completedAt = /* @__PURE__ */ new Date();
-      } else if (!input.completed && existing.completed) {
-        completedAt = null;
-      }
-    }
-    const updatedTask = await prisma.$transaction(async (tx) => {
-      const updated = await tx.task.update({
-        where: { id },
-        data: {
-          title: input.title,
-          description: input.description,
-          taskType: input.taskType,
-          priority: input.priority,
-          dueDate: input.dueDate,
-          dueTime: input.dueTime,
-          companyName: input.companyName,
-          completed: input.completed,
-          completedAt,
-          ...input.isAnnouncement !== void 0 && { isAnnouncement: input.isAnnouncement },
-          ...input.assignedUserId !== void 0 && {
-            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
-          },
-          ...input.contactId !== void 0 && {
-            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
-          },
-          ...input.dealId !== void 0 && {
-            deal: input.dealId ? { connect: { id: input.dealId } } : { disconnect: true }
-          }
-        },
-        include: {
-          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
-          contact: { select: { id: true, firstName: true, lastName: true } },
-          deal: { select: { id: true, title: true } }
-        }
-      });
-      if (input.completed !== void 0) {
-        if (input.completed && !existing.completed) {
-          await tx.activity.create({
-            data: {
-              type: import_client19.ActivityType.TASK_COMPLETED,
-              title: "Task Completed",
-              content: `Marked task "${updated.title}" as completed`,
-              userId: currentUserId,
-              ...updated.contactId && { contactId: updated.contactId },
-              ...updated.dealId && { dealId: updated.dealId },
-              metadata: { taskId: updated.id }
-            }
-          });
-        } else if (!input.completed && existing.completed) {
-          await tx.activity.create({
-            data: {
-              type: import_client19.ActivityType.NOTE,
-              title: "Task Reopened",
-              content: `Reopened task "${updated.title}"`,
-              userId: currentUserId,
-              ...updated.contactId && { contactId: updated.contactId },
-              ...updated.dealId && { dealId: updated.dealId },
-              metadata: { taskId: updated.id }
-            }
-          });
-        }
-      }
-      return updated;
-    });
-    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: input.assignedUserId,
-        title: "Task Reassigned",
-        message: `You have been assigned the task: "${updatedTask.title}"`,
-        type: "task",
-        link: `/tasks/${updatedTask.id}`
-      });
-    }
-    return updatedTask;
-  }
-  async deleteTask(id) {
-    const existing = await this.taskRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Task with ID '${id}' not found.`, 404);
-    }
-    await this.taskRepo.delete(id);
-    return { id };
-  }
-};
-var taskService = new TaskService(taskRepository);
-
-// src/validators/task.validator.ts
-var import_client20 = require("@prisma/client");
-var createTaskSchema = external_exports.object({
-  title: external_exports.string().min(1, "Task title is required"),
-  description: external_exports.string().nullable().optional(),
-  taskType: external_exports.nativeEnum(import_client20.TaskType).optional().default(import_client20.TaskType.CALL),
-  priority: external_exports.nativeEnum(import_client20.Priority).optional().default(import_client20.Priority.MEDIUM),
-  dueDate: external_exports.string().min(1, "Due date is required").transform((val) => new Date(val)),
-  dueTime: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional(),
-  contactId: external_exports.string().nullable().optional(),
-  dealId: external_exports.string().nullable().optional(),
-  companyName: external_exports.string().nullable().optional(),
-  isAnnouncement: external_exports.boolean().optional().default(false)
-});
-var updateTaskSchema = external_exports.object({
-  title: external_exports.string().min(1, "Task title cannot be empty").optional(),
-  description: external_exports.string().nullable().optional(),
-  taskType: external_exports.nativeEnum(import_client20.TaskType).optional(),
-  priority: external_exports.nativeEnum(import_client20.Priority).optional(),
-  dueDate: external_exports.string().transform((val) => new Date(val)).optional(),
-  dueTime: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional(),
-  completed: external_exports.boolean().optional(),
-  contactId: external_exports.string().nullable().optional(),
-  dealId: external_exports.string().nullable().optional(),
-  companyName: external_exports.string().nullable().optional(),
-  isAnnouncement: external_exports.boolean().optional()
-});
-var queryTaskSchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  search: external_exports.string().optional(),
-  completed: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
-  priority: external_exports.nativeEnum(import_client20.Priority).optional(),
-  assignedUserId: external_exports.string().optional(),
-  isAnnouncement: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
-  contactId: external_exports.string().optional(),
-  dealId: external_exports.string().optional()
-});
-
-// src/controllers/task.controller.ts
-var TaskController = class {
-  constructor(taskServ) {
-    this.taskServ = taskServ;
-    this.createTask = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const result = createTaskSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const task = await this.taskServ.createTask(result.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Task created successfully.",
-          data: { task },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getTasks = async (req, res, next) => {
-      try {
-        const result = queryTaskSchema.safeParse(req.query);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const data = await this.taskServ.getTasks(result.data, req.user);
-        res.status(200).json({
-          success: true,
-          message: "Tasks retrieved successfully.",
-          data,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getTaskById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const task = await this.taskServ.getTaskById(id);
-        res.status(200).json({
-          success: true,
-          message: "Task retrieved successfully.",
-          data: { task },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateTask = async (req, res, next) => {
-      try {
-        if (!req.user) {
-          throw new AppError("Authentication required.", 401);
-        }
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const result = updateTaskSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const task = await this.taskServ.updateTask(id, result.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Task updated successfully.",
-          data: { task },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteTask = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.taskServ.deleteTask(id);
-        res.status(200).json({
-          success: true,
-          message: "Task deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var taskController = new TaskController(taskService);
-
-// src/routes/task.routes.ts
-var import_client21 = require("@prisma/client");
-var router8 = (0, import_express8.Router)();
-router8.use(authenticate);
-router8.get(
-  "/",
-  authorize(import_client21.UserRole.ADMIN, import_client21.UserRole.MANAGER, import_client21.UserRole.SALES_REP, import_client21.UserRole.MARKETING, import_client21.UserRole.SUPPORT),
-  taskController.getTasks
-);
-router8.get(
-  "/:id",
-  authorize(import_client21.UserRole.ADMIN, import_client21.UserRole.MANAGER, import_client21.UserRole.SALES_REP, import_client21.UserRole.MARKETING, import_client21.UserRole.SUPPORT),
-  taskController.getTaskById
-);
-router8.post(
-  "/",
-  authorize(import_client21.UserRole.ADMIN, import_client21.UserRole.MANAGER, import_client21.UserRole.SALES_REP),
-  taskController.createTask
-);
-router8.patch(
-  "/:id",
-  authorize(import_client21.UserRole.ADMIN, import_client21.UserRole.MANAGER, import_client21.UserRole.SALES_REP),
-  taskController.updateTask
-);
-router8.delete(
-  "/:id",
-  authorize(import_client21.UserRole.ADMIN, import_client21.UserRole.MANAGER, import_client21.UserRole.SALES_REP),
-  taskController.deleteTask
-);
-var task_routes_default = router8;
-
-// src/routes/conversation.routes.ts
-var import_express9 = __toESM(require_express2());
-
-// src/services/conversation.service.ts
-var import_client22 = require("@prisma/client");
-
-// src/repositories/conversation.repository.ts
-var conversationInclude = {
-  assignedUser: {
-    select: { id: true, name: true, email: true, avatarUrl: true }
-  },
-  contact: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      avatarUrl: true,
-      lifecycleStage: true,
-      status: true,
-      deals: {
-        where: { stage: { isWon: true } },
-        select: { id: true }
-      }
-    }
-  },
-  campaign: {
-    select: { id: true, name: true, subject: true }
-  },
-  messages: {
-    take: 1,
-    orderBy: { createdAt: "desc" },
-    select: { content: true, senderName: true, isInternalNote: true, createdAt: true }
-  }
-};
-function enrichConversation(conv) {
-  if (!conv) return null;
-  const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
-  const lastMsg = conv.messages?.[0];
-  return {
-    ...conv,
-    isFromCampaign,
-    campaignName: isFromCampaign ? conv.campaign?.name || null : null,
-    campaignId: isFromCampaign ? conv.campaignId || null : null,
-    snippet: lastMsg?.content || null
-  };
-}
-var ConversationRepository = class {
-  async findById(id) {
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
-      include: conversationInclude
-    });
-    return enrichConversation(conversation);
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.OR = [
-        { subject: { contains: query.search, mode: "insensitive" } },
-        {
-          contact: {
-            OR: [
-              { firstName: { contains: query.search, mode: "insensitive" } },
-              { lastName: { contains: query.search, mode: "insensitive" } },
-              { email: { contains: query.search, mode: "insensitive" } }
-            ]
-          }
-        }
-      ];
-    }
-    if (query.status) {
-      where.status = query.status;
-    }
-    if (query.channel) {
-      where.channel = query.channel;
-    }
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
-      } else {
-        where.assignedUserId = query.assignedUserId;
-      }
-    }
-    if (query.contactId) {
-      where.contactId = query.contactId;
-    }
-    const [conversations, total] = await Promise.all([
-      prisma.conversation.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { updatedAt: "desc" },
-        include: conversationInclude
-      }),
-      prisma.conversation.count({ where })
-    ]);
-    return {
-      conversations: conversations.map(enrichConversation),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.conversation.create({
-      data,
-      include: conversationInclude
-    });
-  }
-  async update(id, data) {
-    return prisma.conversation.update({
-      where: { id },
-      data,
-      include: conversationInclude
-    });
-  }
-  async delete(id) {
-    return prisma.conversation.delete({
-      where: { id }
-    });
-  }
-};
-var conversationRepository = new ConversationRepository();
-
-// src/services/conversation.service.ts
-var ConversationService = class {
-  constructor(convoRepo) {
-    this.convoRepo = convoRepo;
-  }
-  async createConversation(input, currentUserId) {
-    if (input.contactId) {
-      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
-      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
-    }
-    if (input.assignedUserId) {
-      const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
-      if (!user) throw new AppError(`User with ID '${input.assignedUserId}' not found.`, 400);
-    }
-    const conversation = await prisma.$transaction(async (tx) => {
-      const newConvo = await tx.conversation.create({
-        data: {
-          subject: input.subject,
-          channel: input.channel,
-          status: input.status,
-          ...input.contactId && { contact: { connect: { id: input.contactId } } },
-          ...input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } }
-        },
-        include: {
-          assignedUser: { select: { id: true, name: true, email: true } },
-          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
-        }
-      });
-      await tx.activity.create({
-        data: {
-          type: import_client22.ActivityType.NOTE,
-          title: "Conversation Created",
-          content: `Created conversation "${newConvo.subject}" via ${newConvo.channel}`,
-          userId: currentUserId,
-          ...newConvo.contactId && { contactId: newConvo.contactId },
-          metadata: {
-            conversationId: newConvo.id,
-            channel: newConvo.channel,
-            status: newConvo.status
-          }
-        }
-      });
-      return newConvo;
-    });
-    return conversation;
-  }
-  async getConversations(query, currentUser) {
-    const effectiveQuery = { ...query };
-    if (currentUser?.role === "SALES_REP") {
-      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
-        effectiveQuery.assignedUserId = "unassigned";
-      } else {
-        effectiveQuery.assignedUserId = currentUser.userId;
-      }
-    }
-    return this.convoRepo.findAll(effectiveQuery);
-  }
-  async getConversationById(id) {
-    const convo = await this.convoRepo.findById(id);
-    if (!convo) {
-      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
-    }
-    return convo;
-  }
-  async updateConversation(id, input, currentUserId) {
-    const existing = await this.convoRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
-    }
-    if (input.assignedUserId) {
-      const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
-      if (!user) throw new AppError(`User with ID '${input.assignedUserId}' not found.`, 400);
-    }
-    if (input.contactId) {
-      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
-      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
-    }
-    const updatedConvo = await prisma.$transaction(async (tx) => {
-      const updated = await tx.conversation.update({
-        where: { id },
-        data: {
-          ...input.subject !== void 0 && { subject: input.subject },
-          ...input.channel !== void 0 && { channel: input.channel },
-          ...input.status !== void 0 && { status: input.status },
-          ...input.contactId !== void 0 && {
-            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
-          },
-          ...input.assignedUserId !== void 0 && {
-            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
-          }
-        },
-        include: {
-          assignedUser: { select: { id: true, name: true, email: true } },
-          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
-        }
-      });
-      if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
-        if (updated.contactId) {
-          await tx.contact.update({
-            where: { id: updated.contactId },
-            data: { assignedUserId: input.assignedUserId }
-          });
-          await tx.deal.updateMany({
-            where: { contactId: updated.contactId },
-            data: { assignedUserId: input.assignedUserId }
-          });
-        }
-        await tx.activity.create({
-          data: {
-            type: import_client22.ActivityType.NOTE,
-            title: "Conversation Assigned",
-            content: `Conversation "${updated.subject}" assigned to ${updated.assignedUser?.name || "a user"}`,
-            userId: currentUserId,
-            ...updated.contactId && { contactId: updated.contactId },
-            metadata: {
-              conversationId: updated.id,
-              assignedUserId: input.assignedUserId
-            }
-          }
-        });
-      }
-      if (input.status && input.status !== existing.status) {
-        await tx.activity.create({
-          data: {
-            type: import_client22.ActivityType.NOTE,
-            title: "Conversation Status Changed",
-            content: `Conversation "${updated.subject}" status changed from ${existing.status} to ${updated.status}`,
-            userId: currentUserId,
-            ...updated.contactId && { contactId: updated.contactId },
-            metadata: {
-              conversationId: updated.id,
-              previousStatus: existing.status,
-              newStatus: updated.status
-            }
-          }
-        });
-      }
-      await tx.activity.create({
-        data: {
-          type: import_client22.ActivityType.NOTE,
-          title: "Conversation Updated",
-          content: `Updated conversation "${updated.subject}"`,
-          userId: currentUserId,
-          ...updated.contactId && { contactId: updated.contactId },
-          metadata: {
-            conversationId: updated.id,
-            updatedFields: Object.keys(input)
-          }
-        }
-      });
-      return updated;
-    });
-    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
-      await notificationService.createNotification({
-        userId: input.assignedUserId,
-        title: "New Conversation & Client Handed Off",
-        message: `Conversation "${updatedConvo.subject}" and related client data have been assigned to you`,
-        type: "chat",
-        link: `/inbox`
-      });
-    }
-    return updatedConvo;
-  }
-  async deleteConversation(id) {
-    const existing = await this.convoRepo.findById(id);
-    if (!existing) {
-      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
-    }
-    await this.convoRepo.delete(id);
-    return { id };
-  }
-};
-var conversationService = new ConversationService(conversationRepository);
-
-// src/validators/conversation.validator.ts
-var import_client23 = require("@prisma/client");
-var createConversationSchema = external_exports.object({
-  subject: external_exports.string().min(1, "Subject is required"),
-  channel: external_exports.nativeEnum(import_client23.ConversationChannel).optional().default(import_client23.ConversationChannel.EMAIL),
-  status: external_exports.nativeEnum(import_client23.ConversationStatus).optional().default(import_client23.ConversationStatus.OPEN),
-  contactId: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional()
-});
-var updateConversationSchema = external_exports.object({
-  subject: external_exports.string().min(1, "Subject cannot be empty").optional(),
-  channel: external_exports.nativeEnum(import_client23.ConversationChannel).optional(),
-  status: external_exports.nativeEnum(import_client23.ConversationStatus).optional(),
-  contactId: external_exports.string().nullable().optional(),
-  assignedUserId: external_exports.string().nullable().optional()
-});
-var queryConversationSchema = external_exports.object({
-  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
-  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
-  search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client23.ConversationStatus).optional(),
-  channel: external_exports.nativeEnum(import_client23.ConversationChannel).optional(),
-  assignedUserId: external_exports.string().optional(),
-  contactId: external_exports.string().optional()
-});
-
-// src/controllers/conversation.controller.ts
-var ConversationController = class {
-  constructor(convoServ) {
-    this.convoServ = convoServ;
-    this.createConversation = async (req, res, next) => {
-      try {
-        if (!req.user) throw new AppError("Authentication required.", 401);
-        const result = createConversationSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const conversation = await this.convoServ.createConversation(result.data, req.user.userId);
-        res.status(201).json({
-          success: true,
-          message: "Conversation created successfully.",
-          data: { conversation },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getConversations = async (req, res, next) => {
-      try {
-        const result = queryConversationSchema.safeParse(req.query);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Query validation failed: ${errors}`, 400);
-        }
-        const data = await this.convoServ.getConversations(result.data, req.user);
-        res.status(200).json({
-          success: true,
-          message: "Conversations retrieved successfully.",
-          data,
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.getConversationById = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const conversation = await this.convoServ.getConversationById(id);
-        res.status(200).json({
-          success: true,
-          message: "Conversation retrieved successfully.",
-          data: { conversation },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.updateConversation = async (req, res, next) => {
-      try {
-        if (!req.user) throw new AppError("Authentication required.", 401);
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        const result = updateConversationSchema.safeParse(req.body);
-        if (!result.success) {
-          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
-          throw new AppError(`Validation failed: ${errors}`, 400);
-        }
-        const conversation = await this.convoServ.updateConversation(id, result.data, req.user.userId);
-        res.status(200).json({
-          success: true,
-          message: "Conversation updated successfully.",
-          data: { conversation },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-    this.deleteConversation = async (req, res, next) => {
-      try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-        await this.convoServ.deleteConversation(id);
-        res.status(200).json({
-          success: true,
-          message: "Conversation deleted successfully.",
-          data: { id },
-          timestamp: (/* @__PURE__ */ new Date()).toISOString()
-        });
-      } catch (error51) {
-        next(error51);
-      }
-    };
-  }
-};
-var conversationController = new ConversationController(conversationService);
-
-// src/routes/conversation.routes.ts
-var import_client24 = require("@prisma/client");
-var router9 = (0, import_express9.Router)();
-router9.use(authenticate);
-router9.get(
-  "/",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.MARKETING, import_client24.UserRole.SUPPORT),
-  conversationController.getConversations
-);
-router9.get(
-  "/:id",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.MARKETING, import_client24.UserRole.SUPPORT),
-  conversationController.getConversationById
-);
-router9.post(
-  "/",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.SUPPORT),
-  conversationController.createConversation
-);
-router9.patch(
-  "/:id",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SALES_REP, import_client24.UserRole.SUPPORT),
-  conversationController.updateConversation
-);
-router9.delete(
-  "/:id",
-  authorize(import_client24.UserRole.ADMIN, import_client24.UserRole.MANAGER, import_client24.UserRole.SUPPORT),
-  conversationController.deleteConversation
-);
-var conversation_routes_default = router9;
-
-// src/routes/message.routes.ts
-var import_express10 = __toESM(require_express2());
-
-// src/services/message.service.ts
-var import_client25 = require("@prisma/client");
-
-// src/repositories/message.repository.ts
-var MessageRepository = class {
-  async findById(id) {
-    return prisma.message.findUnique({
-      where: { id },
-      include: {
-        conversation: {
-          select: { id: true, subject: true }
-        }
-      }
-    });
-  }
-  async findByConversation(conversationId, query) {
-    const page = query.page || 1;
-    const limit = query.limit || 15;
-    const skip = (page - 1) * limit;
-    const where = {
-      conversationId
-    };
-    if (query.search) {
-      where.content = { contains: query.search, mode: "insensitive" };
-    }
-    const [messages, total] = await Promise.all([
-      prisma.message.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "asc" }
-        // Thread view usually ordered oldest first
-      }),
-      prisma.message.count({ where })
-    ]);
-    return {
-      messages,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.message.create({
-      data
-    });
-  }
-  async update(id, data) {
-    return prisma.message.update({
-      where: { id },
-      data
-    });
-  }
-  async delete(id) {
-    return prisma.message.delete({
-      where: { id }
-    });
-  }
-};
-var messageRepository = new MessageRepository();
+// src/services/invitation.service.ts
+var import_crypto2 = __toESM(require("crypto"));
 
 // node_modules/postal-mime/src/decode-strings.js
 var textEncoder = new TextEncoder();
@@ -118424,7 +114756,7 @@ var PostalMime = class _PostalMime {
 };
 
 // node_modules/resend/dist/index.mjs
-var import_standardwebhooks = __toESM(require_dist3(), 1);
+var import_standardwebhooks = __toESM(require_dist(), 1);
 var version2 = "6.20.0";
 function buildPaginationUrl(base, options) {
   const queryString = buildPaginationQuery(options);
@@ -119778,6 +116110,3976 @@ var EmailService = class {
 };
 var emailService = new EmailService();
 
+// src/services/invitation.service.ts
+var InvitationService = class {
+  /**
+   * Admin/Manager creates an invitation for a specific email and role
+   */
+  async createInvitation(input, invitedById, origin2) {
+    const email3 = input.email.toLowerCase();
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email3 }
+    });
+    if (existingUser) {
+      throw new AppError("A user account with this email address already exists.", 400);
+    }
+    const token = import_crypto2.default.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1e3);
+    const existingInvite = await prisma.userInvitation.findFirst({
+      where: { email: email3, isAccepted: false }
+    });
+    let invitation;
+    if (existingInvite) {
+      invitation = await prisma.userInvitation.update({
+        where: { id: existingInvite.id },
+        data: {
+          role: input.role,
+          token,
+          expiresAt,
+          invitedById
+        },
+        include: {
+          invitedBy: { select: { id: true, name: true, email: true } }
+        }
+      });
+    } else {
+      invitation = await prisma.userInvitation.create({
+        data: {
+          email: email3,
+          role: input.role,
+          token,
+          expiresAt,
+          invitedById
+        },
+        include: {
+          invitedBy: { select: { id: true, name: true, email: true } }
+        }
+      });
+    }
+    const baseUrl = origin2 || process.env.APP_URL || "http://localhost:5173";
+    const inviteUrl = `${baseUrl.replace(/\/$/, "")}/register?token=${token}`;
+    let emailSent = false;
+    try {
+      const roleLabel = input.role.replace(/_/g, " ");
+      const htmlBody = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 20px; color: #1e293b;">
+          <div style="text-align: center; margin-bottom: 28px;">
+            <h1 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">You're Invited to Join CRM</h1>
+            <p style="color: #64748b; font-size: 14px; margin: 0;">An account invitation has been prepared for you.</p>
+          </div>
+          
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 28px;">
+            <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.6;">
+              <strong>${invitation.invitedBy?.name || "A team administrator"}</strong> has invited you to join the team as a <strong style="color: #4f46e5;">${roleLabel}</strong>.
+            </p>
+            <p style="margin: 0; font-size: 13px; color: #64748b;">
+              This invitation link is valid for 7 days.
+            </p>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 32px;">
+            <a href="${inviteUrl}" style="display: inline-block; background: #4f46e5; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+              Accept Invitation & Set Password
+            </a>
+          </div>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 12px; color: #94a3b8; text-align: center;">
+            <p style="margin: 0 0 8px 0;">Or copy and paste this URL into your browser:</p>
+            <p style="margin: 0; word-break: break-all; color: #64748b;">${inviteUrl}</p>
+          </div>
+        </div>
+      `;
+      await emailService.sendEmail({
+        from: config.emailFromAddress,
+        to: email3,
+        subject: `You've been invited to join CRM (${roleLabel})`,
+        html: htmlBody
+      });
+      emailSent = true;
+    } catch (err) {
+      console.warn(`[InvitationService] Could not send invite email to ${email3}:`, err?.message || err);
+    }
+    return {
+      invitation,
+      inviteUrl,
+      emailSent
+    };
+  }
+  /**
+   * List all invitations
+   */
+  async listInvitations() {
+    return prisma.userInvitation.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        invitedBy: { select: { id: true, name: true, email: true } }
+      }
+    });
+  }
+  /**
+   * Revoke/delete an invitation
+   */
+  async revokeInvitation(id) {
+    const invite = await prisma.userInvitation.findUnique({ where: { id } });
+    if (!invite) {
+      throw new AppError("Invitation not found.", 404);
+    }
+    await prisma.userInvitation.delete({ where: { id } });
+    return { success: true, message: "Invitation revoked successfully." };
+  }
+  /**
+   * Validate token for public registration page
+   */
+  async validateToken(token) {
+    if (!token) {
+      return { valid: false, message: "Invitation token is required." };
+    }
+    const invitation = await prisma.userInvitation.findUnique({
+      where: { token },
+      include: {
+        invitedBy: { select: { name: true, email: true } }
+      }
+    });
+    if (!invitation) {
+      return { valid: false, message: "Invalid invitation token." };
+    }
+    if (invitation.isAccepted) {
+      return { valid: false, message: "This invitation has already been accepted." };
+    }
+    if (/* @__PURE__ */ new Date() > invitation.expiresAt) {
+      return { valid: false, message: "This invitation link has expired." };
+    }
+    return {
+      valid: true,
+      email: invitation.email,
+      role: invitation.role,
+      invitedBy: invitation.invitedBy?.name || "Administrator",
+      expiresAt: invitation.expiresAt
+    };
+  }
+  /**
+   * Complete registration using invitation token
+   */
+  async registerWithInvite(input) {
+    const invitation = await prisma.userInvitation.findUnique({
+      where: { token: input.token }
+    });
+    if (!invitation) {
+      throw new AppError("Invalid invitation token.", 400);
+    }
+    if (invitation.isAccepted) {
+      throw new AppError("This invitation has already been used.", 400);
+    }
+    if (/* @__PURE__ */ new Date() > invitation.expiresAt) {
+      throw new AppError("This invitation link has expired.", 400);
+    }
+    const existing = await prisma.user.findUnique({
+      where: { email: invitation.email }
+    });
+    if (existing) {
+      throw new AppError("A user with this email address is already registered.", 400);
+    }
+    const hashedPassword = await hashPassword(input.password);
+    const newUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name: input.name.trim(),
+          email: invitation.email,
+          passwordHash: hashedPassword,
+          role: invitation.role,
+          // LOCKED from invitation!
+          phone: input.phone?.trim() || null,
+          avatarUrl: input.avatarUrl || null,
+          status: "ACTIVE"
+        }
+      });
+      await tx.userInvitation.update({
+        where: { id: invitation.id },
+        data: {
+          isAccepted: true,
+          acceptedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      return user;
+    });
+    const token = generateToken({
+      userId: newUser.id,
+      email: newUser.email,
+      role: newUser.role
+    });
+    const { passwordHash, ...sanitizedUser } = newUser;
+    return {
+      user: sanitizedUser,
+      token
+    };
+  }
+};
+var invitationService = new InvitationService();
+
+// src/validators/invitation.validator.ts
+var import_client3 = require("@prisma/client");
+var createInvitationSchema = external_exports.object({
+  email: external_exports.string().email("Invalid email address format").transform((val) => val.trim().toLowerCase()),
+  role: external_exports.nativeEnum(import_client3.UserRole).default(import_client3.UserRole.SALES_REP)
+});
+var registerWithInviteSchema = external_exports.object({
+  token: external_exports.string().min(16, "Invalid or missing invitation token"),
+  name: external_exports.string().min(2, "Name must be at least 2 characters long"),
+  password: external_exports.string().min(6, "Password must be at least 6 characters long"),
+  phone: external_exports.string().optional(),
+  avatarUrl: external_exports.string().url("Avatar URL must be a valid URL").optional()
+});
+
+// src/controllers/invitation.controller.ts
+var InvitationController = class {
+  constructor(invService) {
+    this.invService = invService;
+    this.create = async (req, res, next) => {
+      try {
+        const validation = createInvitationSchema.safeParse(req.body);
+        if (!validation.success) {
+          const errorMessages = validation.error.issues.map((issue2) => `${issue2.path.join(".")}: ${issue2.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errorMessages}`, 400);
+        }
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const origin2 = req.get("origin") || req.get("referer");
+        const result = await this.invService.createInvitation(validation.data, req.user.userId, origin2);
+        res.status(201).json({
+          success: true,
+          message: result.emailSent ? "Invitation created and email sent successfully." : "Invitation created successfully. You can share the invite link directly.",
+          data: result
+        });
+      } catch (err) {
+        next(err);
+      }
+    };
+    this.list = async (_req, res, next) => {
+      try {
+        const invitations = await this.invService.listInvitations();
+        res.status(200).json({
+          success: true,
+          data: invitations
+        });
+      } catch (err) {
+        next(err);
+      }
+    };
+    this.revoke = async (req, res, next) => {
+      try {
+        const id = typeof req.params.id === "string" ? req.params.id : Array.isArray(req.params.id) ? req.params.id[0] : "";
+        const result = await this.invService.revokeInvitation(id);
+        res.status(200).json(result);
+      } catch (err) {
+        next(err);
+      }
+    };
+    this.validate = async (req, res, next) => {
+      try {
+        const token = typeof req.query.token === "string" ? req.query.token : "";
+        const result = await this.invService.validateToken(token);
+        res.status(200).json({
+          success: true,
+          data: result
+        });
+      } catch (err) {
+        next(err);
+      }
+    };
+    this.registerWithInvite = async (req, res, next) => {
+      try {
+        const validation = registerWithInviteSchema.safeParse(req.body);
+        if (!validation.success) {
+          const errorMessages = validation.error.issues.map((issue2) => `${issue2.path.join(".")}: ${issue2.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errorMessages}`, 400);
+        }
+        const result = await this.invService.registerWithInvite(validation.data);
+        res.status(201).json({
+          success: true,
+          message: "Account created successfully.",
+          data: result
+        });
+      } catch (err) {
+        next(err);
+      }
+    };
+  }
+};
+var invitationController = new InvitationController(invitationService);
+
+// src/middleware/auth.middleware.ts
+var authenticate = (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      throw new AppError("Authentication required. Bearer token missing.", 401);
+    }
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      throw new AppError("Authentication token is missing.", 401);
+    }
+    const decoded = verifyToken(token);
+    req.user = decoded;
+    next();
+  } catch (error51) {
+    if (error51 instanceof AppError) {
+      next(error51);
+    } else {
+      next(new AppError("Invalid or expired authentication token.", 401));
+    }
+  }
+};
+
+// src/routes/auth.routes.ts
+var router = (0, import_express.Router)();
+router.post("/register", authController.register);
+router.post("/register-with-invite", invitationController.registerWithInvite);
+router.post("/login", authController.login);
+router.get("/me", authenticate, authController.me);
+var auth_routes_default = router;
+
+// src/routes/user.routes.ts
+var import_express2 = __toESM(require_express2());
+
+// src/services/user.service.ts
+var UserService = class {
+  constructor(userRepo) {
+    this.userRepo = userRepo;
+  }
+  sanitizeUser(user) {
+    const { passwordHash, ...sanitized } = user;
+    return sanitized;
+  }
+  async getAllUsers() {
+    const users = await this.userRepo.findAll();
+    return users.map((u) => this.sanitizeUser(u));
+  }
+  async getUserById(id) {
+    const user = await this.userRepo.findById(id);
+    if (!user) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+    return this.sanitizeUser(user);
+  }
+  async updateUser(id, input) {
+    const existing = await this.userRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+    const updated = await this.userRepo.update(id, input);
+    return this.sanitizeUser(updated);
+  }
+  async updateUserStatus(id, status) {
+    const existing = await this.userRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+    const updated = await this.userRepo.updateStatus(id, status);
+    return this.sanitizeUser(updated);
+  }
+  async updateUserRole(id, role) {
+    const existing = await this.userRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+    const updated = await this.userRepo.updateRole(id, role);
+    return this.sanitizeUser(updated);
+  }
+  async updateUserPassword(id, passwordPlain) {
+    const existing = await this.userRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`User with ID '${id}' not found.`, 404);
+    }
+    const hashedPassword = await hashPassword(passwordPlain);
+    const updated = await this.userRepo.update(id, { passwordHash: hashedPassword });
+    return this.sanitizeUser(updated);
+  }
+};
+var userService = new UserService(userRepository);
+
+// src/validators/user.validator.ts
+var import_client4 = require("@prisma/client");
+var updateUserSchema = external_exports.object({
+  name: external_exports.string().min(2, "Name must be at least 2 characters").optional(),
+  phone: external_exports.string().nullable().optional(),
+  avatarUrl: external_exports.string().url("Must be a valid URL").nullable().optional()
+});
+var updateStatusSchema = external_exports.object({
+  status: external_exports.nativeEnum(import_client4.UserStatus, {
+    message: "Invalid user status. Valid values: ACTIVE, INACTIVE"
+  })
+});
+var updateRoleSchema = external_exports.object({
+  role: external_exports.nativeEnum(import_client4.UserRole, {
+    message: "Invalid user role. Valid values: ADMIN, MANAGER, SALES_REP, MARKETING, SUPPORT"
+  })
+});
+var updatePasswordSchema = external_exports.object({
+  password: external_exports.string().min(6, "Password must be at least 6 characters long")
+});
+
+// src/controllers/user.controller.ts
+var UserController = class {
+  constructor(userServ) {
+    this.userServ = userServ;
+    this.getAllUsers = async (_req, res, next) => {
+      try {
+        const users = await this.userServ.getAllUsers();
+        res.status(200).json({
+          success: true,
+          message: "Users retrieved successfully.",
+          data: { users },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getUserById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const user = await this.userServ.getUserById(id);
+        res.status(200).json({
+          success: true,
+          message: "User details retrieved successfully.",
+          data: { user },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateUser = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateUserSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const updated = await this.userServ.updateUser(id, validationResult.data);
+        res.status(200).json({
+          success: true,
+          message: "User profile updated successfully.",
+          data: { user: updated },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateStatus = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateStatusSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const updated = await this.userServ.updateUserStatus(id, validationResult.data.status);
+        res.status(200).json({
+          success: true,
+          message: "User status updated successfully.",
+          data: { user: updated },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateRole = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateRoleSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const updated = await this.userServ.updateUserRole(id, validationResult.data.role);
+        res.status(200).json({
+          success: true,
+          message: "User role updated successfully.",
+          data: { user: updated },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updatePassword = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updatePasswordSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const updated = await this.userServ.updateUserPassword(id, validationResult.data.password);
+        res.status(200).json({
+          success: true,
+          message: "User password updated successfully.",
+          data: { user: updated },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var userController = new UserController(userService);
+
+// src/middleware/rbac.middleware.ts
+var authorize = (...allowedRoles) => {
+  return (req, _res, next) => {
+    try {
+      if (!req.user) {
+        throw new AppError("Authentication required.", 401);
+      }
+      if (!allowedRoles.includes(req.user.role)) {
+        throw new AppError(
+          `Forbidden: Role '${req.user.role}' does not have permission to access this resource. Required role(s): [${allowedRoles.join(", ")}]`,
+          403
+        );
+      }
+      next();
+    } catch (error51) {
+      next(error51);
+    }
+  };
+};
+
+// src/routes/user.routes.ts
+var import_client5 = require("@prisma/client");
+var router2 = (0, import_express2.Router)();
+router2.use(authenticate);
+router2.get("/", userController.getAllUsers);
+router2.get("/:id", authorize(import_client5.UserRole.ADMIN, import_client5.UserRole.MANAGER), userController.getUserById);
+router2.patch("/:id", authorize(import_client5.UserRole.ADMIN, import_client5.UserRole.MANAGER), userController.updateUser);
+router2.patch("/:id/status", authorize(import_client5.UserRole.ADMIN), userController.updateStatus);
+router2.patch("/:id/role", authorize(import_client5.UserRole.ADMIN), userController.updateRole);
+router2.patch("/:id/password", authorize(import_client5.UserRole.ADMIN), userController.updatePassword);
+var user_routes_default = router2;
+
+// src/routes/contact.routes.ts
+var import_express3 = __toESM(require_express2());
+
+// src/services/contact.service.ts
+var import_client7 = require("@prisma/client");
+
+// src/repositories/contact.repository.ts
+var ContactRepository = class {
+  async findById(id) {
+    return prisma.contact.findUnique({
+      where: { id },
+      include: {
+        company: {
+          select: { id: true, name: true, logoUrl: true }
+        },
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        },
+        deals: {
+          where: { stage: { isWon: true } },
+          select: { id: true }
+        }
+      }
+    });
+  }
+  async findByEmail(email3) {
+    return prisma.contact.findUnique({
+      where: { email: email3 }
+    });
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.OR = [
+        { firstName: { contains: query.search, mode: "insensitive" } },
+        { lastName: { contains: query.search, mode: "insensitive" } },
+        { email: { contains: query.search, mode: "insensitive" } }
+      ];
+    }
+    if (query.lifecycleStage) {
+      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
+        where.OR = [
+          { lifecycleStage: query.lifecycleStage },
+          { status: query.lifecycleStage },
+          { tags: { has: query.lifecycleStage } }
+        ];
+      } else {
+        where.lifecycleStage = query.lifecycleStage;
+      }
+    }
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        const unassignedFilter = {
+          AND: [
+            { assignedUserId: null },
+            { conversations: { none: { assignedUserId: { not: null } } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          unassignedFilter
+        ];
+      } else {
+        const userFilter = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { conversations: { some: { assignedUserId: query.assignedUserId } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          userFilter
+        ];
+      }
+    }
+    if (query.companyId) {
+      where.companyId = query.companyId;
+    }
+    const [contacts, total] = await Promise.all([
+      prisma.contact.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          company: {
+            select: { id: true, name: true, logoUrl: true }
+          },
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          },
+          conversations: {
+            select: { id: true, assignedUserId: true }
+          },
+          deals: {
+            where: { stage: { isWon: true } },
+            select: { id: true }
+          }
+        }
+      }),
+      prisma.contact.count({ where })
+    ]);
+    return {
+      contacts,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async findAllForExport(query) {
+    const where = {};
+    if (query.search) {
+      where.OR = [
+        { firstName: { contains: query.search, mode: "insensitive" } },
+        { lastName: { contains: query.search, mode: "insensitive" } },
+        { email: { contains: query.search, mode: "insensitive" } }
+      ];
+    }
+    if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
+    return prisma.contact.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      include: {
+        company: { select: { name: true } },
+        assignedUser: { select: { name: true, email: true } }
+      }
+    });
+  }
+  async create(data) {
+    return prisma.contact.create({
+      data,
+      include: {
+        company: {
+          select: { id: true, name: true, logoUrl: true }
+        },
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        }
+      }
+    });
+  }
+  async update(id, data) {
+    return prisma.contact.update({
+      where: { id },
+      data,
+      include: {
+        company: {
+          select: { id: true, name: true, logoUrl: true }
+        },
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        }
+      }
+    });
+  }
+  async delete(id) {
+    return prisma.contact.delete({
+      where: { id }
+    });
+  }
+};
+var contactRepository = new ContactRepository();
+
+// src/repositories/notification.repository.ts
+var NotificationRepository = class {
+  async create(data) {
+    return prisma.notification.create({ data });
+  }
+  async findManyByUserId(userId, options) {
+    const where = { userId };
+    if (options.unreadOnly) {
+      where.read = false;
+    }
+    const [data, total] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: options.skip,
+        take: options.take
+      }),
+      prisma.notification.count({ where })
+    ]);
+    return { data, total };
+  }
+  async countUnreadByUserId(userId) {
+    return prisma.notification.count({
+      where: {
+        userId,
+        read: false
+      }
+    });
+  }
+  async markAsRead(id, userId) {
+    const exists = await prisma.notification.findFirst({
+      where: { id, userId }
+    });
+    if (!exists) return null;
+    return prisma.notification.update({
+      where: { id },
+      data: { read: true }
+    });
+  }
+  async markAllAsRead(userId) {
+    const result = await prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true }
+    });
+    return result.count;
+  }
+  async delete(id, userId) {
+    const exists = await prisma.notification.findFirst({
+      where: { id, userId }
+    });
+    if (!exists) return false;
+    await prisma.notification.delete({
+      where: { id }
+    });
+    return true;
+  }
+};
+var notificationRepository = new NotificationRepository();
+
+// node_modules/socket.io/wrapper.mjs
+var import_dist = __toESM(require_dist3(), 1);
+var { Server, Namespace, Socket } = import_dist.default;
+
+// src/services/socket.service.ts
+var import_jsonwebtoken2 = __toESM(require_jsonwebtoken());
+var import_client6 = require("@prisma/client");
+var prisma2 = new import_client6.PrismaClient();
+var SocketService = class {
+  constructor() {
+    this.io = null;
+    // Map of userId -> Set of socketIds to handle multiple connections per user (e.g. mobile + desktop)
+    this.userSockets = /* @__PURE__ */ new Map();
+  }
+  /**
+   * Initialize Socket.IO with the HTTP server
+   */
+  initialize(server) {
+    this.io = new Server(server, {
+      cors: {
+        origin: config.corsOrigin,
+        methods: ["GET", "POST"]
+      }
+    });
+    this.io.use(async (socket, next) => {
+      try {
+        const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.split(" ")[1];
+        if (!token) {
+          return next(new Error("Authentication error: No token provided"));
+        }
+        const decoded = import_jsonwebtoken2.default.verify(token, config.jwtSecret);
+        const user = await prisma2.user.findUnique({ where: { id: decoded.userId } });
+        if (!user || user.status !== "ACTIVE") {
+          return next(new Error("Authentication error: Invalid or inactive user"));
+        }
+        socket.userId = user.id;
+        next();
+      } catch (error51) {
+        next(new Error("Authentication error: Invalid token"));
+      }
+    });
+    this.io.on("connection", (socket) => {
+      const userId = socket.userId;
+      if (userId) {
+        console.log(`\u{1F50C} Socket connected: User ${userId} [Socket ID: ${socket.id}]`);
+        if (!this.userSockets.has(userId)) {
+          this.userSockets.set(userId, /* @__PURE__ */ new Set());
+        }
+        this.userSockets.get(userId).add(socket.id);
+        socket.on("disconnect", () => {
+          console.log(`\u{1F50C} Socket disconnected: User ${userId} [Socket ID: ${socket.id}]`);
+          const userSet = this.userSockets.get(userId);
+          if (userSet) {
+            userSet.delete(socket.id);
+            if (userSet.size === 0) {
+              this.userSockets.delete(userId);
+            }
+          }
+        });
+      }
+    });
+  }
+  /**
+   * Emit an event to a specific user across all their active socket connections
+   */
+  emitToUser(userId, event, data) {
+    if (!this.io) {
+      console.warn("Socket.IO is not initialized.");
+      return;
+    }
+    const userSocketIds = this.userSockets.get(userId);
+    if (userSocketIds && userSocketIds.size > 0) {
+      userSocketIds.forEach((socketId) => {
+        this.io.to(socketId).emit(event, data);
+      });
+    }
+  }
+  /**
+   * Emit an event to everyone
+   */
+  emitToAll(event, data) {
+    if (this.io) {
+      this.io.emit(event, data);
+    }
+  }
+};
+var socketService = new SocketService();
+
+// src/services/notification.service.ts
+var NotificationService = class {
+  async createNotification(data) {
+    const notification = await notificationRepository.create(data);
+    socketService.emitToUser(data.userId, "notification:receive", notification);
+    return notification;
+  }
+  async getNotifications(userId, page, limit, unreadOnly) {
+    const skip = (page - 1) * limit;
+    return notificationRepository.findManyByUserId(userId, {
+      skip,
+      take: limit,
+      unreadOnly
+    });
+  }
+  async getUnreadCount(userId) {
+    return notificationRepository.countUnreadByUserId(userId);
+  }
+  async markAsRead(id, userId) {
+    return notificationRepository.markAsRead(id, userId);
+  }
+  async markAllAsRead(userId) {
+    return notificationRepository.markAllAsRead(userId);
+  }
+  async deleteNotification(id, userId) {
+    return notificationRepository.delete(id, userId);
+  }
+};
+var notificationService = new NotificationService();
+
+// src/services/contact.service.ts
+var ContactService = class {
+  constructor(contactRepo) {
+    this.contactRepo = contactRepo;
+  }
+  async createContact(input, currentUserId) {
+    if (input.email) {
+      const existing = await this.contactRepo.findByEmail(input.email.toLowerCase());
+      if (existing) {
+        throw new AppError("A contact with this email address already exists.", 400);
+      }
+    }
+    const contact = await prisma.$transaction(async (tx) => {
+      const newContact = await tx.contact.create({
+        data: {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email: input.email ? input.email.toLowerCase() : null,
+          phone: input.phone,
+          jobTitle: input.jobTitle,
+          companyId: input.companyId,
+          assignedUserId: input.assignedUserId || currentUserId,
+          leadSource: input.leadSource,
+          lifecycleStage: input.lifecycleStage,
+          status: input.status,
+          notes: input.notes,
+          tags: input.tags
+        },
+        include: {
+          company: {
+            select: { id: true, name: true, logoUrl: true }
+          },
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client7.ActivityType.CONTACT_CREATED,
+          title: "Contact Created",
+          content: `Created contact ${newContact.firstName} ${newContact.lastName} (${newContact.email || "No email"})`,
+          userId: currentUserId,
+          contactId: newContact.id,
+          metadata: {
+            lifecycleStage: newContact.lifecycleStage,
+            leadSource: newContact.leadSource
+          }
+        }
+      });
+      return newContact;
+    });
+    const assignedUserId = input.assignedUserId || currentUserId;
+    if (assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Lead Assigned",
+        message: `You have been assigned a new lead: ${contact.firstName} ${contact.lastName}`,
+        type: "lead",
+        link: `/contacts/${contact.id}`
+      });
+    }
+    return contact;
+  }
+  async getContacts(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+    return this.contactRepo.findAll(effectiveQuery);
+  }
+  async getContactById(id) {
+    const contact = await this.contactRepo.findById(id);
+    if (!contact) {
+      throw new AppError(`Contact with ID '${id}' not found.`, 404);
+    }
+    return contact;
+  }
+  async updateContact(id, input, currentUserId) {
+    const existing = await this.contactRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Contact with ID '${id}' not found.`, 404);
+    }
+    if (input.email && input.email.toLowerCase() !== existing.email) {
+      const emailConflict = await this.contactRepo.findByEmail(input.email.toLowerCase());
+      if (emailConflict) {
+        throw new AppError("A contact with this email address already exists.", 400);
+      }
+    }
+    if (input.lifecycleStage && input.lifecycleStage !== "CUSTOMER") {
+      const hasWonDeal = await prisma.deal.findFirst({
+        where: {
+          contactId: id,
+          stage: { isWon: true }
+        }
+      });
+      if (hasWonDeal) {
+        input.lifecycleStage = "CUSTOMER";
+      }
+    }
+    const updatedContact = await prisma.$transaction(async (tx) => {
+      const updated = await tx.contact.update({
+        where: { id },
+        data: {
+          ...input,
+          email: input.email !== void 0 ? input.email ? input.email.toLowerCase() : null : void 0
+        },
+        include: {
+          company: {
+            select: { id: true, name: true, logoUrl: true }
+          },
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client7.ActivityType.NOTE,
+          title: "Contact Updated",
+          content: `Updated profile details for contact ${updated.firstName} ${updated.lastName}`,
+          userId: currentUserId,
+          contactId: updated.id,
+          metadata: {
+            updatedFields: Object.keys(input)
+          }
+        }
+      });
+      return updated;
+    });
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Lead Reassigned",
+        message: `You have been assigned the lead: ${updatedContact.firstName} ${updatedContact.lastName}`,
+        type: "lead",
+        link: `/contacts/${updatedContact.id}`
+      });
+    }
+    return updatedContact;
+  }
+  async exportContacts(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    } else if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+      effectiveQuery.assignedUserId = currentUser.userId;
+    }
+    const contacts = await this.contactRepo.findAllForExport(effectiveQuery);
+    const headers = [
+      "ID",
+      "First Name",
+      "Last Name",
+      "Email",
+      "Phone",
+      "Job Title",
+      "Lead Source",
+      "Lifecycle Stage",
+      "Status",
+      "Company",
+      "Assigned User",
+      "Created At",
+      "Updated At"
+    ];
+    const escapeCsv = (val) => {
+      if (val === null || val === void 0) return "";
+      const str = String(val);
+      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    const rows = contacts.map((c) => [
+      c.id,
+      c.firstName,
+      c.lastName,
+      c.email,
+      c.phone,
+      c.jobTitle,
+      c.leadSource,
+      c.lifecycleStage,
+      c.status,
+      c.company?.name || "",
+      c.assignedUser ? `${c.assignedUser.name} (${c.assignedUser.email})` : "",
+      c.createdAt.toISOString(),
+      c.updatedAt.toISOString()
+    ]);
+    const csvLines = [
+      headers.map(escapeCsv).join(","),
+      ...rows.map((row) => row.map(escapeCsv).join(","))
+    ];
+    return csvLines.join("\n");
+  }
+  async deleteContact(id) {
+    const existing = await this.contactRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Contact with ID '${id}' not found.`, 404);
+    }
+    await this.contactRepo.delete(id);
+    return { id };
+  }
+};
+var contactService = new ContactService(contactRepository);
+
+// src/validators/contact.validator.ts
+var import_client8 = require("@prisma/client");
+var createContactSchema = external_exports.object({
+  firstName: external_exports.string().min(1, "First name is required"),
+  lastName: external_exports.string().min(1, "Last name is required"),
+  email: external_exports.string().email("Invalid email address").nullable().optional(),
+  phone: external_exports.string().nullable().optional(),
+  jobTitle: external_exports.string().nullable().optional(),
+  companyId: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional(),
+  leadSource: external_exports.nativeEnum(import_client8.LeadSource).nullable().optional(),
+  lifecycleStage: external_exports.nativeEnum(import_client8.LifecycleStage).optional().default(import_client8.LifecycleStage.LEAD),
+  status: external_exports.string().nullable().optional(),
+  notes: external_exports.string().nullable().optional(),
+  tags: external_exports.array(external_exports.string()).optional().default([])
+});
+var updateContactSchema = createContactSchema.partial();
+var queryContactSchema = external_exports.object({
+  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  search: external_exports.string().optional(),
+  lifecycleStage: external_exports.nativeEnum(import_client8.LifecycleStage).optional(),
+  assignedUserId: external_exports.string().optional(),
+  companyId: external_exports.string().optional()
+});
+
+// src/controllers/contact.controller.ts
+var ContactController = class {
+  constructor(contactServ) {
+    this.contactServ = contactServ;
+    this.createContact = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const validationResult = createContactSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const contact = await this.contactServ.createContact(validationResult.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Contact created successfully.",
+          data: { contact },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getContacts = async (req, res, next) => {
+      try {
+        const validationResult = queryContactSchema.safeParse(req.query);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const result = await this.contactServ.getContacts(validationResult.data, req.user);
+        res.status(200).json({
+          success: true,
+          message: "Contacts retrieved successfully.",
+          data: result,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getContactById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const contact = await this.contactServ.getContactById(id);
+        res.status(200).json({
+          success: true,
+          message: "Contact details retrieved successfully.",
+          data: { contact },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateContact = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateContactSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const contact = await this.contactServ.updateContact(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Contact updated successfully.",
+          data: { contact },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteContact = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.contactServ.deleteContact(id);
+        res.status(200).json({
+          success: true,
+          message: "Contact deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.exportContacts = async (req, res, next) => {
+      try {
+        const validationResult = queryContactSchema.safeParse(req.query);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const csvData = await this.contactServ.exportContacts(validationResult.data, req.user);
+        const dateStr = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+        const filename = `contacts-${dateStr}.csv`;
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+        res.status(200).send(csvData);
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var contactController = new ContactController(contactService);
+
+// src/routes/contact.routes.ts
+var import_client9 = require("@prisma/client");
+var router3 = (0, import_express3.Router)();
+router3.use(authenticate);
+router3.get(
+  "/",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP, import_client9.UserRole.MARKETING, import_client9.UserRole.SUPPORT),
+  contactController.getContacts
+);
+router3.get(
+  "/export",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP, import_client9.UserRole.MARKETING, import_client9.UserRole.SUPPORT),
+  contactController.exportContacts
+);
+router3.get(
+  "/:id",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP, import_client9.UserRole.MARKETING, import_client9.UserRole.SUPPORT),
+  contactController.getContactById
+);
+router3.post(
+  "/",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP),
+  contactController.createContact
+);
+router3.patch(
+  "/:id",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP),
+  contactController.updateContact
+);
+router3.delete(
+  "/:id",
+  authorize(import_client9.UserRole.ADMIN, import_client9.UserRole.MANAGER, import_client9.UserRole.SALES_REP),
+  contactController.deleteContact
+);
+var contact_routes_default = router3;
+
+// src/routes/company.routes.ts
+var import_express4 = __toESM(require_express2());
+
+// src/services/company.service.ts
+var import_client10 = require("@prisma/client");
+
+// src/repositories/company.repository.ts
+var CompanyRepository = class {
+  async findById(id) {
+    return prisma.company.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { contacts: true, deals: true }
+        }
+      }
+    });
+  }
+  async findByName(name) {
+    return prisma.company.findFirst({
+      where: { name: { equals: name, mode: "insensitive" } }
+    });
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.name = { contains: query.search, mode: "insensitive" };
+    }
+    if (query.industry) {
+      where.industry = { equals: query.industry, mode: "insensitive" };
+    }
+    const [companies, total] = await Promise.all([
+      prisma.company.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          _count: {
+            select: { contacts: true, deals: true }
+          }
+        }
+      }),
+      prisma.company.count({ where })
+    ]);
+    return {
+      companies,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async findCompanyContacts(companyId) {
+    return prisma.contact.findMany({
+      where: { companyId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        }
+      }
+    });
+  }
+  async create(data) {
+    return prisma.company.create({
+      data
+    });
+  }
+  async update(id, data) {
+    return prisma.company.update({
+      where: { id },
+      data
+    });
+  }
+  async delete(id) {
+    return prisma.company.delete({
+      where: { id }
+    });
+  }
+};
+var companyRepository = new CompanyRepository();
+
+// src/services/company.service.ts
+var CompanyService = class {
+  constructor(companyRepo) {
+    this.companyRepo = companyRepo;
+  }
+  async createCompany(input, currentUserId) {
+    const existing = await this.companyRepo.findByName(input.name);
+    if (existing) {
+      throw new AppError(`A company with the name '${input.name}' already exists.`, 400);
+    }
+    const company = await prisma.$transaction(async (tx) => {
+      const newCompany = await tx.company.create({
+        data: {
+          name: input.name,
+          website: input.website,
+          industry: input.industry,
+          size: input.size,
+          phone: input.phone,
+          email: input.email ? input.email.toLowerCase() : null,
+          address: input.address,
+          logoUrl: input.logoUrl,
+          annualRevenue: input.annualRevenue,
+          description: input.description
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client10.ActivityType.NOTE,
+          title: "Company Created",
+          content: `Created company ${newCompany.name}${newCompany.industry ? ` (${newCompany.industry})` : ""}`,
+          userId: currentUserId,
+          metadata: {
+            companyId: newCompany.id,
+            companyName: newCompany.name,
+            industry: newCompany.industry
+          }
+        }
+      });
+      return newCompany;
+    });
+    return company;
+  }
+  async getCompanies(query) {
+    return this.companyRepo.findAll(query);
+  }
+  async getCompanyById(id) {
+    const company = await this.companyRepo.findById(id);
+    if (!company) {
+      throw new AppError(`Company with ID '${id}' not found.`, 404);
+    }
+    return company;
+  }
+  async getCompanyContacts(companyId) {
+    const company = await this.companyRepo.findById(companyId);
+    if (!company) {
+      throw new AppError(`Company with ID '${companyId}' not found.`, 404);
+    }
+    return this.companyRepo.findCompanyContacts(companyId);
+  }
+  async updateCompany(id, input, currentUserId) {
+    const existing = await this.companyRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Company with ID '${id}' not found.`, 404);
+    }
+    if (input.name && input.name.toLowerCase() !== existing.name.toLowerCase()) {
+      const nameConflict = await this.companyRepo.findByName(input.name);
+      if (nameConflict) {
+        throw new AppError(`A company with the name '${input.name}' already exists.`, 400);
+      }
+    }
+    const updatedCompany = await prisma.$transaction(async (tx) => {
+      const updated = await tx.company.update({
+        where: { id },
+        data: {
+          ...input,
+          email: input.email !== void 0 ? input.email ? input.email.toLowerCase() : null : void 0
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client10.ActivityType.NOTE,
+          title: "Company Updated",
+          content: `Updated profile details for company ${updated.name}`,
+          userId: currentUserId,
+          metadata: {
+            companyId: updated.id,
+            companyName: updated.name,
+            updatedFields: Object.keys(input)
+          }
+        }
+      });
+      return updated;
+    });
+    return updatedCompany;
+  }
+  async deleteCompany(id) {
+    const existing = await this.companyRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Company with ID '${id}' not found.`, 404);
+    }
+    await this.companyRepo.delete(id);
+    return { id };
+  }
+};
+var companyService = new CompanyService(companyRepository);
+
+// src/validators/company.validator.ts
+var createCompanySchema = external_exports.object({
+  name: external_exports.string().min(1, "Company name is required"),
+  website: external_exports.string().optional().nullable().transform((val) => {
+    if (!val || val.trim() === "") return null;
+    const trimmed = val.trim();
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }),
+  industry: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  size: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  phone: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  email: external_exports.string().optional().nullable().transform((val) => !val || val.trim() === "" ? null : val.trim()).refine((val) => val === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+    message: "Invalid email format"
+  }),
+  address: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  logoUrl: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim()),
+  annualRevenue: external_exports.union([external_exports.number(), external_exports.string().transform((v) => v.trim() === "" ? null : Number(v))]).optional().nullable(),
+  description: external_exports.string().optional().nullable().transform((v) => !v || v.trim() === "" ? null : v.trim())
+});
+var updateCompanySchema = createCompanySchema.partial();
+var queryCompanySchema = external_exports.object({
+  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  search: external_exports.string().optional(),
+  industry: external_exports.string().optional()
+});
+
+// src/controllers/company.controller.ts
+var CompanyController = class {
+  constructor(companyServ) {
+    this.companyServ = companyServ;
+    this.createCompany = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const validationResult = createCompanySchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const company = await this.companyServ.createCompany(validationResult.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Company created successfully.",
+          data: { company },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getCompanies = async (req, res, next) => {
+      try {
+        const validationResult = queryCompanySchema.safeParse(req.query);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const result = await this.companyServ.getCompanies(validationResult.data);
+        res.status(200).json({
+          success: true,
+          message: "Companies retrieved successfully.",
+          data: result,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getCompanyById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const company = await this.companyServ.getCompanyById(id);
+        res.status(200).json({
+          success: true,
+          message: "Company details retrieved successfully.",
+          data: { company },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getCompanyContacts = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const contacts = await this.companyServ.getCompanyContacts(id);
+        res.status(200).json({
+          success: true,
+          message: "Company contacts retrieved successfully.",
+          data: { contacts },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateCompany = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateCompanySchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const company = await this.companyServ.updateCompany(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Company updated successfully.",
+          data: { company },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteCompany = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.companyServ.deleteCompany(id);
+        res.status(200).json({
+          success: true,
+          message: "Company deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var companyController = new CompanyController(companyService);
+
+// src/routes/company.routes.ts
+var import_client11 = require("@prisma/client");
+var router4 = (0, import_express4.Router)();
+router4.use(authenticate);
+router4.get(
+  "/",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP, import_client11.UserRole.MARKETING, import_client11.UserRole.SUPPORT),
+  companyController.getCompanies
+);
+router4.get(
+  "/:id",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP, import_client11.UserRole.MARKETING, import_client11.UserRole.SUPPORT),
+  companyController.getCompanyById
+);
+router4.get(
+  "/:id/contacts",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP, import_client11.UserRole.MARKETING, import_client11.UserRole.SUPPORT),
+  companyController.getCompanyContacts
+);
+router4.post(
+  "/",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP),
+  companyController.createCompany
+);
+router4.patch(
+  "/:id",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP),
+  companyController.updateCompany
+);
+router4.delete(
+  "/:id",
+  authorize(import_client11.UserRole.ADMIN, import_client11.UserRole.MANAGER, import_client11.UserRole.SALES_REP),
+  companyController.deleteCompany
+);
+var company_routes_default = router4;
+
+// src/routes/lead.routes.ts
+var import_express5 = __toESM(require_express2());
+
+// src/services/lead.service.ts
+var import_client12 = require("@prisma/client");
+
+// src/repositories/lead.repository.ts
+var LeadRepository = class {
+  async findById(id) {
+    return prisma.lead.findUnique({
+      where: { id },
+      include: {
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        },
+        convertedContact: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        }
+      }
+    });
+  }
+  async findByEmail(email3) {
+    return prisma.lead.findUnique({
+      where: { email: email3 }
+    });
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.OR = [
+        { firstName: { contains: query.search, mode: "insensitive" } },
+        { lastName: { contains: query.search, mode: "insensitive" } },
+        { email: { contains: query.search, mode: "insensitive" } },
+        { company: { contains: query.search, mode: "insensitive" } }
+      ];
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
+    if (query.source) {
+      where.source = query.source;
+    }
+    if (query.assignedUserId) {
+      where.assignedUserId = query.assignedUserId;
+    }
+    const [leads, total] = await Promise.all([
+      prisma.lead.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          },
+          convertedContact: {
+            select: { id: true, firstName: true, lastName: true, email: true }
+          }
+        }
+      }),
+      prisma.lead.count({ where })
+    ]);
+    return {
+      leads,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.lead.create({
+      data,
+      include: {
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        }
+      }
+    });
+  }
+  async update(id, data) {
+    return prisma.lead.update({
+      where: { id },
+      data,
+      include: {
+        assignedUser: {
+          select: { id: true, name: true, email: true, avatarUrl: true }
+        }
+      }
+    });
+  }
+  async delete(id) {
+    return prisma.lead.delete({
+      where: { id }
+    });
+  }
+};
+var leadRepository = new LeadRepository();
+
+// src/services/lead.service.ts
+var LeadService = class {
+  constructor(leadRepo) {
+    this.leadRepo = leadRepo;
+  }
+  async createLead(input, currentUserId) {
+    const existing = await this.leadRepo.findByEmail(input.email.toLowerCase());
+    if (existing) {
+      throw new AppError(`A lead with email address '${input.email}' already exists.`, 400);
+    }
+    const assignedUserId = input.assignedUserId || currentUserId;
+    const lead = await prisma.$transaction(async (tx) => {
+      const newLead = await tx.lead.create({
+        data: {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email: input.email.toLowerCase(),
+          phone: input.phone,
+          company: input.company,
+          jobTitle: input.jobTitle,
+          source: input.source,
+          status: input.status,
+          notes: input.notes,
+          assignedUserId
+        },
+        include: {
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client12.ActivityType.NOTE,
+          title: "Lead Created",
+          content: `Created lead ${newLead.firstName} ${newLead.lastName || ""}`.trim() + ` (${newLead.email})`,
+          userId: currentUserId,
+          leadId: newLead.id,
+          metadata: {
+            status: newLead.status,
+            source: newLead.source,
+            company: newLead.company,
+            assignedUserId: newLead.assignedUserId
+          }
+        }
+      });
+      return newLead;
+    });
+    return lead;
+  }
+  async getLeads(query) {
+    return this.leadRepo.findAll(query);
+  }
+  async getLeadById(id) {
+    const lead = await this.leadRepo.findById(id);
+    if (!lead) {
+      throw new AppError(`Lead with ID '${id}' not found.`, 404);
+    }
+    return lead;
+  }
+  async updateLead(id, input, currentUserId) {
+    const existing = await this.leadRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Lead with ID '${id}' not found.`, 404);
+    }
+    if (input.email && input.email.toLowerCase() !== existing.email.toLowerCase()) {
+      const emailConflict = await this.leadRepo.findByEmail(input.email.toLowerCase());
+      if (emailConflict) {
+        throw new AppError(`A lead with email address '${input.email}' already exists.`, 400);
+      }
+    }
+    const updatedLead = await prisma.$transaction(async (tx) => {
+      const updated = await tx.lead.update({
+        where: { id },
+        data: {
+          ...input,
+          email: input.email !== void 0 ? input.email.toLowerCase() : void 0
+        },
+        include: {
+          assignedUser: {
+            select: { id: true, name: true, email: true, avatarUrl: true }
+          }
+        }
+      });
+      if (input.status && input.status !== existing.status) {
+        await tx.activity.create({
+          data: {
+            type: import_client12.ActivityType.NOTE,
+            title: "Lead Status Changed",
+            content: `Changed status for lead ${updated.firstName} from '${existing.status}' to '${updated.status}'`,
+            userId: currentUserId,
+            leadId: updated.id,
+            metadata: {
+              previousStatus: existing.status,
+              newStatus: updated.status
+            }
+          }
+        });
+      }
+      if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
+        await tx.activity.create({
+          data: {
+            type: import_client12.ActivityType.NOTE,
+            title: "Lead Reassigned",
+            content: `Reassigned lead ${updated.firstName} to user ID '${updated.assignedUserId}'`,
+            userId: currentUserId,
+            leadId: updated.id,
+            metadata: {
+              previousAssignedUserId: existing.assignedUserId,
+              newAssignedUserId: updated.assignedUserId
+            }
+          }
+        });
+      }
+      await tx.activity.create({
+        data: {
+          type: import_client12.ActivityType.NOTE,
+          title: "Lead Updated",
+          content: `Updated profile details for lead ${updated.firstName}`,
+          userId: currentUserId,
+          leadId: updated.id,
+          metadata: {
+            updatedFields: Object.keys(input)
+          }
+        }
+      });
+      return updated;
+    });
+    return updatedLead;
+  }
+  async convertLead(id, input, currentUserId) {
+    const lead = await this.leadRepo.findById(id);
+    if (!lead) {
+      throw new AppError(`Lead with ID '${id}' not found.`, 404);
+    }
+    if (lead.status === import_client12.LeadStatus.CONVERTED) {
+      throw new AppError("This lead has already been converted.", 400);
+    }
+    return prisma.$transaction(async (tx) => {
+      let companyId = input.companyId || null;
+      if (!companyId && input.createCompany) {
+        const companyName = (input.companyName || lead.company || "").trim();
+        if (companyName) {
+          let existingCompany = await tx.company.findFirst({
+            where: { name: { equals: companyName, mode: "insensitive" } }
+          });
+          if (!existingCompany) {
+            existingCompany = await tx.company.create({
+              data: {
+                name: companyName
+              }
+            });
+          }
+          companyId = existingCompany.id;
+        }
+      } else if (!companyId && lead.company) {
+        const matchedCompany = await tx.company.findFirst({
+          where: { name: { equals: lead.company.trim(), mode: "insensitive" } }
+        });
+        if (matchedCompany) {
+          companyId = matchedCompany.id;
+        }
+      }
+      let contact = await tx.contact.findFirst({
+        where: { email: { equals: lead.email.toLowerCase(), mode: "insensitive" } }
+      });
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            firstName: lead.firstName,
+            lastName: lead.lastName || "",
+            email: lead.email.toLowerCase(),
+            phone: lead.phone,
+            jobTitle: lead.jobTitle,
+            leadSource: lead.source,
+            lifecycleStage: input.createDeal ? import_client12.LifecycleStage.OPPORTUNITY : import_client12.LifecycleStage.LEAD,
+            assignedUserId: lead.assignedUserId || currentUserId,
+            companyId,
+            notes: lead.notes
+          }
+        });
+      } else if (companyId && !contact.companyId) {
+        contact = await tx.contact.update({
+          where: { id: contact.id },
+          data: { companyId }
+        });
+      }
+      let deal;
+      if (input.createDeal && input.dealTitle) {
+        let stageId = input.stageId;
+        if (!stageId) {
+          const defaultStage = await tx.pipelineStage.findFirst({
+            orderBy: { order: "asc" }
+          });
+          if (defaultStage) {
+            stageId = defaultStage.id;
+          }
+        }
+        if (stageId) {
+          deal = await tx.deal.create({
+            data: {
+              title: input.dealTitle,
+              value: input.dealValue || 0,
+              currency: "USD",
+              probability: 20,
+              expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
+              priority: "MEDIUM",
+              stageId,
+              contactId: contact.id,
+              companyId,
+              assignedUserId: contact.assignedUserId || currentUserId
+            }
+          });
+        }
+      }
+      const updatedLead = await tx.lead.update({
+        where: { id: lead.id },
+        data: {
+          status: import_client12.LeadStatus.CONVERTED,
+          convertedContactId: contact.id
+        }
+      });
+      await tx.conversation.updateMany({
+        where: {
+          contactId: null,
+          messages: {
+            some: {
+              senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" }
+            }
+          }
+        },
+        data: {
+          contactId: contact.id
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client12.ActivityType.LEAD_CONVERTED,
+          title: "Lead Converted",
+          content: `Converted lead ${lead.firstName} ${lead.lastName || ""}`.trim() + ` to Contact (${contact.email})` + (deal ? ` and created deal "${deal.title}"` : ""),
+          userId: currentUserId,
+          contactId: contact.id,
+          leadId: lead.id,
+          dealId: deal?.id,
+          metadata: {
+            contactId: contact.id,
+            companyId,
+            dealId: deal?.id
+          }
+        }
+      });
+      return {
+        lead: updatedLead,
+        contact,
+        deal
+      };
+    });
+  }
+  async deleteLead(id) {
+    const existing = await this.leadRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Lead with ID '${id}' not found.`, 404);
+    }
+    await this.leadRepo.delete(id);
+    return { id };
+  }
+};
+var leadService = new LeadService(leadRepository);
+
+// src/validators/lead.validator.ts
+var import_client13 = require("@prisma/client");
+var createLeadSchema = external_exports.object({
+  firstName: external_exports.string().min(1, "First name is required"),
+  lastName: external_exports.string().nullable().optional(),
+  email: external_exports.string().email("Invalid email address"),
+  phone: external_exports.string().nullable().optional(),
+  company: external_exports.string().nullable().optional(),
+  jobTitle: external_exports.string().nullable().optional(),
+  source: external_exports.nativeEnum(import_client13.LeadSource).nullable().optional(),
+  status: external_exports.nativeEnum(import_client13.LeadStatus).optional().default(import_client13.LeadStatus.NEW),
+  notes: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional()
+});
+var updateLeadSchema = createLeadSchema.partial();
+var queryLeadSchema = external_exports.object({
+  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  search: external_exports.string().optional(),
+  status: external_exports.nativeEnum(import_client13.LeadStatus).optional(),
+  source: external_exports.nativeEnum(import_client13.LeadSource).optional(),
+  assignedUserId: external_exports.string().optional()
+});
+var convertLeadSchema = external_exports.object({
+  companyId: external_exports.string().nullable().optional(),
+  createCompany: external_exports.boolean().optional(),
+  companyName: external_exports.string().optional(),
+  createDeal: external_exports.boolean().optional(),
+  dealTitle: external_exports.string().optional(),
+  dealValue: external_exports.number().optional(),
+  stageId: external_exports.string().optional()
+});
+
+// src/controllers/lead.controller.ts
+var LeadController = class {
+  constructor(leadServ) {
+    this.leadServ = leadServ;
+    this.createLead = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const validationResult = createLeadSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const lead = await this.leadServ.createLead(validationResult.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Lead created successfully.",
+          data: { lead },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getLeads = async (req, res, next) => {
+      try {
+        const validationResult = queryLeadSchema.safeParse(req.query);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const result = await this.leadServ.getLeads(validationResult.data);
+        res.status(200).json({
+          success: true,
+          message: "Leads retrieved successfully.",
+          data: result,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getLeadById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const lead = await this.leadServ.getLeadById(id);
+        res.status(200).json({
+          success: true,
+          message: "Lead details retrieved successfully.",
+          data: { lead },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateLead = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = updateLeadSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const lead = await this.leadServ.updateLead(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Lead updated successfully.",
+          data: { lead },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.convertLead = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = convertLeadSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const result = await this.leadServ.convertLead(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Lead converted to contact successfully.",
+          data: result,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteLead = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.leadServ.deleteLead(id);
+        res.status(200).json({
+          success: true,
+          message: "Lead deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var leadController = new LeadController(leadService);
+
+// src/routes/lead.routes.ts
+var import_client14 = require("@prisma/client");
+var router5 = (0, import_express5.Router)();
+router5.use(authenticate);
+router5.get(
+  "/",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP, import_client14.UserRole.MARKETING, import_client14.UserRole.SUPPORT),
+  leadController.getLeads
+);
+router5.get(
+  "/:id",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP, import_client14.UserRole.MARKETING, import_client14.UserRole.SUPPORT),
+  leadController.getLeadById
+);
+router5.post(
+  "/",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP),
+  leadController.createLead
+);
+router5.patch(
+  "/:id",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP),
+  leadController.updateLead
+);
+router5.post(
+  "/:id/convert",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP),
+  leadController.convertLead
+);
+router5.delete(
+  "/:id",
+  authorize(import_client14.UserRole.ADMIN, import_client14.UserRole.MANAGER, import_client14.UserRole.SALES_REP),
+  leadController.deleteLead
+);
+var lead_routes_default = router5;
+
+// src/routes/deal.routes.ts
+var import_express6 = __toESM(require_express2());
+
+// src/services/deal.service.ts
+var import_client15 = require("@prisma/client");
+
+// src/repositories/deal.repository.ts
+var dealInclude = {
+  stage: {
+    select: { id: true, name: true, order: true, color: true, probability: true, isWon: true, isLost: true }
+  },
+  contact: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatarUrl: true,
+      assignedUserId: true,
+      conversations: {
+        select: { assignedUserId: true }
+      }
+    }
+  },
+  company: {
+    select: { id: true, name: true, logoUrl: true }
+  },
+  assignedUser: {
+    select: { id: true, name: true, email: true, avatarUrl: true }
+  }
+};
+var DealRepository = class {
+  async findById(id) {
+    return prisma.deal.findUnique({
+      where: { id },
+      include: dealInclude
+    });
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      where.OR = [
+        { title: { contains: searchTerm, mode: "insensitive" } },
+        {
+          contact: {
+            OR: [
+              { firstName: { contains: searchTerm, mode: "insensitive" } },
+              { lastName: { contains: searchTerm, mode: "insensitive" } },
+              { email: { contains: searchTerm, mode: "insensitive" } }
+            ]
+          }
+        },
+        {
+          company: {
+            name: { contains: searchTerm, mode: "insensitive" }
+          }
+        }
+      ];
+    }
+    if (query.stageId) where.stageId = query.stageId;
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        const unassignedFilter = {
+          AND: [
+            { assignedUserId: null },
+            {
+              OR: [
+                { contactId: null },
+                {
+                  contact: {
+                    assignedUserId: null,
+                    conversations: { none: { assignedUserId: { not: null } } }
+                  }
+                }
+              ]
+            }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          unassignedFilter
+        ];
+      } else {
+        const userFilter = {
+          OR: [
+            { assignedUserId: query.assignedUserId },
+            { contact: { assignedUserId: query.assignedUserId } },
+            { contact: { conversations: { some: { assignedUserId: query.assignedUserId } } } }
+          ]
+        };
+        where.AND = [
+          ...where.AND ? Array.isArray(where.AND) ? where.AND : [where.AND] : [],
+          userFilter
+        ];
+      }
+    }
+    if (query.companyId) where.companyId = query.companyId;
+    if (query.contactId) where.contactId = query.contactId;
+    const [deals, total] = await Promise.all([
+      prisma.deal.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: dealInclude
+      }),
+      prisma.deal.count({ where })
+    ]);
+    return {
+      deals,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.deal.create({
+      data,
+      include: dealInclude
+    });
+  }
+  async update(id, data) {
+    return prisma.deal.update({
+      where: { id },
+      data,
+      include: dealInclude
+    });
+  }
+  async delete(id) {
+    return prisma.deal.delete({
+      where: { id }
+    });
+  }
+};
+var dealRepository = new DealRepository();
+
+// src/services/deal.service.ts
+var DealService = class {
+  constructor(dealRepo) {
+    this.dealRepo = dealRepo;
+  }
+  async createDeal(input, currentUserId) {
+    const stage = await prisma.pipelineStage.findUnique({ where: { id: input.stageId } });
+    if (!stage) {
+      throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
+    }
+    if (input.companyId) {
+      const company = await prisma.company.findUnique({ where: { id: input.companyId } });
+      if (!company) throw new AppError(`Company with ID '${input.companyId}' not found.`, 400);
+    }
+    if (input.contactId) {
+      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
+      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
+    }
+    const deal = await prisma.$transaction(async (tx) => {
+      const newDeal = await tx.deal.create({
+        data: {
+          title: input.title,
+          value: input.value ?? 0,
+          currency: input.currency ?? "USD",
+          probability: input.probability ?? stage.probability,
+          expectedCloseDate: input.expectedCloseDate,
+          priority: input.priority,
+          notes: input.notes,
+          lostReason: input.lostReason,
+          stage: { connect: { id: input.stageId } },
+          ...input.companyId && { company: { connect: { id: input.companyId } } },
+          ...input.contactId && { contact: { connect: { id: input.contactId } } },
+          ...input.assignedUserId ? { assignedUser: { connect: { id: input.assignedUserId } } } : { assignedUser: { connect: { id: currentUserId } } }
+        },
+        include: {
+          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
+          company: { select: { id: true, name: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          assignedUser: { select: { id: true, name: true, email: true } }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client15.ActivityType.DEAL_CREATED,
+          title: "Deal Created",
+          content: `Created deal "${newDeal.title}" worth ${newDeal.currency} ${newDeal.value.toLocaleString()} in stage "${stage.name}"`,
+          userId: currentUserId,
+          dealId: newDeal.id,
+          metadata: {
+            stageId: newDeal.stageId,
+            stageName: stage.name,
+            value: newDeal.value,
+            currency: newDeal.currency
+          }
+        }
+      });
+      if (input.contactId) {
+        if (stage.isWon) {
+          await tx.contact.update({
+            where: { id: input.contactId },
+            data: { lifecycleStage: "CUSTOMER" }
+          });
+        } else {
+          const existingWon = await tx.deal.findFirst({
+            where: {
+              contactId: input.contactId,
+              stage: { isWon: true }
+            }
+          });
+          if (existingWon) {
+            await tx.contact.update({
+              where: { id: input.contactId },
+              data: { lifecycleStage: "CUSTOMER" }
+            });
+          } else {
+            const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
+            const stagesToPromote = ["LEAD", "MQL", "SQL"];
+            if (contact && stagesToPromote.includes(contact.lifecycleStage)) {
+              await tx.contact.update({
+                where: { id: input.contactId },
+                data: { lifecycleStage: "OPPORTUNITY" }
+              });
+            }
+          }
+        }
+      }
+      return newDeal;
+    });
+    const assignedUserId = input.assignedUserId || currentUserId;
+    if (assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Deal Assigned",
+        message: `You have been assigned a new deal: "${deal.title}"`,
+        type: "deal",
+        link: `/deals/${deal.id}`
+      });
+    }
+    return deal;
+  }
+  async getDeals(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else if (!effectiveQuery.contactId) {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.dealRepo.findAll(effectiveQuery);
+  }
+  async getDealById(id) {
+    const deal = await this.dealRepo.findById(id);
+    if (!deal) {
+      throw new AppError(`Deal with ID '${id}' not found.`, 404);
+    }
+    return deal;
+  }
+  async updateDeal(id, input, currentUserId) {
+    const existing = await this.dealRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Deal with ID '${id}' not found.`, 404);
+    }
+    if (input.stageId && input.stageId !== existing.stageId) {
+      const stage = await prisma.pipelineStage.findUnique({ where: { id: input.stageId } });
+      if (!stage) throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
+    }
+    const updatedDeal = await prisma.$transaction(async (tx) => {
+      const updated = await tx.deal.update({
+        where: { id },
+        data: {
+          ...input.title !== void 0 && { title: input.title },
+          ...input.value !== void 0 && { value: input.value },
+          ...input.currency !== void 0 && { currency: input.currency },
+          ...input.probability !== void 0 && { probability: input.probability },
+          ...input.expectedCloseDate !== void 0 && { expectedCloseDate: input.expectedCloseDate },
+          ...input.closedAt !== void 0 && { closedAt: input.closedAt },
+          ...input.priority !== void 0 && { priority: input.priority },
+          ...input.notes !== void 0 && { notes: input.notes },
+          ...input.lostReason !== void 0 && { lostReason: input.lostReason },
+          ...input.stageId !== void 0 && { stage: { connect: { id: input.stageId } } },
+          ...input.companyId !== void 0 && {
+            company: input.companyId ? { connect: { id: input.companyId } } : { disconnect: true }
+          },
+          ...input.contactId !== void 0 && {
+            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
+          },
+          ...input.assignedUserId !== void 0 && {
+            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
+          }
+        },
+        include: {
+          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
+          company: { select: { id: true, name: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          assignedUser: { select: { id: true, name: true, email: true } }
+        }
+      });
+      if (input.stageId && input.stageId !== existing.stageId) {
+        await tx.activity.create({
+          data: {
+            type: import_client15.ActivityType.STAGE_CHANGE,
+            title: "Deal Stage Changed",
+            content: `Moved deal "${updated.title}" to stage "${updated.stage?.name}"`,
+            userId: currentUserId,
+            dealId: updated.id,
+            metadata: {
+              previousStageId: existing.stageId,
+              newStageId: updated.stageId,
+              newStageName: updated.stage?.name
+            }
+          }
+        });
+      }
+      await tx.activity.create({
+        data: {
+          type: import_client15.ActivityType.NOTE,
+          title: "Deal Updated",
+          content: `Updated deal "${updated.title}"`,
+          userId: currentUserId,
+          dealId: updated.id,
+          metadata: { updatedFields: Object.keys(input) }
+        }
+      });
+      const effectiveContactId = updated.contactId;
+      if (effectiveContactId && !input.assignedUserId) {
+        const contact = await tx.contact.findUnique({
+          where: { id: effectiveContactId },
+          include: { conversations: { select: { assignedUserId: true } } }
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId }
+          });
+          updated.assignedUserId = targetUserId;
+        }
+      }
+      if (effectiveContactId) {
+        const hasWonDeal = await tx.deal.findFirst({
+          where: {
+            contactId: effectiveContactId,
+            stage: { isWon: true }
+          }
+        });
+        if (hasWonDeal) {
+          await tx.contact.update({
+            where: { id: effectiveContactId },
+            data: { lifecycleStage: "CUSTOMER" }
+          });
+        }
+      }
+      return updated;
+    });
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Deal Reassigned",
+        message: `You have been assigned the deal: "${updatedDeal.title}"`,
+        type: "deal",
+        link: `/deals/${updatedDeal.id}`
+      });
+    }
+    return updatedDeal;
+  }
+  async deleteDeal(id) {
+    const existing = await this.dealRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Deal with ID '${id}' not found.`, 404);
+    }
+    await this.dealRepo.delete(id);
+    return { id };
+  }
+};
+var dealService = new DealService(dealRepository);
+
+// src/validators/deal.validator.ts
+var import_client16 = require("@prisma/client");
+var createDealSchema = external_exports.object({
+  title: external_exports.string().min(1, "Deal title is required"),
+  value: external_exports.number().nonnegative("Deal value must be 0 or greater").optional().default(0),
+  currency: external_exports.string().optional().default("USD"),
+  probability: external_exports.number().min(0).max(100).optional().default(0),
+  expectedCloseDate: external_exports.string().min(1, "Expected close date is required").transform((val) => new Date(val)),
+  priority: external_exports.nativeEnum(import_client16.Priority).optional().default(import_client16.Priority.MEDIUM),
+  notes: external_exports.string().nullable().optional(),
+  lostReason: external_exports.string().nullable().optional(),
+  stageId: external_exports.string().min(1, "Pipeline stage is required"),
+  contactId: external_exports.string().nullable().optional(),
+  companyId: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional()
+});
+var updateDealSchema = external_exports.object({
+  title: external_exports.string().min(1, "Deal title is required").optional(),
+  value: external_exports.number().nonnegative("Deal value must be 0 or greater").optional(),
+  currency: external_exports.string().optional(),
+  probability: external_exports.number().min(0).max(100).optional(),
+  expectedCloseDate: external_exports.string().transform((val) => new Date(val)).optional(),
+  closedAt: external_exports.string().transform((val) => new Date(val)).nullable().optional(),
+  priority: external_exports.nativeEnum(import_client16.Priority).optional(),
+  notes: external_exports.string().nullable().optional(),
+  lostReason: external_exports.string().nullable().optional(),
+  stageId: external_exports.string().optional(),
+  contactId: external_exports.string().nullable().optional(),
+  companyId: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional()
+});
+var queryDealSchema = external_exports.object({
+  page: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 1),
+  limit: external_exports.union([external_exports.string(), external_exports.number()]).optional().transform((val) => val ? Number(val) : 10),
+  search: external_exports.string().optional(),
+  stageId: external_exports.string().optional(),
+  assignedUserId: external_exports.string().optional(),
+  companyId: external_exports.string().optional(),
+  contactId: external_exports.string().optional()
+});
+
+// src/controllers/deal.controller.ts
+var DealController = class {
+  constructor(dealServ) {
+    this.dealServ = dealServ;
+    this.createDeal = async (req, res, next) => {
+      try {
+        if (!req.user) throw new AppError("Authentication required.", 401);
+        const result = createDealSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const deal = await this.dealServ.createDeal(result.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Deal created successfully.",
+          data: { deal },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getDeals = async (req, res, next) => {
+      try {
+        const result = queryDealSchema.safeParse(req.query);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const data = await this.dealServ.getDeals(result.data, req.user);
+        res.status(200).json({
+          success: true,
+          message: "Deals retrieved successfully.",
+          data,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getDealById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const deal = await this.dealServ.getDealById(id);
+        res.status(200).json({
+          success: true,
+          message: "Deal retrieved successfully.",
+          data: { deal },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateDeal = async (req, res, next) => {
+      try {
+        if (!req.user) throw new AppError("Authentication required.", 401);
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const result = updateDealSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const deal = await this.dealServ.updateDeal(id, result.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Deal updated successfully.",
+          data: { deal },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteDeal = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.dealServ.deleteDeal(id);
+        res.status(200).json({
+          success: true,
+          message: "Deal deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var dealController = new DealController(dealService);
+
+// src/services/pipeline.service.ts
+var import_client17 = require("@prisma/client");
+
+// src/repositories/pipeline.repository.ts
+var PipelineRepository = class {
+  async findAllStages() {
+    return prisma.pipelineStage.findMany({
+      orderBy: { order: "asc" },
+      include: {
+        deals: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            assignedUser: {
+              select: { id: true, name: true, email: true, avatarUrl: true }
+            },
+            contact: {
+              select: { id: true, firstName: true, lastName: true, email: true, avatarUrl: true }
+            },
+            company: {
+              select: { id: true, name: true, logoUrl: true }
+            }
+          }
+        }
+      }
+    });
+  }
+};
+var pipelineRepository = new PipelineRepository();
+
+// src/services/pipeline.service.ts
+var PipelineService = class {
+  constructor(pipelineRepo) {
+    this.pipelineRepo = pipelineRepo;
+  }
+  async getPipelineStages() {
+    return this.pipelineRepo.findAllStages();
+  }
+  async moveDealStage(dealId, input, currentUserId) {
+    const deal = await prisma.deal.findUnique({
+      where: { id: dealId },
+      include: { stage: true }
+    });
+    if (!deal) {
+      throw new AppError(`Deal with ID '${dealId}' not found.`, 404);
+    }
+    const targetStage = await prisma.pipelineStage.findUnique({
+      where: { id: input.stageId }
+    });
+    if (!targetStage) {
+      throw new AppError(`Pipeline stage with ID '${input.stageId}' not found.`, 400);
+    }
+    let closedAt = null;
+    let lostReason = null;
+    let probability = targetStage.probability;
+    if (targetStage.isWon || targetStage.isLost) {
+      closedAt = /* @__PURE__ */ new Date();
+      if (targetStage.isLost) {
+        lostReason = input.lostReason || "No reason provided";
+      }
+    }
+    const updatedDeal = await prisma.$transaction(async (tx) => {
+      const updated = await tx.deal.update({
+        where: { id: dealId },
+        data: {
+          stageId: targetStage.id,
+          probability,
+          closedAt,
+          lostReason
+        },
+        include: {
+          stage: { select: { id: true, name: true, color: true, isWon: true, isLost: true } },
+          company: { select: { id: true, name: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          assignedUser: { select: { id: true, name: true, email: true } }
+        }
+      });
+      if (updated.contactId) {
+        const contact = await tx.contact.findUnique({
+          where: { id: updated.contactId },
+          include: { conversations: { select: { assignedUserId: true } } }
+        });
+        const targetUserId = contact?.assignedUserId || contact?.conversations?.find((c) => c.assignedUserId)?.assignedUserId;
+        if (targetUserId && (!updated.assignedUserId || updated.assignedUserId !== targetUserId)) {
+          await tx.deal.update({
+            where: { id: updated.id },
+            data: { assignedUserId: targetUserId }
+          });
+          updated.assignedUserId = targetUserId;
+        }
+        if (targetStage.isWon) {
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { lifecycleStage: "CUSTOMER" }
+          });
+        } else {
+          const hasOtherWon = await tx.deal.findFirst({
+            where: {
+              contactId: updated.contactId,
+              id: { not: dealId },
+              stage: { isWon: true }
+            }
+          });
+          if (hasOtherWon) {
+            await tx.contact.update({
+              where: { id: updated.contactId },
+              data: { lifecycleStage: "CUSTOMER" }
+            });
+          }
+        }
+      }
+      await tx.activity.create({
+        data: {
+          type: import_client17.ActivityType.STAGE_CHANGE,
+          title: "Deal Stage Changed",
+          content: `Moved deal "${updated.title}" from "${deal.stage.name}" to "${targetStage.name}"${lostReason ? ` (Reason: ${lostReason})` : ""}`,
+          userId: currentUserId,
+          dealId: updated.id,
+          metadata: {
+            previousStageId: deal.stage.id,
+            previousStageName: deal.stage.name,
+            newStageId: targetStage.id,
+            newStageName: targetStage.name,
+            lostReason
+          }
+        }
+      });
+      return updated;
+    });
+    return updatedDeal;
+  }
+};
+var pipelineService = new PipelineService(pipelineRepository);
+
+// src/validators/pipeline.validator.ts
+var moveDealStageSchema = external_exports.object({
+  stageId: external_exports.string().min(1, "Target stage ID is required"),
+  lostReason: external_exports.string().nullable().optional()
+});
+
+// src/controllers/pipeline.controller.ts
+var PipelineController = class {
+  constructor(pipelineServ) {
+    this.pipelineServ = pipelineServ;
+    this.getPipelineStages = async (_req, res, next) => {
+      try {
+        const stages = await this.pipelineServ.getPipelineStages();
+        res.status(200).json({
+          success: true,
+          message: "Pipeline stages with deals retrieved successfully.",
+          data: { stages },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.moveDealStage = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const validationResult = moveDealStageSchema.safeParse(req.body);
+        if (!validationResult.success) {
+          const errors = validationResult.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const deal = await this.pipelineServ.moveDealStage(id, validationResult.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Deal pipeline stage updated successfully.",
+          data: { deal },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var pipelineController = new PipelineController(pipelineService);
+
+// src/routes/deal.routes.ts
+var import_client18 = require("@prisma/client");
+var router6 = (0, import_express6.Router)();
+router6.use(authenticate);
+router6.get(
+  "/",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP, import_client18.UserRole.MARKETING, import_client18.UserRole.SUPPORT),
+  dealController.getDeals
+);
+router6.get(
+  "/:id",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP, import_client18.UserRole.MARKETING, import_client18.UserRole.SUPPORT),
+  dealController.getDealById
+);
+router6.post(
+  "/",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP),
+  dealController.createDeal
+);
+router6.patch(
+  "/:id",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP),
+  dealController.updateDeal
+);
+router6.patch(
+  "/:id/stage",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP),
+  pipelineController.moveDealStage
+);
+router6.delete(
+  "/:id",
+  authorize(import_client18.UserRole.ADMIN, import_client18.UserRole.MANAGER, import_client18.UserRole.SALES_REP),
+  dealController.deleteDeal
+);
+var deal_routes_default = router6;
+
+// src/routes/pipeline.routes.ts
+var import_express7 = __toESM(require_express2());
+var import_client19 = require("@prisma/client");
+var router7 = (0, import_express7.Router)();
+router7.use(authenticate);
+router7.get(
+  "/stages",
+  authorize(import_client19.UserRole.ADMIN, import_client19.UserRole.MANAGER, import_client19.UserRole.SALES_REP, import_client19.UserRole.MARKETING, import_client19.UserRole.SUPPORT),
+  pipelineController.getPipelineStages
+);
+var pipeline_routes_default = router7;
+
+// src/routes/task.routes.ts
+var import_express8 = __toESM(require_express2());
+
+// src/services/task.service.ts
+var import_client20 = require("@prisma/client");
+
+// src/repositories/task.repository.ts
+var taskInclude = {
+  assignedUser: {
+    select: { id: true, name: true, email: true, avatarUrl: true }
+  },
+  contact: {
+    select: { id: true, firstName: true, lastName: true, email: true }
+  },
+  deal: {
+    select: { id: true, title: true, value: true, stageId: true }
+  }
+};
+var TaskRepository = class {
+  async findById(id) {
+    return prisma.task.findUnique({
+      where: { id },
+      include: taskInclude
+    });
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.title = { contains: query.search, mode: "insensitive" };
+    }
+    if (query.completed !== void 0) {
+      where.completed = query.completed;
+    }
+    if (query.priority) {
+      where.priority = query.priority;
+    }
+    if (query.isAnnouncement !== void 0) {
+      where.isAnnouncement = query.isAnnouncement;
+    }
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+        where.isAnnouncement = false;
+      } else if (query.assignedUserId === "announcements") {
+        where.isAnnouncement = true;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    } else if (query.userScopedId) {
+      where.OR = [
+        { assignedUserId: query.userScopedId },
+        { isAnnouncement: true }
+      ];
+    }
+    if (query.contactId) {
+      where.contactId = query.contactId;
+    }
+    if (query.dealId) {
+      where.dealId = query.dealId;
+    }
+    const [tasks, total] = await Promise.all([
+      prisma.task.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { dueDate: "asc" },
+        include: taskInclude
+      }),
+      prisma.task.count({ where })
+    ]);
+    return {
+      tasks,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.task.create({
+      data,
+      include: taskInclude
+    });
+  }
+  async update(id, data) {
+    return prisma.task.update({
+      where: { id },
+      data,
+      include: taskInclude
+    });
+  }
+  async delete(id) {
+    return prisma.task.delete({
+      where: { id }
+    });
+  }
+};
+var taskRepository = new TaskRepository();
+
+// src/services/task.service.ts
+var TaskService = class {
+  constructor(taskRepo) {
+    this.taskRepo = taskRepo;
+  }
+  async createTask(input, currentUserId) {
+    let assignedUserId = null;
+    if (input.isAnnouncement) {
+      assignedUserId = input.assignedUserId || null;
+    } else {
+      assignedUserId = input.assignedUserId || currentUserId;
+    }
+    if (assignedUserId) {
+      const userExists = await prisma.user.findUnique({ where: { id: assignedUserId } });
+      if (!userExists) {
+        throw new AppError(`Assigned user with ID '${assignedUserId}' not found.`, 400);
+      }
+    }
+    if (input.contactId) {
+      const contactExists = await prisma.contact.findUnique({ where: { id: input.contactId } });
+      if (!contactExists) {
+        throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
+      }
+    }
+    if (input.dealId) {
+      const dealExists = await prisma.deal.findUnique({ where: { id: input.dealId } });
+      if (!dealExists) {
+        throw new AppError(`Deal with ID '${input.dealId}' not found.`, 400);
+      }
+    }
+    const task = await prisma.$transaction(async (tx) => {
+      const newTask = await tx.task.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          taskType: input.taskType,
+          priority: input.priority,
+          dueDate: input.dueDate,
+          dueTime: input.dueTime,
+          companyName: input.companyName,
+          isAnnouncement: Boolean(input.isAnnouncement),
+          ...input.contactId && { contact: { connect: { id: input.contactId } } },
+          ...input.dealId && { deal: { connect: { id: input.dealId } } },
+          ...assignedUserId ? { assignedUser: { connect: { id: assignedUserId } } } : {}
+        },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          deal: { select: { id: true, title: true } }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client20.ActivityType.TASK_COMPLETED,
+          title: newTask.isAnnouncement ? "Company Announcement Created" : "Task Created",
+          content: newTask.isAnnouncement ? `Company Announcement "${newTask.title}" broadcast to all employees` : `Task "${newTask.title}" was created and assigned to ${newTask.assignedUser?.name || "unassigned"}`,
+          userId: currentUserId,
+          ...newTask.contactId && { contactId: newTask.contactId },
+          ...newTask.dealId && { dealId: newTask.dealId },
+          metadata: {
+            taskId: newTask.id,
+            dueDate: newTask.dueDate,
+            priority: newTask.priority,
+            isAnnouncement: newTask.isAnnouncement
+          }
+        }
+      });
+      return newTask;
+    });
+    if (input.isAnnouncement) {
+      const allUsers = await prisma.user.findMany({
+        where: { status: "ACTIVE", id: { not: currentUserId } },
+        select: { id: true }
+      });
+      for (const u of allUsers) {
+        await notificationService.createNotification({
+          userId: u.id,
+          title: "Company Announcement",
+          message: `\u{1F4E2} Company Announcement: "${task.title}"`,
+          type: "task",
+          link: `/tasks`
+        });
+      }
+    } else if (assignedUserId && assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: assignedUserId,
+        title: "New Task Assigned",
+        message: `You have been assigned a new task: "${task.title}"`,
+        type: "task",
+        link: `/tasks/${task.id}`
+      });
+    }
+    return task;
+  }
+  async getTasks(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else if (effectiveQuery.assignedUserId === "announcements" || effectiveQuery.isAnnouncement === true) {
+        effectiveQuery.isAnnouncement = true;
+        delete effectiveQuery.assignedUserId;
+      } else {
+        effectiveQuery.userScopedId = currentUser.userId;
+        delete effectiveQuery.assignedUserId;
+      }
+    } else {
+      if (effectiveQuery.assignedUserId === "mine" && currentUser?.userId) {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.taskRepo.findAll(effectiveQuery);
+  }
+  async getTaskById(id) {
+    const task = await this.taskRepo.findById(id);
+    if (!task) {
+      throw new AppError(`Task with ID '${id}' not found.`, 404);
+    }
+    return task;
+  }
+  async updateTask(id, input, currentUserId) {
+    const existing = await this.taskRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Task with ID '${id}' not found.`, 404);
+    }
+    if (input.assignedUserId) {
+      const userExists = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
+      if (!userExists) {
+        throw new AppError(`Assigned user with ID '${input.assignedUserId}' not found.`, 400);
+      }
+    }
+    let completedAt = void 0;
+    if (input.completed !== void 0) {
+      if (input.completed && !existing.completed) {
+        completedAt = /* @__PURE__ */ new Date();
+      } else if (!input.completed && existing.completed) {
+        completedAt = null;
+      }
+    }
+    const updatedTask = await prisma.$transaction(async (tx) => {
+      const updated = await tx.task.update({
+        where: { id },
+        data: {
+          title: input.title,
+          description: input.description,
+          taskType: input.taskType,
+          priority: input.priority,
+          dueDate: input.dueDate,
+          dueTime: input.dueTime,
+          companyName: input.companyName,
+          completed: input.completed,
+          completedAt,
+          ...input.isAnnouncement !== void 0 && { isAnnouncement: input.isAnnouncement },
+          ...input.assignedUserId !== void 0 && {
+            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
+          },
+          ...input.contactId !== void 0 && {
+            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
+          },
+          ...input.dealId !== void 0 && {
+            deal: input.dealId ? { connect: { id: input.dealId } } : { disconnect: true }
+          }
+        },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          deal: { select: { id: true, title: true } }
+        }
+      });
+      if (input.completed !== void 0) {
+        if (input.completed && !existing.completed) {
+          await tx.activity.create({
+            data: {
+              type: import_client20.ActivityType.TASK_COMPLETED,
+              title: "Task Completed",
+              content: `Marked task "${updated.title}" as completed`,
+              userId: currentUserId,
+              ...updated.contactId && { contactId: updated.contactId },
+              ...updated.dealId && { dealId: updated.dealId },
+              metadata: { taskId: updated.id }
+            }
+          });
+        } else if (!input.completed && existing.completed) {
+          await tx.activity.create({
+            data: {
+              type: import_client20.ActivityType.NOTE,
+              title: "Task Reopened",
+              content: `Reopened task "${updated.title}"`,
+              userId: currentUserId,
+              ...updated.contactId && { contactId: updated.contactId },
+              ...updated.dealId && { dealId: updated.dealId },
+              metadata: { taskId: updated.id }
+            }
+          });
+        }
+      }
+      return updated;
+    });
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "Task Reassigned",
+        message: `You have been assigned the task: "${updatedTask.title}"`,
+        type: "task",
+        link: `/tasks/${updatedTask.id}`
+      });
+    }
+    return updatedTask;
+  }
+  async deleteTask(id) {
+    const existing = await this.taskRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Task with ID '${id}' not found.`, 404);
+    }
+    await this.taskRepo.delete(id);
+    return { id };
+  }
+};
+var taskService = new TaskService(taskRepository);
+
+// src/validators/task.validator.ts
+var import_client21 = require("@prisma/client");
+var createTaskSchema = external_exports.object({
+  title: external_exports.string().min(1, "Task title is required"),
+  description: external_exports.string().nullable().optional(),
+  taskType: external_exports.nativeEnum(import_client21.TaskType).optional().default(import_client21.TaskType.CALL),
+  priority: external_exports.nativeEnum(import_client21.Priority).optional().default(import_client21.Priority.MEDIUM),
+  dueDate: external_exports.string().min(1, "Due date is required").transform((val) => new Date(val)),
+  dueTime: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional(),
+  contactId: external_exports.string().nullable().optional(),
+  dealId: external_exports.string().nullable().optional(),
+  companyName: external_exports.string().nullable().optional(),
+  isAnnouncement: external_exports.boolean().optional().default(false)
+});
+var updateTaskSchema = external_exports.object({
+  title: external_exports.string().min(1, "Task title cannot be empty").optional(),
+  description: external_exports.string().nullable().optional(),
+  taskType: external_exports.nativeEnum(import_client21.TaskType).optional(),
+  priority: external_exports.nativeEnum(import_client21.Priority).optional(),
+  dueDate: external_exports.string().transform((val) => new Date(val)).optional(),
+  dueTime: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional(),
+  completed: external_exports.boolean().optional(),
+  contactId: external_exports.string().nullable().optional(),
+  dealId: external_exports.string().nullable().optional(),
+  companyName: external_exports.string().nullable().optional(),
+  isAnnouncement: external_exports.boolean().optional()
+});
+var queryTaskSchema = external_exports.object({
+  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  search: external_exports.string().optional(),
+  completed: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
+  priority: external_exports.nativeEnum(import_client21.Priority).optional(),
+  assignedUserId: external_exports.string().optional(),
+  isAnnouncement: external_exports.string().optional().transform((val) => val !== void 0 ? val === "true" : void 0),
+  contactId: external_exports.string().optional(),
+  dealId: external_exports.string().optional()
+});
+
+// src/controllers/task.controller.ts
+var TaskController = class {
+  constructor(taskServ) {
+    this.taskServ = taskServ;
+    this.createTask = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const result = createTaskSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const task = await this.taskServ.createTask(result.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Task created successfully.",
+          data: { task },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getTasks = async (req, res, next) => {
+      try {
+        const result = queryTaskSchema.safeParse(req.query);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const data = await this.taskServ.getTasks(result.data, req.user);
+        res.status(200).json({
+          success: true,
+          message: "Tasks retrieved successfully.",
+          data,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getTaskById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const task = await this.taskServ.getTaskById(id);
+        res.status(200).json({
+          success: true,
+          message: "Task retrieved successfully.",
+          data: { task },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateTask = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const result = updateTaskSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const task = await this.taskServ.updateTask(id, result.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Task updated successfully.",
+          data: { task },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteTask = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.taskServ.deleteTask(id);
+        res.status(200).json({
+          success: true,
+          message: "Task deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var taskController = new TaskController(taskService);
+
+// src/routes/task.routes.ts
+var import_client22 = require("@prisma/client");
+var router8 = (0, import_express8.Router)();
+router8.use(authenticate);
+router8.get(
+  "/",
+  authorize(import_client22.UserRole.ADMIN, import_client22.UserRole.MANAGER, import_client22.UserRole.SALES_REP, import_client22.UserRole.MARKETING, import_client22.UserRole.SUPPORT),
+  taskController.getTasks
+);
+router8.get(
+  "/:id",
+  authorize(import_client22.UserRole.ADMIN, import_client22.UserRole.MANAGER, import_client22.UserRole.SALES_REP, import_client22.UserRole.MARKETING, import_client22.UserRole.SUPPORT),
+  taskController.getTaskById
+);
+router8.post(
+  "/",
+  authorize(import_client22.UserRole.ADMIN, import_client22.UserRole.MANAGER, import_client22.UserRole.SALES_REP),
+  taskController.createTask
+);
+router8.patch(
+  "/:id",
+  authorize(import_client22.UserRole.ADMIN, import_client22.UserRole.MANAGER, import_client22.UserRole.SALES_REP),
+  taskController.updateTask
+);
+router8.delete(
+  "/:id",
+  authorize(import_client22.UserRole.ADMIN, import_client22.UserRole.MANAGER, import_client22.UserRole.SALES_REP),
+  taskController.deleteTask
+);
+var task_routes_default = router8;
+
+// src/routes/conversation.routes.ts
+var import_express9 = __toESM(require_express2());
+
+// src/services/conversation.service.ts
+var import_client23 = require("@prisma/client");
+
+// src/repositories/conversation.repository.ts
+var conversationInclude = {
+  assignedUser: {
+    select: { id: true, name: true, email: true, avatarUrl: true }
+  },
+  contact: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatarUrl: true,
+      lifecycleStage: true,
+      status: true,
+      deals: {
+        where: { stage: { isWon: true } },
+        select: { id: true }
+      }
+    }
+  },
+  campaign: {
+    select: { id: true, name: true, subject: true }
+  },
+  messages: {
+    take: 1,
+    orderBy: { createdAt: "desc" },
+    select: { content: true, senderName: true, isInternalNote: true, createdAt: true }
+  }
+};
+function enrichConversation(conv) {
+  if (!conv) return null;
+  const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
+  const lastMsg = conv.messages?.[0];
+  return {
+    ...conv,
+    isFromCampaign,
+    campaignName: isFromCampaign ? conv.campaign?.name || null : null,
+    campaignId: isFromCampaign ? conv.campaignId || null : null,
+    snippet: lastMsg?.content || null
+  };
+}
+var ConversationRepository = class {
+  async findById(id) {
+    const conversation = await prisma.conversation.findUnique({
+      where: { id },
+      include: conversationInclude
+    });
+    return enrichConversation(conversation);
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.OR = [
+        { subject: { contains: query.search, mode: "insensitive" } },
+        {
+          contact: {
+            OR: [
+              { firstName: { contains: query.search, mode: "insensitive" } },
+              { lastName: { contains: query.search, mode: "insensitive" } },
+              { email: { contains: query.search, mode: "insensitive" } }
+            ]
+          }
+        }
+      ];
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
+    if (query.channel) {
+      where.channel = query.channel;
+    }
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
+    if (query.contactId) {
+      where.contactId = query.contactId;
+    }
+    const [conversations, total] = await Promise.all([
+      prisma.conversation.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+        include: conversationInclude
+      }),
+      prisma.conversation.count({ where })
+    ]);
+    return {
+      conversations: conversations.map(enrichConversation),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.conversation.create({
+      data,
+      include: conversationInclude
+    });
+  }
+  async update(id, data) {
+    return prisma.conversation.update({
+      where: { id },
+      data,
+      include: conversationInclude
+    });
+  }
+  async delete(id) {
+    return prisma.conversation.delete({
+      where: { id }
+    });
+  }
+};
+var conversationRepository = new ConversationRepository();
+
+// src/services/conversation.service.ts
+var ConversationService = class {
+  constructor(convoRepo) {
+    this.convoRepo = convoRepo;
+  }
+  async createConversation(input, currentUserId) {
+    if (input.contactId) {
+      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
+      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
+    }
+    if (input.assignedUserId) {
+      const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
+      if (!user) throw new AppError(`User with ID '${input.assignedUserId}' not found.`, 400);
+    }
+    const conversation = await prisma.$transaction(async (tx) => {
+      const newConvo = await tx.conversation.create({
+        data: {
+          subject: input.subject,
+          channel: input.channel,
+          status: input.status,
+          ...input.contactId && { contact: { connect: { id: input.contactId } } },
+          ...input.assignedUserId && { assignedUser: { connect: { id: input.assignedUserId } } }
+        },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true } },
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
+        }
+      });
+      await tx.activity.create({
+        data: {
+          type: import_client23.ActivityType.NOTE,
+          title: "Conversation Created",
+          content: `Created conversation "${newConvo.subject}" via ${newConvo.channel}`,
+          userId: currentUserId,
+          ...newConvo.contactId && { contactId: newConvo.contactId },
+          metadata: {
+            conversationId: newConvo.id,
+            channel: newConvo.channel,
+            status: newConvo.status
+          }
+        }
+      });
+      return newConvo;
+    });
+    return conversation;
+  }
+  async getConversations(query, currentUser) {
+    const effectiveQuery = { ...query };
+    if (currentUser?.role === "SALES_REP") {
+      if (effectiveQuery.assignedUserId === "unassigned" || effectiveQuery.assignedUserId === "none") {
+        effectiveQuery.assignedUserId = "unassigned";
+      } else {
+        effectiveQuery.assignedUserId = currentUser.userId;
+      }
+    }
+    return this.convoRepo.findAll(effectiveQuery);
+  }
+  async getConversationById(id) {
+    const convo = await this.convoRepo.findById(id);
+    if (!convo) {
+      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
+    }
+    return convo;
+  }
+  async updateConversation(id, input, currentUserId) {
+    const existing = await this.convoRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
+    }
+    if (input.assignedUserId) {
+      const user = await prisma.user.findUnique({ where: { id: input.assignedUserId } });
+      if (!user) throw new AppError(`User with ID '${input.assignedUserId}' not found.`, 400);
+    }
+    if (input.contactId) {
+      const contact = await prisma.contact.findUnique({ where: { id: input.contactId } });
+      if (!contact) throw new AppError(`Contact with ID '${input.contactId}' not found.`, 400);
+    }
+    const updatedConvo = await prisma.$transaction(async (tx) => {
+      const updated = await tx.conversation.update({
+        where: { id },
+        data: {
+          ...input.subject !== void 0 && { subject: input.subject },
+          ...input.channel !== void 0 && { channel: input.channel },
+          ...input.status !== void 0 && { status: input.status },
+          ...input.contactId !== void 0 && {
+            contact: input.contactId ? { connect: { id: input.contactId } } : { disconnect: true }
+          },
+          ...input.assignedUserId !== void 0 && {
+            assignedUser: input.assignedUserId ? { connect: { id: input.assignedUserId } } : { disconnect: true }
+          }
+        },
+        include: {
+          assignedUser: { select: { id: true, name: true, email: true } },
+          contact: { select: { id: true, firstName: true, lastName: true, email: true } }
+        }
+      });
+      if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId) {
+        if (updated.contactId) {
+          await tx.contact.update({
+            where: { id: updated.contactId },
+            data: { assignedUserId: input.assignedUserId }
+          });
+          await tx.deal.updateMany({
+            where: { contactId: updated.contactId },
+            data: { assignedUserId: input.assignedUserId }
+          });
+        }
+        await tx.activity.create({
+          data: {
+            type: import_client23.ActivityType.NOTE,
+            title: "Conversation Assigned",
+            content: `Conversation "${updated.subject}" assigned to ${updated.assignedUser?.name || "a user"}`,
+            userId: currentUserId,
+            ...updated.contactId && { contactId: updated.contactId },
+            metadata: {
+              conversationId: updated.id,
+              assignedUserId: input.assignedUserId
+            }
+          }
+        });
+      }
+      if (input.status && input.status !== existing.status) {
+        await tx.activity.create({
+          data: {
+            type: import_client23.ActivityType.NOTE,
+            title: "Conversation Status Changed",
+            content: `Conversation "${updated.subject}" status changed from ${existing.status} to ${updated.status}`,
+            userId: currentUserId,
+            ...updated.contactId && { contactId: updated.contactId },
+            metadata: {
+              conversationId: updated.id,
+              previousStatus: existing.status,
+              newStatus: updated.status
+            }
+          }
+        });
+      }
+      await tx.activity.create({
+        data: {
+          type: import_client23.ActivityType.NOTE,
+          title: "Conversation Updated",
+          content: `Updated conversation "${updated.subject}"`,
+          userId: currentUserId,
+          ...updated.contactId && { contactId: updated.contactId },
+          metadata: {
+            conversationId: updated.id,
+            updatedFields: Object.keys(input)
+          }
+        }
+      });
+      return updated;
+    });
+    if (input.assignedUserId && input.assignedUserId !== existing.assignedUserId && input.assignedUserId !== currentUserId) {
+      await notificationService.createNotification({
+        userId: input.assignedUserId,
+        title: "New Conversation & Client Handed Off",
+        message: `Conversation "${updatedConvo.subject}" and related client data have been assigned to you`,
+        type: "chat",
+        link: `/inbox`
+      });
+    }
+    return updatedConvo;
+  }
+  async deleteConversation(id) {
+    const existing = await this.convoRepo.findById(id);
+    if (!existing) {
+      throw new AppError(`Conversation with ID '${id}' not found.`, 404);
+    }
+    await this.convoRepo.delete(id);
+    return { id };
+  }
+};
+var conversationService = new ConversationService(conversationRepository);
+
+// src/validators/conversation.validator.ts
+var import_client24 = require("@prisma/client");
+var createConversationSchema = external_exports.object({
+  subject: external_exports.string().min(1, "Subject is required"),
+  channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional().default(import_client24.ConversationChannel.EMAIL),
+  status: external_exports.nativeEnum(import_client24.ConversationStatus).optional().default(import_client24.ConversationStatus.OPEN),
+  contactId: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional()
+});
+var updateConversationSchema = external_exports.object({
+  subject: external_exports.string().min(1, "Subject cannot be empty").optional(),
+  channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional(),
+  status: external_exports.nativeEnum(import_client24.ConversationStatus).optional(),
+  contactId: external_exports.string().nullable().optional(),
+  assignedUserId: external_exports.string().nullable().optional()
+});
+var queryConversationSchema = external_exports.object({
+  page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
+  limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
+  search: external_exports.string().optional(),
+  status: external_exports.nativeEnum(import_client24.ConversationStatus).optional(),
+  channel: external_exports.nativeEnum(import_client24.ConversationChannel).optional(),
+  assignedUserId: external_exports.string().optional(),
+  contactId: external_exports.string().optional()
+});
+
+// src/controllers/conversation.controller.ts
+var ConversationController = class {
+  constructor(convoServ) {
+    this.convoServ = convoServ;
+    this.createConversation = async (req, res, next) => {
+      try {
+        if (!req.user) throw new AppError("Authentication required.", 401);
+        const result = createConversationSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const conversation = await this.convoServ.createConversation(result.data, req.user.userId);
+        res.status(201).json({
+          success: true,
+          message: "Conversation created successfully.",
+          data: { conversation },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getConversations = async (req, res, next) => {
+      try {
+        const result = queryConversationSchema.safeParse(req.query);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Query validation failed: ${errors}`, 400);
+        }
+        const data = await this.convoServ.getConversations(result.data, req.user);
+        res.status(200).json({
+          success: true,
+          message: "Conversations retrieved successfully.",
+          data,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.getConversationById = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const conversation = await this.convoServ.getConversationById(id);
+        res.status(200).json({
+          success: true,
+          message: "Conversation retrieved successfully.",
+          data: { conversation },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.updateConversation = async (req, res, next) => {
+      try {
+        if (!req.user) throw new AppError("Authentication required.", 401);
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        const result = updateConversationSchema.safeParse(req.body);
+        if (!result.success) {
+          const errors = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+          throw new AppError(`Validation failed: ${errors}`, 400);
+        }
+        const conversation = await this.convoServ.updateConversation(id, result.data, req.user.userId);
+        res.status(200).json({
+          success: true,
+          message: "Conversation updated successfully.",
+          data: { conversation },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+    this.deleteConversation = async (req, res, next) => {
+      try {
+        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        await this.convoServ.deleteConversation(id);
+        res.status(200).json({
+          success: true,
+          message: "Conversation deleted successfully.",
+          data: { id },
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var conversationController = new ConversationController(conversationService);
+
+// src/routes/conversation.routes.ts
+var import_client25 = require("@prisma/client");
+var router9 = (0, import_express9.Router)();
+router9.use(authenticate);
+router9.get(
+  "/",
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SALES_REP, import_client25.UserRole.MARKETING, import_client25.UserRole.SUPPORT),
+  conversationController.getConversations
+);
+router9.get(
+  "/:id",
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SALES_REP, import_client25.UserRole.MARKETING, import_client25.UserRole.SUPPORT),
+  conversationController.getConversationById
+);
+router9.post(
+  "/",
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SALES_REP, import_client25.UserRole.SUPPORT),
+  conversationController.createConversation
+);
+router9.patch(
+  "/:id",
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SALES_REP, import_client25.UserRole.SUPPORT),
+  conversationController.updateConversation
+);
+router9.delete(
+  "/:id",
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SUPPORT),
+  conversationController.deleteConversation
+);
+var conversation_routes_default = router9;
+
+// src/routes/message.routes.ts
+var import_express10 = __toESM(require_express2());
+
+// src/services/message.service.ts
+var import_client26 = require("@prisma/client");
+
+// src/repositories/message.repository.ts
+var MessageRepository = class {
+  async findById(id) {
+    return prisma.message.findUnique({
+      where: { id },
+      include: {
+        conversation: {
+          select: { id: true, subject: true }
+        }
+      }
+    });
+  }
+  async findByConversation(conversationId, query) {
+    const page = query.page || 1;
+    const limit = query.limit || 15;
+    const skip = (page - 1) * limit;
+    const where = {
+      conversationId
+    };
+    if (query.search) {
+      where.content = { contains: query.search, mode: "insensitive" };
+    }
+    const [messages, total] = await Promise.all([
+      prisma.message.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "asc" }
+        // Thread view usually ordered oldest first
+      }),
+      prisma.message.count({ where })
+    ]);
+    return {
+      messages,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.message.create({
+      data
+    });
+  }
+  async update(id, data) {
+    return prisma.message.update({
+      where: { id },
+      data
+    });
+  }
+  async delete(id) {
+    return prisma.message.delete({
+      where: { id }
+    });
+  }
+};
+var messageRepository = new MessageRepository();
+
 // src/services/message.service.ts
 var MessageService = class {
   constructor(messageRepo) {
@@ -119826,7 +120128,7 @@ var MessageService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client25.ActivityType.EMAIL,
+          type: import_client26.ActivityType.EMAIL,
           // Fits email/unified inbox conversations best
           title: input.isInternalNote ? "Conversation Note Added" : "Conversation Message Added",
           content: `${input.isInternalNote ? "Note" : "Message"} from ${input.senderName || input.senderType} added to "${conversation.subject || "Conversation"}"`,
@@ -119898,7 +120200,7 @@ var MessageService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client25.ActivityType.NOTE,
+          type: import_client26.ActivityType.NOTE,
           title: "Message Edited",
           content: `User edited a message in conversation thread`,
           userId: currentUserId,
@@ -119926,7 +120228,7 @@ var MessageService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client25.ActivityType.NOTE,
+          type: import_client26.ActivityType.NOTE,
           title: "Message Deleted",
           content: `User deleted a message from conversation thread`,
           userId: currentUserId,
@@ -119943,10 +120245,10 @@ var MessageService = class {
 var messageService = new MessageService(messageRepository);
 
 // src/validators/message.validator.ts
-var import_client26 = require("@prisma/client");
+var import_client27 = require("@prisma/client");
 var createMessageSchema = external_exports.object({
   content: external_exports.string().min(1, "Message content is required"),
-  senderType: external_exports.nativeEnum(import_client26.SenderType),
+  senderType: external_exports.nativeEnum(import_client27.SenderType),
   senderName: external_exports.string().nullable().optional(),
   senderEmail: external_exports.string().email("Invalid sender email format").nullable().optional(),
   isInternalNote: external_exports.boolean().optional().default(false)
@@ -120067,32 +120369,32 @@ var MessageController = class {
 var messageController = new MessageController(messageService);
 
 // src/routes/message.routes.ts
-var import_client27 = require("@prisma/client");
+var import_client28 = require("@prisma/client");
 var router10 = (0, import_express10.Router)();
 router10.use(authenticate);
 router10.get(
   "/conversations/:conversationId/messages",
-  authorize(import_client27.UserRole.ADMIN, import_client27.UserRole.MANAGER, import_client27.UserRole.SALES_REP, import_client27.UserRole.MARKETING, import_client27.UserRole.SUPPORT),
+  authorize(import_client28.UserRole.ADMIN, import_client28.UserRole.MANAGER, import_client28.UserRole.SALES_REP, import_client28.UserRole.MARKETING, import_client28.UserRole.SUPPORT),
   messageController.getMessagesByConversation
 );
 router10.get(
   "/messages/:id",
-  authorize(import_client27.UserRole.ADMIN, import_client27.UserRole.MANAGER, import_client27.UserRole.SALES_REP, import_client27.UserRole.MARKETING, import_client27.UserRole.SUPPORT),
+  authorize(import_client28.UserRole.ADMIN, import_client28.UserRole.MANAGER, import_client28.UserRole.SALES_REP, import_client28.UserRole.MARKETING, import_client28.UserRole.SUPPORT),
   messageController.getMessageById
 );
 router10.post(
   "/conversations/:conversationId/messages",
-  authorize(import_client27.UserRole.ADMIN, import_client27.UserRole.MANAGER, import_client27.UserRole.SUPPORT),
+  authorize(import_client28.UserRole.ADMIN, import_client28.UserRole.MANAGER, import_client28.UserRole.SUPPORT),
   messageController.createMessage
 );
 router10.patch(
   "/messages/:id",
-  authorize(import_client27.UserRole.ADMIN, import_client27.UserRole.MANAGER, import_client27.UserRole.SUPPORT),
+  authorize(import_client28.UserRole.ADMIN, import_client28.UserRole.MANAGER, import_client28.UserRole.SUPPORT),
   messageController.updateMessage
 );
 router10.delete(
   "/messages/:id",
-  authorize(import_client27.UserRole.ADMIN, import_client27.UserRole.MANAGER, import_client27.UserRole.SUPPORT),
+  authorize(import_client28.UserRole.ADMIN, import_client28.UserRole.MANAGER, import_client28.UserRole.SUPPORT),
   messageController.deleteMessage
 );
 var message_routes_default = router10;
@@ -120101,16 +120403,16 @@ var message_routes_default = router10;
 var import_express11 = __toESM(require_express2());
 
 // src/services/reply.service.ts
-var import_client29 = require("@prisma/client");
+var import_client30 = require("@prisma/client");
 
 // src/repositories/reply.repository.ts
-var import_client28 = require("@prisma/client");
+var import_client29 = require("@prisma/client");
 var ReplyRepository = class {
   async createReply(conversationId, content, senderName, senderEmail) {
     return prisma.message.create({
       data: {
         content,
-        senderType: import_client28.SenderType.USER,
+        senderType: import_client29.SenderType.USER,
         isInternalNote: false,
         senderName,
         senderEmail,
@@ -120164,7 +120466,7 @@ var ReplyService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client29.ActivityType.EMAIL,
+          type: import_client30.ActivityType.EMAIL,
           title: "Conversation Reply Sent",
           content: `Reply sent in conversation "${conversation.subject || "Conversation Thread"}"`,
           userId: currentUserId,
@@ -120228,7 +120530,7 @@ var ReplyService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client29.ActivityType.EMAIL,
+          type: import_client30.ActivityType.EMAIL,
           title: "Reply Sent Using Template",
           content: `Reply sent using template "${template.name}"`,
           userId: currentUserId,
@@ -120290,12 +120592,12 @@ var ReplyController = class {
 var replyController = new ReplyController(replyService);
 
 // src/routes/reply.routes.ts
-var import_client30 = require("@prisma/client");
+var import_client31 = require("@prisma/client");
 var router11 = (0, import_express11.Router)();
 router11.use(authenticate);
 router11.post(
   "/conversations/:conversationId/reply",
-  authorize(import_client30.UserRole.ADMIN, import_client30.UserRole.MANAGER, import_client30.UserRole.SUPPORT),
+  authorize(import_client31.UserRole.ADMIN, import_client31.UserRole.MANAGER, import_client31.UserRole.SUPPORT),
   replyController.sendReply
 );
 var reply_routes_default = router11;
@@ -120304,16 +120606,16 @@ var reply_routes_default = router11;
 var import_express12 = __toESM(require_express2());
 
 // src/services/note.service.ts
-var import_client32 = require("@prisma/client");
+var import_client33 = require("@prisma/client");
 
 // src/repositories/note.repository.ts
-var import_client31 = require("@prisma/client");
+var import_client32 = require("@prisma/client");
 var NoteRepository = class {
   async createInternalNote(conversationId, content, senderName, senderEmail) {
     return prisma.message.create({
       data: {
         content,
-        senderType: import_client31.SenderType.USER,
+        senderType: import_client32.SenderType.USER,
         isInternalNote: true,
         senderName,
         senderEmail,
@@ -120366,7 +120668,7 @@ var NoteService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client32.ActivityType.NOTE,
+          type: import_client33.ActivityType.NOTE,
           title: "Internal Note Added",
           content: `Internal note added to conversation "${conversation.subject || "Conversation Thread"}"`,
           userId: currentUserId,
@@ -120426,12 +120728,12 @@ var NoteController = class {
 var noteController = new NoteController(noteService);
 
 // src/routes/note.routes.ts
-var import_client33 = require("@prisma/client");
+var import_client34 = require("@prisma/client");
 var router12 = (0, import_express12.Router)();
 router12.use(authenticate);
 router12.post(
   "/conversations/:conversationId/notes",
-  authorize(import_client33.UserRole.ADMIN, import_client33.UserRole.MANAGER, import_client33.UserRole.SUPPORT),
+  authorize(import_client34.UserRole.ADMIN, import_client34.UserRole.MANAGER, import_client34.UserRole.SUPPORT),
   noteController.createInternalNote
 );
 var note_routes_default = router12;
@@ -120440,7 +120742,7 @@ var note_routes_default = router12;
 var import_express13 = __toESM(require_express2());
 
 // src/services/template.service.ts
-var import_client34 = require("@prisma/client");
+var import_client35 = require("@prisma/client");
 
 // src/repositories/template.repository.ts
 var templateInclude = {
@@ -120526,7 +120828,7 @@ var TemplateService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client34.ActivityType.NOTE,
+          type: import_client35.ActivityType.NOTE,
           title: "Template Created",
           content: `Created reply template "${newTemplate.name}"`,
           userId: currentUserId,
@@ -120571,7 +120873,7 @@ var TemplateService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client34.ActivityType.NOTE,
+          type: import_client35.ActivityType.NOTE,
           title: "Template Updated",
           content: `Updated reply template "${updated.name}"`,
           userId: currentUserId,
@@ -120597,7 +120899,7 @@ var TemplateService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client34.ActivityType.NOTE,
+          type: import_client35.ActivityType.NOTE,
           title: "Template Deleted",
           content: `Deleted reply template "${existing.name}"`,
           userId: currentUserId,
@@ -120614,16 +120916,16 @@ var TemplateService = class {
 var templateService = new TemplateService(templateRepository);
 
 // src/validators/template.validator.ts
-var import_client35 = require("@prisma/client");
+var import_client36 = require("@prisma/client");
 var createTemplateSchema = external_exports.object({
   name: external_exports.string().min(1, "Template name is required"),
-  type: external_exports.nativeEnum(import_client35.TemplateType).optional().default(import_client35.TemplateType.EMAIL_REPLY),
+  type: external_exports.nativeEnum(import_client36.TemplateType).optional().default(import_client36.TemplateType.EMAIL_REPLY),
   subject: external_exports.string().nullable().optional(),
   content: external_exports.string().min(1, "Template content is required")
 });
 var updateTemplateSchema = external_exports.object({
   name: external_exports.string().min(1, "Template name cannot be empty").optional(),
-  type: external_exports.nativeEnum(import_client35.TemplateType).optional(),
+  type: external_exports.nativeEnum(import_client36.TemplateType).optional(),
   subject: external_exports.string().nullable().optional(),
   content: external_exports.string().min(1, "Template content cannot be empty").optional()
 });
@@ -120631,7 +120933,7 @@ var queryTemplateSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 10),
   search: external_exports.string().optional(),
-  type: external_exports.nativeEnum(import_client35.TemplateType).optional()
+  type: external_exports.nativeEnum(import_client36.TemplateType).optional()
 });
 
 // src/controllers/template.controller.ts
@@ -120729,32 +121031,32 @@ var TemplateController = class {
 var templateController = new TemplateController(templateService);
 
 // src/routes/template.routes.ts
-var import_client36 = require("@prisma/client");
+var import_client37 = require("@prisma/client");
 var router13 = (0, import_express13.Router)();
 router13.use(authenticate);
 router13.get(
   "/",
-  authorize(import_client36.UserRole.ADMIN, import_client36.UserRole.MANAGER, import_client36.UserRole.SUPPORT),
+  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER, import_client37.UserRole.SUPPORT),
   templateController.getTemplates
 );
 router13.get(
   "/:id",
-  authorize(import_client36.UserRole.ADMIN, import_client36.UserRole.MANAGER, import_client36.UserRole.SUPPORT),
+  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER, import_client37.UserRole.SUPPORT),
   templateController.getTemplateById
 );
 router13.post(
   "/",
-  authorize(import_client36.UserRole.ADMIN, import_client36.UserRole.MANAGER),
+  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER),
   templateController.createTemplate
 );
 router13.patch(
   "/:id",
-  authorize(import_client36.UserRole.ADMIN, import_client36.UserRole.MANAGER),
+  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER),
   templateController.updateTemplate
 );
 router13.delete(
   "/:id",
-  authorize(import_client36.UserRole.ADMIN, import_client36.UserRole.MANAGER),
+  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER),
   templateController.deleteTemplate
 );
 var template_routes_default = router13;
@@ -120804,12 +121106,12 @@ var ReplyTemplateController = class {
 var replyTemplateController = new ReplyTemplateController(replyService);
 
 // src/routes/reply-template.routes.ts
-var import_client37 = require("@prisma/client");
+var import_client38 = require("@prisma/client");
 var router14 = (0, import_express14.Router)();
 router14.use(authenticate);
 router14.post(
   "/conversations/:conversationId/reply/template",
-  authorize(import_client37.UserRole.ADMIN, import_client37.UserRole.MANAGER, import_client37.UserRole.SUPPORT),
+  authorize(import_client38.UserRole.ADMIN, import_client38.UserRole.MANAGER, import_client38.UserRole.SUPPORT),
   replyTemplateController.sendReplyWithTemplate
 );
 var reply_template_routes_default = router14;
@@ -120818,7 +121120,7 @@ var reply_template_routes_default = router14;
 var import_express15 = __toESM(require_express2());
 
 // src/services/conversation-contact.service.ts
-var import_client38 = require("@prisma/client");
+var import_client39 = require("@prisma/client");
 
 // src/repositories/conversation-contact.repository.ts
 var ConversationContactRepository = class {
@@ -120868,7 +121170,7 @@ var ConversationContactService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client38.ActivityType.NOTE,
+          type: import_client39.ActivityType.NOTE,
           title: "Conversation Linked",
           content: `Conversation linked to contact "${contact.firstName} ${contact.lastName || ""}".`,
           userId: currentUserId,
@@ -120920,7 +121222,7 @@ var ConversationContactService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client38.ActivityType.CONTACT_CREATED,
+          type: import_client39.ActivityType.CONTACT_CREATED,
           title: "Contact Created From Conversation",
           content: `Contact ${newContact.firstName} ${newContact.lastName || ""} created directly from Conversation.`,
           userId: currentUserId,
@@ -120933,7 +121235,7 @@ var ConversationContactService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client38.ActivityType.NOTE,
+          type: import_client39.ActivityType.NOTE,
           title: "Conversation Linked",
           content: `Conversation linked to contact "${newContact.firstName} ${newContact.lastName || ""}".`,
           userId: currentUserId,
@@ -120952,7 +121254,7 @@ var ConversationContactService = class {
 var conversationContactService = new ConversationContactService(conversationContactRepository);
 
 // src/validators/conversation-contact.validator.ts
-var import_client39 = require("@prisma/client");
+var import_client40 = require("@prisma/client");
 var linkExistingContactSchema = external_exports.object({
   contactId: external_exports.string().min(1, "Contact ID is required")
 });
@@ -120963,8 +121265,8 @@ var createAndLinkContactSchema = external_exports.object({
   phone: external_exports.string().optional().nullable(),
   companyId: external_exports.string().optional().nullable(),
   jobTitle: external_exports.string().optional().nullable(),
-  leadSource: external_exports.nativeEnum(import_client39.LeadSource).optional().default(import_client39.LeadSource.OTHER),
-  lifecycleStage: external_exports.nativeEnum(import_client39.LifecycleStage).optional().default(import_client39.LifecycleStage.LEAD)
+  leadSource: external_exports.nativeEnum(import_client40.LeadSource).optional().default(import_client40.LeadSource.OTHER),
+  lifecycleStage: external_exports.nativeEnum(import_client40.LifecycleStage).optional().default(import_client40.LifecycleStage.LEAD)
 });
 
 // src/controllers/conversation-contact.controller.ts
@@ -121028,17 +121330,17 @@ var ConversationContactController = class {
 var conversationContactController = new ConversationContactController(conversationContactService);
 
 // src/routes/conversation-contact.routes.ts
-var import_client40 = require("@prisma/client");
+var import_client41 = require("@prisma/client");
 var router15 = (0, import_express15.Router)();
 router15.use(authenticate);
 router15.patch(
   "/conversations/:conversationId/contact",
-  authorize(import_client40.UserRole.ADMIN, import_client40.UserRole.MANAGER, import_client40.UserRole.SUPPORT),
+  authorize(import_client41.UserRole.ADMIN, import_client41.UserRole.MANAGER, import_client41.UserRole.SUPPORT),
   conversationContactController.linkExistingContact
 );
 router15.post(
   "/conversations/:conversationId/contact",
-  authorize(import_client40.UserRole.ADMIN, import_client40.UserRole.MANAGER, import_client40.UserRole.SUPPORT),
+  authorize(import_client41.UserRole.ADMIN, import_client41.UserRole.MANAGER, import_client41.UserRole.SUPPORT),
   conversationContactController.createAndLinkContact
 );
 var conversation_contact_routes_default = router15;
@@ -121047,7 +121349,7 @@ var conversation_contact_routes_default = router15;
 var import_express16 = __toESM(require_express2());
 
 // src/services/campaign.service.ts
-var import_client42 = require("@prisma/client");
+var import_client43 = require("@prisma/client");
 
 // src/repositories/campaign.repository.ts
 var campaignInclude = {
@@ -121123,7 +121425,7 @@ var CampaignRepository = class {
 var campaignRepository = new CampaignRepository();
 
 // src/services/campaign-launch.service.ts
-var import_client41 = require("@prisma/client");
+var import_client42 = require("@prisma/client");
 
 // src/repositories/campaign-launch.repository.ts
 var CampaignLaunchRepository = class {
@@ -121250,7 +121552,7 @@ var CampaignLaunchService = class {
     }
     await prisma.activity.create({
       data: {
-        type: import_client41.ActivityType.NOTE,
+        type: import_client42.ActivityType.NOTE,
         title: "Campaign Launched",
         content: `Campaign "${campaign.name}" dispatched. Successful: ${successCount}. Failed: ${failCount}.`,
         userId: currentUserId,
@@ -121329,7 +121631,7 @@ var CampaignService = class {
         409
       );
     }
-    const initialStatus = input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() ? import_client42.CampaignStatus.SCHEDULED : import_client42.CampaignStatus.DRAFT;
+    const initialStatus = input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() ? import_client43.CampaignStatus.SCHEDULED : import_client43.CampaignStatus.DRAFT;
     const campaign = await prisma.$transaction(async (tx) => {
       const newCampaign = await tx.campaign.create({
         data: {
@@ -121348,7 +121650,7 @@ var CampaignService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client42.ActivityType.NOTE,
+          type: import_client43.ActivityType.NOTE,
           title: "Campaign Created",
           content: `Created campaign "${newCampaign.name}" (${newCampaign.status})`,
           userId: currentUserId,
@@ -121401,8 +121703,8 @@ var CampaignService = class {
       }
     }
     let targetStatus = input.status;
-    if (!targetStatus && input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() && existing.status !== import_client42.CampaignStatus.ACTIVE && existing.status !== import_client42.CampaignStatus.COMPLETED) {
-      targetStatus = import_client42.CampaignStatus.SCHEDULED;
+    if (!targetStatus && input.scheduledAt && new Date(input.scheduledAt) > /* @__PURE__ */ new Date() && existing.status !== import_client43.CampaignStatus.ACTIVE && existing.status !== import_client43.CampaignStatus.COMPLETED) {
+      targetStatus = import_client43.CampaignStatus.SCHEDULED;
     }
     const updated = await prisma.$transaction(async (tx) => {
       const updatedCampaign = await tx.campaign.update({
@@ -121422,7 +121724,7 @@ var CampaignService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client42.ActivityType.NOTE,
+          type: import_client43.ActivityType.NOTE,
           title: "Campaign Updated",
           content: `Updated campaign "${updatedCampaign.name}"`,
           userId: currentUserId,
@@ -121447,7 +121749,7 @@ var CampaignService = class {
       await tx.campaign.delete({ where: { id } });
       await tx.activity.create({
         data: {
-          type: import_client42.ActivityType.NOTE,
+          type: import_client43.ActivityType.NOTE,
           title: "Campaign Deleted",
           content: `Deleted campaign "${existing.name}"`,
           userId: currentUserId,
@@ -121464,7 +121766,7 @@ var CampaignService = class {
 var campaignService = new CampaignService(campaignRepository);
 
 // src/validators/campaign.validator.ts
-var import_client43 = require("@prisma/client");
+var import_client44 = require("@prisma/client");
 var createCampaignSchema = external_exports.object({
   name: external_exports.string().min(1, "Campaign name is required").max(255, "Name must be 255 characters or fewer"),
   objective: external_exports.string().max(1e3, "Objective must be 1000 characters or fewer").nullable().optional(),
@@ -121476,7 +121778,7 @@ var createCampaignSchema = external_exports.object({
 var updateCampaignSchema = external_exports.object({
   name: external_exports.string().min(1, "Campaign name cannot be empty").max(255, "Name must be 255 characters or fewer").optional(),
   objective: external_exports.string().max(1e3, "Objective must be 1000 characters or fewer").nullable().optional(),
-  status: external_exports.nativeEnum(import_client43.CampaignStatus).optional(),
+  status: external_exports.nativeEnum(import_client44.CampaignStatus).optional(),
   subject: external_exports.string().max(500, "Subject must be 500 characters or fewer").nullable().optional(),
   previewText: external_exports.string().max(500, "Preview text must be 500 characters or fewer").nullable().optional(),
   content: external_exports.string().nullable().optional(),
@@ -121486,7 +121788,7 @@ var queryCampaignSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 20),
   search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client43.CampaignStatus).optional()
+  status: external_exports.nativeEnum(import_client44.CampaignStatus).optional()
 });
 
 // src/controllers/campaign.controller.ts
@@ -121625,34 +121927,34 @@ var CampaignLaunchController = class {
 var campaignLaunchController = new CampaignLaunchController(campaignLaunchService);
 
 // src/routes/campaign.routes.ts
-var import_client44 = require("@prisma/client");
+var import_client45 = require("@prisma/client");
 var router16 = (0, import_express16.Router)();
 router16.post("/process-scheduled", campaignLaunchController.processScheduled);
 router16.get("/process-scheduled", campaignLaunchController.processScheduled);
 router16.use(authenticate);
 router16.get(
   "/",
-  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.SALES_REP, import_client44.UserRole.MARKETING, import_client44.UserRole.SUPPORT),
+  authorize(import_client45.UserRole.ADMIN, import_client45.UserRole.MANAGER, import_client45.UserRole.SALES_REP, import_client45.UserRole.MARKETING, import_client45.UserRole.SUPPORT),
   campaignController.getCampaigns
 );
 router16.get(
   "/:id",
-  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.SALES_REP, import_client44.UserRole.MARKETING, import_client44.UserRole.SUPPORT),
+  authorize(import_client45.UserRole.ADMIN, import_client45.UserRole.MANAGER, import_client45.UserRole.SALES_REP, import_client45.UserRole.MARKETING, import_client45.UserRole.SUPPORT),
   campaignController.getCampaignById
 );
 router16.post(
   "/",
-  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
+  authorize(import_client45.UserRole.ADMIN, import_client45.UserRole.MANAGER, import_client45.UserRole.MARKETING),
   campaignController.createCampaign
 );
 router16.patch(
   "/:id",
-  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
+  authorize(import_client45.UserRole.ADMIN, import_client45.UserRole.MANAGER, import_client45.UserRole.MARKETING),
   campaignController.updateCampaign
 );
 router16.delete(
   "/:id",
-  authorize(import_client44.UserRole.ADMIN, import_client44.UserRole.MANAGER, import_client44.UserRole.MARKETING),
+  authorize(import_client45.UserRole.ADMIN, import_client45.UserRole.MANAGER, import_client45.UserRole.MARKETING),
   campaignController.deleteCampaign
 );
 var campaign_routes_default = router16;
@@ -121661,7 +121963,7 @@ var campaign_routes_default = router16;
 var import_express17 = __toESM(require_express2());
 
 // src/services/campaign-audience.service.ts
-var import_client45 = require("@prisma/client");
+var import_client46 = require("@prisma/client");
 
 // src/repositories/campaign-audience.repository.ts
 var CampaignAudienceRepository = class {
@@ -121835,7 +122137,7 @@ var CampaignAudienceService = class {
       }
       await tx.activity.create({
         data: {
-          type: import_client45.ActivityType.NOTE,
+          type: import_client46.ActivityType.NOTE,
           title: "Campaign Audience Applied",
           content: `Added ${contactIdsToInsert.length} recipients to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121884,7 +122186,7 @@ var CampaignAudienceService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client45.ActivityType.NOTE,
+          type: import_client46.ActivityType.NOTE,
           title: "Campaign Recipient Removed",
           content: `Removed recipient "${contactName}" from campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -121903,9 +122205,9 @@ var CampaignAudienceService = class {
 var campaignAudienceService = new CampaignAudienceService(campaignAudienceRepository);
 
 // src/validators/campaign-audience.validator.ts
-var import_client46 = require("@prisma/client");
+var import_client47 = require("@prisma/client");
 var audienceFilterSchema = external_exports.object({
-  lifecycleStage: external_exports.nativeEnum(import_client46.LifecycleStage).optional(),
+  lifecycleStage: external_exports.nativeEnum(import_client47.LifecycleStage).optional(),
   companyId: external_exports.string().optional(),
   assignedUserId: external_exports.string().optional(),
   tags: external_exports.array(external_exports.string()).optional(),
@@ -122010,27 +122312,27 @@ var CampaignAudienceController = class {
 var campaignAudienceController = new CampaignAudienceController(campaignAudienceService);
 
 // src/routes/campaign-audience.routes.ts
-var import_client47 = require("@prisma/client");
+var import_client48 = require("@prisma/client");
 var router17 = (0, import_express17.Router)();
 router17.use(authenticate);
 router17.get(
   "/campaigns/:campaignId/audience",
-  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.SALES_REP, import_client47.UserRole.MARKETING, import_client47.UserRole.SUPPORT),
+  authorize(import_client48.UserRole.ADMIN, import_client48.UserRole.MANAGER, import_client48.UserRole.SALES_REP, import_client48.UserRole.MARKETING, import_client48.UserRole.SUPPORT),
   campaignAudienceController.getAudience
 );
 router17.post(
   "/campaigns/:campaignId/audience/preview",
-  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.SALES_REP, import_client47.UserRole.MARKETING, import_client47.UserRole.SUPPORT),
+  authorize(import_client48.UserRole.ADMIN, import_client48.UserRole.MANAGER, import_client48.UserRole.SALES_REP, import_client48.UserRole.MARKETING, import_client48.UserRole.SUPPORT),
   campaignAudienceController.previewAudience
 );
 router17.post(
   "/campaigns/:campaignId/audience/apply",
-  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.MARKETING),
+  authorize(import_client48.UserRole.ADMIN, import_client48.UserRole.MANAGER, import_client48.UserRole.MARKETING),
   campaignAudienceController.applyAudience
 );
 router17.delete(
   "/campaigns/:campaignId/audience/:recipientId",
-  authorize(import_client47.UserRole.ADMIN, import_client47.UserRole.MANAGER, import_client47.UserRole.MARKETING),
+  authorize(import_client48.UserRole.ADMIN, import_client48.UserRole.MANAGER, import_client48.UserRole.MARKETING),
   campaignAudienceController.removeRecipient
 );
 var campaign_audience_routes_default = router17;
@@ -122039,7 +122341,7 @@ var campaign_audience_routes_default = router17;
 var import_express18 = __toESM(require_express2());
 
 // src/services/campaign-recipient.service.ts
-var import_client48 = require("@prisma/client");
+var import_client49 = require("@prisma/client");
 
 // src/repositories/campaign-recipient.repository.ts
 var CampaignRecipientRepository = class {
@@ -122170,7 +122472,7 @@ var CampaignRecipientService = class {
       const contactName = `${contact.firstName} ${contact.lastName}`;
       await tx.activity.create({
         data: {
-          type: import_client48.ActivityType.NOTE,
+          type: import_client49.ActivityType.NOTE,
           title: "Campaign Recipient Added",
           content: `Added contact "${contactName}" to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -122215,7 +122517,7 @@ var CampaignRecipientService = class {
       }
       await tx.activity.create({
         data: {
-          type: import_client48.ActivityType.NOTE,
+          type: import_client49.ActivityType.NOTE,
           title: "Campaign Recipients Added",
           content: `Added ${contactIdsToInsert.length} recipients to campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -122271,7 +122573,7 @@ var CampaignRecipientService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client48.ActivityType.NOTE,
+          type: import_client49.ActivityType.NOTE,
           title: "Campaign Recipient Removed",
           content: `Removed recipient "${contactName}" from campaign "${campaign.name}"`,
           userId: currentUserId,
@@ -122290,7 +122592,7 @@ var CampaignRecipientService = class {
 var campaignRecipientService = new CampaignRecipientService(campaignRecipientRepository);
 
 // src/validators/campaign-recipient.validator.ts
-var import_client49 = require("@prisma/client");
+var import_client50 = require("@prisma/client");
 var addRecipientSchema = external_exports.object({
   contactId: external_exports.string().min(1, "Contact ID is required")
 });
@@ -122303,7 +122605,7 @@ var queryCampaignRecipientSchema = external_exports.object({
   page: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 1),
   limit: external_exports.string().optional().transform((val) => val ? parseInt(val, 10) : 20),
   search: external_exports.string().optional(),
-  status: external_exports.nativeEnum(import_client49.CampaignRecipientStatus).optional()
+  status: external_exports.nativeEnum(import_client50.CampaignRecipientStatus).optional()
 });
 
 // src/controllers/campaign-recipient.controller.ts
@@ -122405,32 +122707,32 @@ var CampaignRecipientController = class {
 var campaignRecipientController = new CampaignRecipientController(campaignRecipientService);
 
 // src/routes/campaign-recipient.routes.ts
-var import_client50 = require("@prisma/client");
+var import_client51 = require("@prisma/client");
 var router18 = (0, import_express18.Router)();
 router18.use(authenticate);
 router18.get(
   "/campaigns/:campaignId/recipients",
-  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.SALES_REP, import_client50.UserRole.MARKETING, import_client50.UserRole.SUPPORT),
+  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.SALES_REP, import_client51.UserRole.MARKETING, import_client51.UserRole.SUPPORT),
   campaignRecipientController.getRecipients
 );
 router18.get(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.SALES_REP, import_client50.UserRole.MARKETING, import_client50.UserRole.SUPPORT),
+  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.SALES_REP, import_client51.UserRole.MARKETING, import_client51.UserRole.SUPPORT),
   campaignRecipientController.getRecipientDetails
 );
 router18.post(
   "/campaigns/:campaignId/recipients",
-  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
+  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.MARKETING),
   campaignRecipientController.addRecipient
 );
 router18.post(
   "/campaigns/:campaignId/recipients/bulk",
-  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
+  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.MARKETING),
   campaignRecipientController.bulkAddRecipients
 );
 router18.delete(
   "/campaigns/:campaignId/recipients/:recipientId",
-  authorize(import_client50.UserRole.ADMIN, import_client50.UserRole.MANAGER, import_client50.UserRole.MARKETING),
+  authorize(import_client51.UserRole.ADMIN, import_client51.UserRole.MANAGER, import_client51.UserRole.MARKETING),
   campaignRecipientController.removeRecipient
 );
 var campaign_recipient_routes_default = router18;
@@ -122439,7 +122741,7 @@ var campaign_recipient_routes_default = router18;
 var import_express19 = __toESM(require_express2());
 
 // src/services/campaign-test.service.ts
-var import_client51 = require("@prisma/client");
+var import_client52 = require("@prisma/client");
 
 // src/repositories/campaign-test.repository.ts
 var CampaignTestRepository = class {
@@ -122476,7 +122778,7 @@ var CampaignTestService = class {
       });
       await prisma.activity.create({
         data: {
-          type: import_client51.ActivityType.EMAIL,
+          type: import_client52.ActivityType.EMAIL,
           title: "Campaign Test Send Successful",
           content: `Test send delivered for campaign "${campaign.name}" to ${recipientEmail}`,
           userId: currentUserId,
@@ -122496,7 +122798,7 @@ var CampaignTestService = class {
     } catch (err) {
       await prisma.activity.create({
         data: {
-          type: import_client51.ActivityType.EMAIL,
+          type: import_client52.ActivityType.EMAIL,
           title: "Campaign Test Send Failed",
           content: `Test send failed for campaign "${campaign.name}" to ${recipientEmail}: ${err.message}`,
           userId: currentUserId,
@@ -122549,26 +122851,26 @@ var CampaignTestController = class {
 var campaignTestController = new CampaignTestController(campaignTestService);
 
 // src/routes/campaign-test.routes.ts
-var import_client52 = require("@prisma/client");
+var import_client53 = require("@prisma/client");
 var router19 = (0, import_express19.Router)();
 router19.use(authenticate);
 router19.post(
   "/campaigns/:campaignId/test-send",
-  authorize(import_client52.UserRole.ADMIN, import_client52.UserRole.MANAGER, import_client52.UserRole.MARKETING),
+  authorize(import_client53.UserRole.ADMIN, import_client53.UserRole.MANAGER, import_client53.UserRole.MARKETING),
   campaignTestController.testSend
 );
 var campaign_test_routes_default = router19;
 
 // src/routes/campaign-launch.routes.ts
 var import_express20 = __toESM(require_express2());
-var import_client53 = require("@prisma/client");
+var import_client54 = require("@prisma/client");
 var router20 = (0, import_express20.Router)();
 router20.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
 router20.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
 router20.use(authenticate);
 router20.post(
   "/campaigns/:campaignId/launch",
-  authorize(import_client53.UserRole.ADMIN, import_client53.UserRole.MANAGER, import_client53.UserRole.MARKETING),
+  authorize(import_client54.UserRole.ADMIN, import_client54.UserRole.MANAGER, import_client54.UserRole.MARKETING),
   campaignLaunchController.launch
 );
 var campaign_launch_routes_default = router20;
@@ -122577,7 +122879,7 @@ var campaign_launch_routes_default = router20;
 var import_express21 = __toESM(require_express2());
 
 // src/services/campaign-tracking.service.ts
-var import_client54 = require("@prisma/client");
+var import_client55 = require("@prisma/client");
 
 // src/repositories/campaign-tracking.repository.ts
 var CampaignTrackingRepository = class {
@@ -122730,7 +123032,7 @@ var CampaignTrackingService = class {
       }
       await tx.activity.create({
         data: {
-          type: import_client54.ActivityType.NOTE,
+          type: import_client55.ActivityType.NOTE,
           title: activityTitle,
           content: activityContent,
           userId: currentUserId,
@@ -122751,7 +123053,7 @@ var CampaignTrackingService = class {
       where: {
         campaignId,
         providerMessageId: { not: null },
-        status: { in: [import_client54.CampaignRecipientStatus.PENDING, import_client54.CampaignRecipientStatus.SENT, import_client54.CampaignRecipientStatus.DELIVERED, import_client54.CampaignRecipientStatus.OPENED] }
+        status: { in: [import_client55.CampaignRecipientStatus.PENDING, import_client55.CampaignRecipientStatus.SENT, import_client55.CampaignRecipientStatus.DELIVERED, import_client55.CampaignRecipientStatus.OPENED] }
       }
     });
     if (recipients.length === 0) return;
@@ -122763,23 +123065,23 @@ var CampaignTrackingService = class {
           if (!emailData || !emailData.last_event) return;
           const lastEvent = String(emailData.last_event).toLowerCase();
           let newStatus = null;
-          if (lastEvent === "clicked") newStatus = import_client54.CampaignRecipientStatus.CLICKED;
-          else if (lastEvent === "opened") newStatus = import_client54.CampaignRecipientStatus.OPENED;
-          else if (lastEvent === "delivered") newStatus = import_client54.CampaignRecipientStatus.DELIVERED;
-          else if (lastEvent === "bounced" || lastEvent === "complained") newStatus = import_client54.CampaignRecipientStatus.BOUNCED;
-          else if (lastEvent === "failed") newStatus = import_client54.CampaignRecipientStatus.FAILED;
+          if (lastEvent === "clicked") newStatus = import_client55.CampaignRecipientStatus.CLICKED;
+          else if (lastEvent === "opened") newStatus = import_client55.CampaignRecipientStatus.OPENED;
+          else if (lastEvent === "delivered") newStatus = import_client55.CampaignRecipientStatus.DELIVERED;
+          else if (lastEvent === "bounced" || lastEvent === "complained") newStatus = import_client55.CampaignRecipientStatus.BOUNCED;
+          else if (lastEvent === "failed") newStatus = import_client55.CampaignRecipientStatus.FAILED;
           if (!newStatus) return;
           const currentPriority = this.statusPriority[recipient.status] ?? 0;
           const newPriority = this.statusPriority[newStatus] ?? 0;
-          if (newPriority > currentPriority || newStatus === import_client54.CampaignRecipientStatus.BOUNCED || newStatus === import_client54.CampaignRecipientStatus.FAILED) {
+          if (newPriority > currentPriority || newStatus === import_client55.CampaignRecipientStatus.BOUNCED || newStatus === import_client55.CampaignRecipientStatus.FAILED) {
             const now = /* @__PURE__ */ new Date();
             const updateData = { status: newStatus };
-            if (newStatus === import_client54.CampaignRecipientStatus.DELIVERED && !recipient.deliveredAt) updateData.deliveredAt = now;
-            if (newStatus === import_client54.CampaignRecipientStatus.OPENED) {
+            if (newStatus === import_client55.CampaignRecipientStatus.DELIVERED && !recipient.deliveredAt) updateData.deliveredAt = now;
+            if (newStatus === import_client55.CampaignRecipientStatus.OPENED) {
               if (!recipient.openedAt) updateData.openedAt = now;
               if (!recipient.deliveredAt) updateData.deliveredAt = now;
             }
-            if (newStatus === import_client54.CampaignRecipientStatus.CLICKED) {
+            if (newStatus === import_client55.CampaignRecipientStatus.CLICKED) {
               if (!recipient.clickedAt) updateData.clickedAt = now;
               if (!recipient.openedAt) updateData.openedAt = now;
               if (!recipient.deliveredAt) updateData.deliveredAt = now;
@@ -122811,9 +123113,9 @@ var CampaignTrackingService = class {
 var campaignTrackingService = new CampaignTrackingService(campaignTrackingRepository);
 
 // src/validators/campaign-tracking.validator.ts
-var import_client55 = require("@prisma/client");
+var import_client56 = require("@prisma/client");
 var updateRecipientStatusSchema = external_exports.object({
-  status: external_exports.nativeEnum(import_client55.CampaignRecipientStatus, {
+  status: external_exports.nativeEnum(import_client56.CampaignRecipientStatus, {
     message: "Invalid recipient status value."
   })
 });
@@ -122867,17 +123169,17 @@ var CampaignTrackingController = class {
 var campaignTrackingController = new CampaignTrackingController(campaignTrackingService);
 
 // src/routes/campaign-tracking.routes.ts
-var import_client56 = require("@prisma/client");
+var import_client57 = require("@prisma/client");
 var router21 = (0, import_express21.Router)();
 router21.use(authenticate);
 router21.get(
   "/campaigns/:campaignId/tracking",
-  authorize(import_client56.UserRole.ADMIN, import_client56.UserRole.MANAGER, import_client56.UserRole.SALES_REP, import_client56.UserRole.MARKETING, import_client56.UserRole.SUPPORT),
+  authorize(import_client57.UserRole.ADMIN, import_client57.UserRole.MANAGER, import_client57.UserRole.SALES_REP, import_client57.UserRole.MARKETING, import_client57.UserRole.SUPPORT),
   campaignTrackingController.getSummary
 );
 router21.patch(
   "/campaigns/:campaignId/recipients/:recipientId/status",
-  authorize(import_client56.UserRole.ADMIN, import_client56.UserRole.MANAGER, import_client56.UserRole.MARKETING),
+  authorize(import_client57.UserRole.ADMIN, import_client57.UserRole.MANAGER, import_client57.UserRole.MARKETING),
   campaignTrackingController.updateStatus
 );
 var campaign_tracking_routes_default = router21;
@@ -122886,7 +123188,7 @@ var campaign_tracking_routes_default = router21;
 var import_express22 = __toESM(require_express2());
 
 // src/services/campaign-reply.service.ts
-var import_client57 = require("@prisma/client");
+var import_client58 = require("@prisma/client");
 
 // src/repositories/campaign-reply.repository.ts
 var CampaignReplyRepository = class {
@@ -122977,7 +123279,7 @@ var CampaignReplyService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client57.ActivityType.NOTE,
+          type: import_client58.ActivityType.NOTE,
           title: "Campaign Reply Received",
           content: `Campaign recipient ${contact.email} replied to campaign "${campaign.name}".`,
           userId: currentUserId,
@@ -122994,7 +123296,7 @@ var CampaignReplyService = class {
       if (isNewConversation) {
         await tx.activity.create({
           data: {
-            type: import_client57.ActivityType.NOTE,
+            type: import_client58.ActivityType.NOTE,
             title: "Conversation Created From Campaign",
             content: `Created conversation from campaign reply by ${contact.email}.`,
             userId: currentUserId,
@@ -123008,7 +123310,7 @@ var CampaignReplyService = class {
       } else {
         await tx.activity.create({
           data: {
-            type: import_client57.ActivityType.NOTE,
+            type: import_client58.ActivityType.NOTE,
             title: "Campaign Reply Added To Existing Conversation",
             content: `Campaign reply from ${contact.email} added to existing conversation.`,
             userId: currentUserId,
@@ -123075,12 +123377,12 @@ var CampaignReplyController = class {
 var campaignReplyController = new CampaignReplyController(campaignReplyService);
 
 // src/routes/campaign-reply.routes.ts
-var import_client58 = require("@prisma/client");
+var import_client59 = require("@prisma/client");
 var router22 = (0, import_express22.Router)();
 router22.use(authenticate);
 router22.post(
   "/campaigns/:campaignId/reply",
-  authorize(import_client58.UserRole.ADMIN, import_client58.UserRole.MANAGER, import_client58.UserRole.MARKETING, import_client58.UserRole.SUPPORT),
+  authorize(import_client59.UserRole.ADMIN, import_client59.UserRole.MANAGER, import_client59.UserRole.MARKETING, import_client59.UserRole.SUPPORT),
   campaignReplyController.processReply
 );
 var campaign_reply_routes_default = router22;
@@ -123089,10 +123391,10 @@ var campaign_reply_routes_default = router22;
 var import_express23 = __toESM(require_express2());
 
 // src/services/integration.service.ts
-var import_client60 = require("@prisma/client");
+var import_client61 = require("@prisma/client");
 
 // src/repositories/integration.repository.ts
-var import_client59 = require("@prisma/client");
+var import_client60 = require("@prisma/client");
 var IntegrationRepository = class {
   async findByProvider(provider) {
     return prisma.integrationConnection.findUnique({
@@ -123101,13 +123403,13 @@ var IntegrationRepository = class {
   }
   async upsertHubspot(accessToken) {
     return prisma.integrationConnection.upsert({
-      where: { provider: import_client59.IntegrationProvider.HUBSPOT },
+      where: { provider: import_client60.IntegrationProvider.HUBSPOT },
       update: {
         accessToken,
         status: "CONNECTED"
       },
       create: {
-        provider: import_client59.IntegrationProvider.HUBSPOT,
+        provider: import_client60.IntegrationProvider.HUBSPOT,
         accessToken,
         status: "CONNECTED"
       }
@@ -123115,7 +123417,7 @@ var IntegrationRepository = class {
   }
   async disconnectHubspot() {
     return prisma.integrationConnection.update({
-      where: { provider: import_client59.IntegrationProvider.HUBSPOT },
+      where: { provider: import_client60.IntegrationProvider.HUBSPOT },
       data: {
         accessToken: null,
         status: "DISCONNECTED"
@@ -123126,13 +123428,13 @@ var IntegrationRepository = class {
 var integrationRepository = new IntegrationRepository();
 
 // src/utils/encryption.ts
-var import_crypto2 = __toESM(require("crypto"));
+var import_crypto3 = __toESM(require("crypto"));
 var ALGORITHM = "aes-256-gcm";
 function encryptToken(text) {
   try {
-    const key = import_crypto2.default.scryptSync(config.hubspotEncryptionKey, "salt", 32);
-    const iv = import_crypto2.default.randomBytes(16);
-    const cipher = import_crypto2.default.createCipheriv(ALGORITHM, key, iv);
+    const key = import_crypto3.default.scryptSync(config.hubspotEncryptionKey, "salt", 32);
+    const iv = import_crypto3.default.randomBytes(16);
+    const cipher = import_crypto3.default.createCipheriv(ALGORITHM, key, iv);
     let encrypted = cipher.update(text, "utf8", "hex");
     encrypted += cipher.final("hex");
     const authTag = cipher.getAuthTag().toString("hex");
@@ -123147,10 +123449,10 @@ function decryptToken(encryptedText) {
     if (!ivHex || !authTagHex || !encrypted) {
       throw new Error("Invalid encrypted text format");
     }
-    const key = import_crypto2.default.scryptSync(config.hubspotEncryptionKey, "salt", 32);
+    const key = import_crypto3.default.scryptSync(config.hubspotEncryptionKey, "salt", 32);
     const iv = Buffer.from(ivHex, "hex");
     const authTag = Buffer.from(authTagHex, "hex");
-    const decipher = import_crypto2.default.createDecipheriv(ALGORITHM, key, iv);
+    const decipher = import_crypto3.default.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);
     let decrypted = decipher.update(encrypted, "hex", "utf8");
     decrypted += decipher.final("utf8");
@@ -124535,7 +124837,7 @@ var transitional_default = {
 };
 
 // node_modules/axios/lib/platform/node/index.js
-var import_crypto3 = __toESM(require("crypto"), 1);
+var import_crypto4 = __toESM(require("crypto"), 1);
 
 // node_modules/axios/lib/platform/node/classes/URLSearchParams.js
 var import_url = __toESM(require("url"), 1);
@@ -124553,7 +124855,7 @@ var generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
   let str = "";
   const { length } = alphabet;
   const randomValues = new Uint32Array(size);
-  import_crypto3.default.randomFillSync(randomValues);
+  import_crypto4.default.randomFillSync(randomValues);
   for (let i = 0; i < size; i++) {
     str += alphabet[randomValues[i] % length];
   }
@@ -128547,7 +128849,7 @@ var IntegrationService = class {
     this.integrationRepo = integrationRepo;
   }
   async connectHubspot(accessToken, currentUserId) {
-    const existing = await this.integrationRepo.findByProvider(import_client60.IntegrationProvider.HUBSPOT);
+    const existing = await this.integrationRepo.findByProvider(import_client61.IntegrationProvider.HUBSPOT);
     if (existing && existing.status === "CONNECTED") {
       throw new AppError("HubSpot is already connected. Disconnect first before setting up a new connection.", 409);
     }
@@ -128555,13 +128857,13 @@ var IntegrationService = class {
     const encryptedToken = encryptToken(accessToken);
     const connection = await prisma.$transaction(async (tx) => {
       const record2 = await tx.integrationConnection.upsert({
-        where: { provider: import_client60.IntegrationProvider.HUBSPOT },
+        where: { provider: import_client61.IntegrationProvider.HUBSPOT },
         update: {
           accessToken: encryptedToken,
           status: "CONNECTED"
         },
         create: {
-          provider: import_client60.IntegrationProvider.HUBSPOT,
+          provider: import_client61.IntegrationProvider.HUBSPOT,
           accessToken: encryptedToken,
           status: "CONNECTED"
         }
@@ -128569,12 +128871,12 @@ var IntegrationService = class {
       const actionText = existing ? "HubSpot connection updated/reconnected" : "HubSpot connection created";
       await tx.activity.create({
         data: {
-          type: import_client60.ActivityType.NOTE,
+          type: import_client61.ActivityType.NOTE,
           title: "HubSpot Connected",
           content: `${actionText}. Status set to CONNECTED.`,
           userId: currentUserId,
           metadata: {
-            provider: import_client60.IntegrationProvider.HUBSPOT,
+            provider: import_client61.IntegrationProvider.HUBSPOT,
             status: "CONNECTED",
             connectionId: record2.id
           }
@@ -128585,20 +128887,20 @@ var IntegrationService = class {
     return this.toSafeMeta(connection);
   }
   async getHubspotStatus() {
-    const connection = await this.integrationRepo.findByProvider(import_client60.IntegrationProvider.HUBSPOT);
+    const connection = await this.integrationRepo.findByProvider(import_client61.IntegrationProvider.HUBSPOT);
     if (!connection) {
       throw new AppError("HubSpot connection configuration not found.", 404);
     }
     return this.toSafeMeta(connection);
   }
   async disconnectHubspot(currentUserId) {
-    const existing = await this.integrationRepo.findByProvider(import_client60.IntegrationProvider.HUBSPOT);
+    const existing = await this.integrationRepo.findByProvider(import_client61.IntegrationProvider.HUBSPOT);
     if (!existing) {
       throw new AppError("HubSpot connection configuration not found.", 404);
     }
     const connection = await prisma.$transaction(async (tx) => {
       const record2 = await tx.integrationConnection.update({
-        where: { provider: import_client60.IntegrationProvider.HUBSPOT },
+        where: { provider: import_client61.IntegrationProvider.HUBSPOT },
         data: {
           accessToken: null,
           refreshToken: null,
@@ -128607,12 +128909,12 @@ var IntegrationService = class {
       });
       await tx.activity.create({
         data: {
-          type: import_client60.ActivityType.NOTE,
+          type: import_client61.ActivityType.NOTE,
           title: "HubSpot Disconnected",
           content: "HubSpot connection removed/disconnected. Credentials cleared.",
           userId: currentUserId,
           metadata: {
-            provider: import_client60.IntegrationProvider.HUBSPOT,
+            provider: import_client61.IntegrationProvider.HUBSPOT,
             status: "DISCONNECTED",
             connectionId: record2.id
           }
@@ -128695,22 +128997,22 @@ var IntegrationController = class {
 var integrationController = new IntegrationController(integrationService);
 
 // src/routes/integration.routes.ts
-var import_client61 = require("@prisma/client");
+var import_client62 = require("@prisma/client");
 var router23 = (0, import_express23.Router)();
 router23.use(authenticate);
 router23.get(
   "/integrations/hubspot",
-  authorize(import_client61.UserRole.ADMIN, import_client61.UserRole.MANAGER, import_client61.UserRole.SUPPORT),
+  authorize(import_client62.UserRole.ADMIN, import_client62.UserRole.MANAGER, import_client62.UserRole.SUPPORT),
   integrationController.getHubspotStatus
 );
 router23.post(
   "/integrations/hubspot/connect",
-  authorize(import_client61.UserRole.ADMIN, import_client61.UserRole.MANAGER),
+  authorize(import_client62.UserRole.ADMIN, import_client62.UserRole.MANAGER),
   integrationController.connectHubspot
 );
 router23.delete(
   "/integrations/hubspot",
-  authorize(import_client61.UserRole.ADMIN, import_client61.UserRole.MANAGER),
+  authorize(import_client62.UserRole.ADMIN, import_client62.UserRole.MANAGER),
   integrationController.disconnectHubspot
 );
 var integration_routes_default = router23;
@@ -128719,14 +129021,14 @@ var integration_routes_default = router23;
 var import_express24 = __toESM(require_express2());
 
 // src/services/hubspot-sync.service.ts
-var import_client63 = require("@prisma/client");
+var import_client64 = require("@prisma/client");
 
 // src/repositories/hubspot-sync.repository.ts
-var import_client62 = require("@prisma/client");
+var import_client63 = require("@prisma/client");
 var HubspotSyncRepository = class {
   async findActiveConnection() {
     return prisma.integrationConnection.findUnique({
-      where: { provider: import_client62.IntegrationProvider.HUBSPOT }
+      where: { provider: import_client63.IntegrationProvider.HUBSPOT }
     });
   }
   async findContactByHubspotId(hubspotId) {
@@ -128934,7 +129236,7 @@ var HubspotSyncService = class {
         connection.id,
         "contact",
         null,
-        import_client63.SyncLogStatus.FAILED,
+        import_client64.SyncLogStatus.FAILED,
         `Import failed during HubSpot API call: ${e.message}`
       );
       throw e;
@@ -128993,12 +129295,12 @@ var HubspotSyncService = class {
       connection.id,
       "contact",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       successMsg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Contacts Imported",
         content: `Imported contacts from HubSpot successfully. Details: ${successMsg}`,
         userId: currentUserId
@@ -129053,12 +129355,12 @@ var HubspotSyncService = class {
       connection.id,
       "contact",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       successMsg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Contacts Exported",
         content: `Exported contacts to HubSpot successfully. Details: ${successMsg}`,
         userId: currentUserId
@@ -129082,12 +129384,12 @@ var HubspotSyncService = class {
         connection.id,
         "contact",
         null,
-        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
         syncMsg
       );
       await prisma.activity.create({
         data: {
-          type: import_client63.ActivityType.NOTE,
+          type: import_client64.ActivityType.NOTE,
           title: "HubSpot Contacts Synced",
           content: `Bidirectional HubSpot contact sync completed. Details: ${syncMsg}`,
           userId: currentUserId
@@ -129120,7 +129422,7 @@ var HubspotSyncService = class {
         connection.id,
         "company",
         null,
-        import_client63.SyncLogStatus.FAILED,
+        import_client64.SyncLogStatus.FAILED,
         `Import failed during HubSpot API call: ${e.message}`
       );
       throw e;
@@ -129193,12 +129495,12 @@ var HubspotSyncService = class {
       connection.id,
       "company",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       successMsg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Companies Imported",
         content: `Imported companies from HubSpot successfully. Details: ${successMsg}`,
         userId: currentUserId
@@ -129253,12 +129555,12 @@ var HubspotSyncService = class {
       connection.id,
       "company",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       successMsg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Companies Exported",
         content: `Exported companies to HubSpot successfully. Details: ${successMsg}`,
         userId: currentUserId
@@ -129282,12 +129584,12 @@ var HubspotSyncService = class {
         connection.id,
         "company",
         null,
-        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
         syncMsg
       );
       await prisma.activity.create({
         data: {
-          type: import_client63.ActivityType.NOTE,
+          type: import_client64.ActivityType.NOTE,
           title: "HubSpot Companies Synced",
           content: `Bidirectional HubSpot company sync completed. Details: ${syncMsg}`,
           userId: currentUserId
@@ -129357,7 +129659,7 @@ var HubspotSyncService = class {
         connection.id,
         "deal",
         null,
-        import_client63.SyncLogStatus.FAILED,
+        import_client64.SyncLogStatus.FAILED,
         `Import failed during HubSpot API call: ${e.message}`
       );
       throw e;
@@ -129396,7 +129698,7 @@ var HubspotSyncService = class {
               connection.id,
               "deal",
               null,
-              import_client63.SyncLogStatus.SKIPPED,
+              import_client64.SyncLogStatus.SKIPPED,
               `Skipped importing deal "${dealname}" due to unmapped HubSpot dealstage: "${hsStage}"`
             );
             continue;
@@ -129414,7 +129716,7 @@ var HubspotSyncService = class {
             connection.id,
             "deal",
             null,
-            import_client63.SyncLogStatus.SKIPPED,
+            import_client64.SyncLogStatus.SKIPPED,
             `Skipped importing deal "${dealname}" because CRM PipelineStage "${matchedStageName}" was not found in database.`
           );
           continue;
@@ -129459,12 +129761,12 @@ var HubspotSyncService = class {
       connection.id,
       "deal",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       msg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Deals Imported",
         content: `Imported deals from HubSpot. ${msg}`,
         userId: currentUserId
@@ -129502,7 +129804,7 @@ var HubspotSyncService = class {
             connection.id,
             "deal",
             deal.id,
-            import_client63.SyncLogStatus.SKIPPED,
+            import_client64.SyncLogStatus.SKIPPED,
             `Skipped exporting deal "${deal.title}" because stage "${stage.name}" has no HubSpot dealstage mapping.`
           );
           continue;
@@ -129546,12 +129848,12 @@ var HubspotSyncService = class {
       connection.id,
       "deal",
       null,
-      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+      summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
       msg
     );
     await prisma.activity.create({
       data: {
-        type: import_client63.ActivityType.NOTE,
+        type: import_client64.ActivityType.NOTE,
         title: "HubSpot Deals Exported",
         content: `Exported deals to HubSpot. ${msg}`,
         userId: currentUserId
@@ -129575,12 +129877,12 @@ var HubspotSyncService = class {
         connection.id,
         "deal",
         null,
-        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client63.SyncLogStatus.FAILED : import_client63.SyncLogStatus.SUCCESS,
+        summary.failed > 0 && summary.created === 0 && summary.updated === 0 ? import_client64.SyncLogStatus.FAILED : import_client64.SyncLogStatus.SUCCESS,
         msg
       );
       await prisma.activity.create({
         data: {
-          type: import_client63.ActivityType.NOTE,
+          type: import_client64.ActivityType.NOTE,
           title: "HubSpot Deals Synced",
           content: `Bidirectional HubSpot deal sync completed. ${msg}`,
           userId: currentUserId
@@ -129850,77 +130152,77 @@ var HubspotSyncController = class {
 var hubspotSyncController = new HubspotSyncController(hubspotSyncService);
 
 // src/routes/hubspot-sync.routes.ts
-var import_client64 = require("@prisma/client");
+var import_client65 = require("@prisma/client");
 var router24 = (0, import_express24.Router)();
 router24.use(authenticate);
 router24.get(
   "/integrations/hubspot/contacts/sync-status",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER, import_client64.UserRole.SUPPORT),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER, import_client65.UserRole.SUPPORT),
   hubspotSyncController.getSyncStatus
 );
 router24.get(
   "/integrations/hubspot/companies/sync-status",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER, import_client64.UserRole.SUPPORT),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER, import_client65.UserRole.SUPPORT),
   hubspotSyncController.getCompanySyncStatus
 );
 router24.post(
   "/integrations/hubspot/contacts/import",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.importContacts
 );
 router24.post(
   "/integrations/hubspot/contacts/export",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.exportContacts
 );
 router24.post(
   "/integrations/hubspot/contacts/sync",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.syncContacts
 );
 router24.post(
   "/integrations/hubspot/companies/import",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.importCompanies
 );
 router24.post(
   "/integrations/hubspot/companies/export",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.exportCompanies
 );
 router24.post(
   "/integrations/hubspot/companies/sync",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.syncCompanies
 );
 router24.get(
   "/integrations/hubspot/deals/sync-status",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER, import_client64.UserRole.SUPPORT),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER, import_client65.UserRole.SUPPORT),
   hubspotSyncController.getDealSyncStatus
 );
 router24.post(
   "/integrations/hubspot/deals/import",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.importDeals
 );
 router24.post(
   "/integrations/hubspot/deals/export",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.exportDeals
 );
 router24.post(
   "/integrations/hubspot/deals/sync",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.syncDeals
 );
 router24.get(
   "/integrations/hubspot/mappings",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER, import_client64.UserRole.SUPPORT),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER, import_client65.UserRole.SUPPORT),
   hubspotSyncController.getMappings
 );
 router24.put(
   "/integrations/hubspot/mappings",
-  authorize(import_client64.UserRole.ADMIN, import_client64.UserRole.MANAGER),
+  authorize(import_client65.UserRole.ADMIN, import_client65.UserRole.MANAGER),
   hubspotSyncController.updateMappings
 );
 var hubspot_sync_routes_default = router24;
@@ -129933,10 +130235,10 @@ var import_multer = __toESM(require_multer());
 var import_path3 = __toESM(require("path"));
 
 // src/services/import.service.ts
-var import_client66 = require("@prisma/client");
+var import_client67 = require("@prisma/client");
 
 // src/repositories/import.repository.ts
-var import_client65 = require("@prisma/client");
+var import_client66 = require("@prisma/client");
 var ImportRepository = class {
   /**
    * Create a new ImportJob record in PROCESSING state.
@@ -129946,7 +130248,7 @@ var ImportRepository = class {
       data: {
         fileName: data.fileName,
         importType: data.importType,
-        status: import_client65.ImportJobStatus.PROCESSING,
+        status: import_client66.ImportJobStatus.PROCESSING,
         createdById: data.createdById
       },
       include: {
@@ -130333,7 +130635,7 @@ var ImportService = class {
     const failedRows = rowErrors.length - parseResult.errors.length + parseResult.errors.length;
     const dbErrors = rowErrors.length - parseResult.errors.length;
     const totalFailed = parseResult.errors.length + (dbErrors > 0 ? dbErrors : 0);
-    const finalStatus = successfulRows > 0 || skippedRows > 0 ? import_client66.ImportJobStatus.COMPLETED : import_client66.ImportJobStatus.FAILED;
+    const finalStatus = successfulRows > 0 || skippedRows > 0 ? import_client67.ImportJobStatus.COMPLETED : import_client67.ImportJobStatus.FAILED;
     const updatedJob = await this.importRepo.updateImportJob(job.id, {
       status: finalStatus,
       totalRecords: parseResult.totalRows,
@@ -130425,7 +130727,7 @@ var ImportService = class {
         });
       }
     }
-    const finalStatus = successfulRows > 0 || skippedRows > 0 ? import_client66.ImportJobStatus.COMPLETED : import_client66.ImportJobStatus.FAILED;
+    const finalStatus = successfulRows > 0 || skippedRows > 0 ? import_client67.ImportJobStatus.COMPLETED : import_client67.ImportJobStatus.FAILED;
     const updatedJob = await this.importRepo.updateImportJob(job.id, {
       status: finalStatus,
       totalRecords: parseResult.totalRows,
@@ -130603,7 +130905,7 @@ var ImportController = class {
 var importController = new ImportController(importService);
 
 // src/routes/import.routes.ts
-var import_client67 = require("@prisma/client");
+var import_client68 = require("@prisma/client");
 var router25 = (0, import_express25.Router)();
 var upload = (0, import_multer.default)({
   storage: import_multer.default.memoryStorage(),
@@ -130638,19 +130940,19 @@ var handleMulterError = (err, _req, _res, next) => {
 router25.use(authenticate);
 router25.post(
   "/imports/:type",
-  authorize(import_client67.UserRole.ADMIN, import_client67.UserRole.MANAGER, import_client67.UserRole.SALES_REP),
+  authorize(import_client68.UserRole.ADMIN, import_client68.UserRole.MANAGER, import_client68.UserRole.SALES_REP),
   upload.single("file"),
   handleMulterError,
   importController.uploadImport
 );
 router25.get(
   "/imports",
-  authorize(import_client67.UserRole.ADMIN, import_client67.UserRole.MANAGER, import_client67.UserRole.SALES_REP, import_client67.UserRole.SUPPORT),
+  authorize(import_client68.UserRole.ADMIN, import_client68.UserRole.MANAGER, import_client68.UserRole.SALES_REP, import_client68.UserRole.SUPPORT),
   importController.listImportJobs
 );
 router25.get(
   "/imports/:jobId",
-  authorize(import_client67.UserRole.ADMIN, import_client67.UserRole.MANAGER, import_client67.UserRole.SALES_REP, import_client67.UserRole.SUPPORT),
+  authorize(import_client68.UserRole.ADMIN, import_client68.UserRole.MANAGER, import_client68.UserRole.SALES_REP, import_client68.UserRole.SUPPORT),
   importController.getImportJob
 );
 var import_routes_default = router25;
@@ -131377,9 +131679,35 @@ router28.use(authenticate);
 router28.get("/", reportController.getReports);
 var report_routes_default = router28;
 
-// src/routes/index.ts
+// src/routes/invitation.routes.ts
+var import_express29 = __toESM(require_express2());
+var import_client69 = require("@prisma/client");
 var router29 = (0, import_express29.Router)();
-router29.get("/health", (_req, res) => {
+router29.get("/validate", invitationController.validate);
+router29.post("/accept", invitationController.registerWithInvite);
+router29.post(
+  "/",
+  authenticate,
+  authorize(import_client69.UserRole.ADMIN, import_client69.UserRole.MANAGER),
+  invitationController.create
+);
+router29.get(
+  "/",
+  authenticate,
+  authorize(import_client69.UserRole.ADMIN, import_client69.UserRole.MANAGER),
+  invitationController.list
+);
+router29.delete(
+  "/:id",
+  authenticate,
+  authorize(import_client69.UserRole.ADMIN, import_client69.UserRole.MANAGER),
+  invitationController.revoke
+);
+var invitation_routes_default = router29;
+
+// src/routes/index.ts
+var router30 = (0, import_express30.Router)();
+router30.get("/health", (_req, res) => {
   res.status(200).json({
     success: true,
     message: "CRM API server is operational and healthy",
@@ -131390,44 +131718,45 @@ router29.get("/health", (_req, res) => {
     }
   });
 });
-router29.use("/auth", auth_routes_default);
-router29.use("/users", user_routes_default);
-router29.use("/contacts", contact_routes_default);
-router29.use("/companies", company_routes_default);
-router29.use("/leads", lead_routes_default);
-router29.use("/deals", deal_routes_default);
-router29.use("/pipeline", pipeline_routes_default);
-router29.use("/tasks", task_routes_default);
-router29.use("/conversations", conversation_routes_default);
-router29.use("/templates", template_routes_default);
-router29.use("/dashboard", dashboard_routes_default);
-router29.use("/reports", report_routes_default);
-router29.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router29.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router29.use("/campaigns", campaign_routes_default);
-router29.use("/", message_routes_default);
-router29.use("/", reply_routes_default);
-router29.use("/", note_routes_default);
-router29.use("/", reply_template_routes_default);
-router29.use("/", conversation_contact_routes_default);
-router29.use("/", campaign_audience_routes_default);
-router29.use("/", campaign_recipient_routes_default);
-router29.use("/", campaign_test_routes_default);
-router29.use("/", campaign_launch_routes_default);
-router29.use("/", campaign_tracking_routes_default);
-router29.use("/", campaign_reply_routes_default);
-router29.use("/", integration_routes_default);
-router29.use("/", hubspot_sync_routes_default);
-router29.use("/", import_routes_default);
-router29.use("/", notification_routes_default);
-var routes_default = router29;
+router30.use("/auth", auth_routes_default);
+router30.use("/users", user_routes_default);
+router30.use("/invitations", invitation_routes_default);
+router30.use("/contacts", contact_routes_default);
+router30.use("/companies", company_routes_default);
+router30.use("/leads", lead_routes_default);
+router30.use("/deals", deal_routes_default);
+router30.use("/pipeline", pipeline_routes_default);
+router30.use("/tasks", task_routes_default);
+router30.use("/conversations", conversation_routes_default);
+router30.use("/templates", template_routes_default);
+router30.use("/dashboard", dashboard_routes_default);
+router30.use("/reports", report_routes_default);
+router30.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router30.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router30.use("/campaigns", campaign_routes_default);
+router30.use("/", message_routes_default);
+router30.use("/", reply_routes_default);
+router30.use("/", note_routes_default);
+router30.use("/", reply_template_routes_default);
+router30.use("/", conversation_contact_routes_default);
+router30.use("/", campaign_audience_routes_default);
+router30.use("/", campaign_recipient_routes_default);
+router30.use("/", campaign_test_routes_default);
+router30.use("/", campaign_launch_routes_default);
+router30.use("/", campaign_tracking_routes_default);
+router30.use("/", campaign_reply_routes_default);
+router30.use("/", integration_routes_default);
+router30.use("/", hubspot_sync_routes_default);
+router30.use("/", import_routes_default);
+router30.use("/", notification_routes_default);
+var routes_default = router30;
 
 // src/routes/webhook.routes.ts
-var import_express30 = __toESM(require_express2());
+var import_express31 = __toESM(require_express2());
 
 // src/controllers/webhook.controller.ts
 var import_svix = __toESM(require_dist5());
-var import_client68 = require("@prisma/client");
+var import_client70 = require("@prisma/client");
 function sanitizeHtml(html) {
   return html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<iframe[\s\S]*?<\/iframe>/gi, "").replace(/on\w+="[^"]*"/gi, "").replace(/on\w+='[^']*'/gi, "");
 }
@@ -131530,7 +131859,7 @@ var WebhookController = class {
               await prisma.campaignRecipient.update({
                 where: { id: matchedCampaignRecipient.id },
                 data: {
-                  status: import_client68.CampaignRecipientStatus.REPLIED,
+                  status: import_client70.CampaignRecipientStatus.REPLIED,
                   repliedAt: matchedCampaignRecipient.repliedAt ?? now,
                   deliveredAt: matchedCampaignRecipient.deliveredAt ?? now,
                   openedAt: matchedCampaignRecipient.openedAt ?? now
@@ -131550,7 +131879,7 @@ var WebhookController = class {
               const matchingCampaignRecip = await prisma.campaignRecipient.findFirst({
                 where: {
                   contactId: contact.id,
-                  status: { in: [import_client68.CampaignRecipientStatus.SENT, import_client68.CampaignRecipientStatus.DELIVERED, import_client68.CampaignRecipientStatus.REPLIED] },
+                  status: { in: [import_client70.CampaignRecipientStatus.SENT, import_client70.CampaignRecipientStatus.DELIVERED, import_client70.CampaignRecipientStatus.REPLIED] },
                   campaign: {
                     subject: { equals: cleanSubject, mode: "insensitive" }
                   }
@@ -131565,7 +131894,7 @@ var WebhookController = class {
                 await prisma.campaignRecipient.update({
                   where: { id: matchingCampaignRecip.id },
                   data: {
-                    status: import_client68.CampaignRecipientStatus.REPLIED,
+                    status: import_client70.CampaignRecipientStatus.REPLIED,
                     repliedAt: matchingCampaignRecip.repliedAt ?? now,
                     deliveredAt: matchingCampaignRecip.deliveredAt ?? now,
                     openedAt: matchingCampaignRecip.openedAt ?? now
@@ -131601,8 +131930,8 @@ var WebhookController = class {
                       firstName,
                       lastName,
                       email: senderEmail.toLowerCase(),
-                      source: import_client68.LeadSource.OTHER,
-                      status: import_client68.LeadStatus.NEW,
+                      source: import_client70.LeadSource.OTHER,
+                      status: import_client70.LeadStatus.NEW,
                       notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`
                     }
                   });
@@ -131661,7 +131990,7 @@ var WebhookController = class {
           const newMessage = await tx.message.create({
             data: {
               content: safeHtml,
-              senderType: import_client68.SenderType.CUSTOMER,
+              senderType: import_client70.SenderType.CUSTOMER,
               senderName: (from ? from.replace(/<[^>]+>/, "").trim() : "") || senderEmail || "Customer",
               senderEmail,
               isInternalNote: false,
@@ -131772,7 +132101,7 @@ var WebhookController = class {
       }
       res.status(200).json({ success: true, message: "Event type not supported." });
     } catch (err) {
-      if (err instanceof import_client68.Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      if (err instanceof import_client70.Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
         console.log(`[Webhook] Duplicate event caught by Prisma constraint ${providerEventId}.`);
         res.status(200).json({ success: true, message: "Event already processed." });
         return;
@@ -131784,12 +132113,12 @@ var WebhookController = class {
 };
 
 // src/routes/webhook.routes.ts
-var import_express31 = __toESM(require_express2());
-var router30 = (0, import_express30.Router)();
+var import_express32 = __toESM(require_express2());
+var router31 = (0, import_express31.Router)();
 var webhookController = new WebhookController();
-router30.post(
+router31.post(
   "/resend",
-  import_express31.default.raw({ type: "*/*" }),
+  import_express32.default.raw({ type: "*/*" }),
   (req, res, next) => {
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body.toString("utf8");
@@ -131798,7 +132127,7 @@ router30.post(
   },
   webhookController.handleResendWebhook.bind(webhookController)
 );
-var webhook_routes_default = router30;
+var webhook_routes_default = router31;
 
 // src/middleware/error.middleware.ts
 var errorHandler = (err, _req, res, _next) => {
@@ -131813,11 +132142,11 @@ var errorHandler = (err, _req, res, _next) => {
 };
 
 // src/app.ts
-var app = (0, import_express32.default)();
+var app = (0, import_express33.default)();
 app.use((0, import_cors.default)({ origin: config.corsOrigin }));
 app.use("/api/v1/webhooks", webhook_routes_default);
-app.use(import_express32.default.json());
-app.use(import_express32.default.urlencoded({ extended: true }));
+app.use(import_express33.default.json());
+app.use(import_express33.default.urlencoded({ extended: true }));
 app.use("/api/v1", routes_default);
 app.get("/", (_req, res) => {
   res.status(200).json({

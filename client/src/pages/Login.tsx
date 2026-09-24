@@ -114,8 +114,9 @@ export const Login: React.FC = () => {
           </Button>
         </form>
 
-        <div className="text-center text-xs text-muted-foreground pt-2">
-          Contact your administrator if you forgot your credentials.
+        <div className="text-center text-xs text-muted-foreground pt-2 space-y-1 border-t border-border">
+          <p className="font-medium text-foreground">New Team Member?</p>
+          <p className="opacity-80">Account registration is invite-only. Contact your administrator to receive an invitation link.</p>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 
 // Pages
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
 import Companies from "./pages/Companies";
@@ -29,6 +30,7 @@ export function App() {
           {/* Public Routes */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Route>
 
           {/* Protected CRM Application Routes */}

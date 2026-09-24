@@ -27,6 +27,7 @@ import importRoutes from "./import.routes";
 import notificationRoutes from "./notification.routes";
 import dashboardRoutes from "./dashboard.routes";
 import reportRoutes from "./report.routes";
+import invitationRoutes from "./invitation.routes";
 import { campaignLaunchController } from "../controllers/campaign-launch.controller";
 
 
@@ -46,6 +47,7 @@ router.get("/health", (_req: Request, res: Response) => {
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/invitations", invitationRoutes);
 router.use("/contacts", contactRoutes);
 router.use("/companies", companyRoutes);
 router.use("/leads", leadRoutes);

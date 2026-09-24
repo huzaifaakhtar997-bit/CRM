@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  setSession: (user: User, token: string) => void;
   logout: () => void;
   clearError: () => void;
 }
@@ -66,6 +67,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const setSession = (loggedInUser: User, token: string) => {
+    localStorage.setItem("crm_token", token);
+    setUser(loggedInUser);
+    setError(null);
+  };
+
   const logout = () => {
     localStorage.removeItem("crm_token");
     setUser(null);
@@ -77,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, clearError }}>
+    <AuthContext.Provider value={{ user, loading, error, login, setSession, logout, clearError }}>
       {children}
     </AuthContext.Provider>
   );
