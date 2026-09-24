@@ -519,3 +519,68 @@ export interface DashboardPerformanceData {
   focusConversations?: DailyFocusConversation[];
 }
 
+export interface RevenueTrendItem {
+  period: string;
+  wonRevenue: number;
+  dealsCount: number;
+}
+
+export interface StageBreakdownItem {
+  stageId: string;
+  stageName: string;
+  color: string | null;
+  isWon: boolean;
+  isLost: boolean;
+  order: number;
+  count: number;
+  totalValue: number;
+  percentageOfTotal: number;
+}
+
+export interface LifecycleFunnelStep {
+  stage: string;
+  label: string;
+  count: number;
+  conversionRate: number;
+  dropOffRate: number;
+}
+
+export interface SourceBreakdownItem {
+  source: string;
+  label: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RepReportItem {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+  avatarUrl: string | null;
+  wonRevenue: number;
+  wonDealsCount: number;
+  pipelineValue: number;
+  openDealsCount: number;
+  winRate: number;
+  totalContacts: number;
+}
+
+export interface ReportAnalyticsData {
+  timeRange: string;
+  isScopedToUser: boolean;
+  scopedUserName?: string;
+  totalWonRevenue: number;
+  wonDealsCount: number;
+  totalPipelineValue: number;
+  openDealsCount: number;
+  averageDealValue: number;
+  winRate: number;
+  revenueTrend: RevenueTrendItem[];
+  dealsByStage: StageBreakdownItem[];
+  totalContacts: number;
+  lifecycleFunnel: LifecycleFunnelStep[];
+  leadsBySource: SourceBreakdownItem[];
+  repPerformance?: RepReportItem[];
+}
+

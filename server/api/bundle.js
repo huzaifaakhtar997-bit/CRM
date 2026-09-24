@@ -18922,17 +18922,17 @@ var require_router = __commonJS({
     var toString3 = Object.prototype.toString;
     var proto = module2.exports = function(options) {
       var opts = options || {};
-      function router30(req, res, next) {
-        router30.handle(req, res, next);
+      function router31(req, res, next) {
+        router31.handle(req, res, next);
       }
-      setPrototypeOf(router30, proto);
-      router30.params = {};
-      router30._params = [];
-      router30.caseSensitive = opts.caseSensitive;
-      router30.mergeParams = opts.mergeParams;
-      router30.strict = opts.strict;
-      router30.stack = [];
-      return router30;
+      setPrototypeOf(router31, proto);
+      router31.params = {};
+      router31._params = [];
+      router31.caseSensitive = opts.caseSensitive;
+      router31.mergeParams = opts.mergeParams;
+      router31.strict = opts.strict;
+      router31.stack = [];
+      return router31;
     };
     proto.param = function param(name, fn) {
       if (typeof name === "function") {
@@ -21949,7 +21949,7 @@ var require_application = __commonJS({
   "node_modules/express/lib/application.js"(exports2, module2) {
     "use strict";
     var finalhandler = require_finalhandler();
-    var Router30 = require_router();
+    var Router31 = require_router();
     var methods = require_methods();
     var middleware = require_init();
     var query = require_query();
@@ -22014,7 +22014,7 @@ var require_application = __commonJS({
     };
     app2.lazyrouter = function lazyrouter() {
       if (!this._router) {
-        this._router = new Router30({
+        this._router = new Router31({
           caseSensitive: this.enabled("case sensitive routing"),
           strict: this.enabled("strict routing")
         });
@@ -22023,17 +22023,17 @@ var require_application = __commonJS({
       }
     };
     app2.handle = function handle(req, res, callback) {
-      var router30 = this._router;
+      var router31 = this._router;
       var done = callback || finalhandler(req, res, {
         env: this.get("env"),
         onerror: logerror.bind(this)
       });
-      if (!router30) {
+      if (!router31) {
         debug("no routes defined on app");
         done();
         return;
       }
-      router30.handle(req, res, done);
+      router31.handle(req, res, done);
     };
     app2.use = function use(fn) {
       var offset = 0;
@@ -22053,15 +22053,15 @@ var require_application = __commonJS({
         throw new TypeError("app.use() requires a middleware function");
       }
       this.lazyrouter();
-      var router30 = this._router;
+      var router31 = this._router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router30.use(path3, fn2);
+          return router31.use(path3, fn2);
         }
         debug(".use app under %s", path3);
         fn2.mountpath = path3;
         fn2.parent = this;
-        router30.use(path3, function mounted_app(req, res, next) {
+        router31.use(path3, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             setPrototypeOf(req, orig.request);
@@ -23878,7 +23878,7 @@ var require_express = __commonJS({
     var mixin = require_merge_descriptors();
     var proto = require_application();
     var Route = require_route();
-    var Router30 = require_router();
+    var Router31 = require_router();
     var req = require_request();
     var res = require_response();
     exports2 = module2.exports = createApplication;
@@ -23901,7 +23901,7 @@ var require_express = __commonJS({
     exports2.request = req;
     exports2.response = res;
     exports2.Route = Route;
-    exports2.Router = Router30;
+    exports2.Router = Router31;
     exports2.json = bodyParser.json;
     exports2.query = require_query();
     exports2.raw = bodyParser.raw;
@@ -94435,11 +94435,11 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 
 // src/app.ts
-var import_express31 = __toESM(require_express2());
+var import_express32 = __toESM(require_express2());
 var import_cors = __toESM(require_lib3());
 
 // src/routes/index.ts
-var import_express28 = __toESM(require_express2());
+var import_express29 = __toESM(require_express2());
 
 // src/routes/auth.routes.ts
 var import_express = __toESM(require_express2());
@@ -131051,9 +131051,305 @@ router27.use(authenticate);
 router27.get("/performance", dashboardController.getPerformance);
 var dashboard_routes_default = router27;
 
-// src/routes/index.ts
+// src/routes/report.routes.ts
+var import_express28 = __toESM(require_express2());
+
+// src/services/report.service.ts
+var ReportService = class {
+  async getReportAnalytics(currentUser, query) {
+    const isAdminOrManager = ["ADMIN", "MANAGER"].includes(currentUser.role);
+    const timeRange = query.timeRange || "30d";
+    let effectiveRepId = void 0;
+    let scopedUserName = void 0;
+    if (!isAdminOrManager) {
+      effectiveRepId = currentUser.userId;
+    } else if (query.repId && query.repId !== "all") {
+      effectiveRepId = query.repId;
+      const targetUser = await prisma.user.findUnique({
+        where: { id: effectiveRepId },
+        select: { name: true }
+      });
+      scopedUserName = targetUser?.name || void 0;
+    }
+    const now = /* @__PURE__ */ new Date();
+    let startDate = null;
+    if (timeRange === "7d") {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1e3);
+    } else if (timeRange === "30d") {
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1e3);
+    } else if (timeRange === "90d") {
+      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1e3);
+    } else if (timeRange === "12m") {
+      startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1e3);
+    }
+    const stages = await prisma.pipelineStage.findMany({
+      orderBy: { order: "asc" }
+    });
+    const dealWhere = {};
+    if (effectiveRepId) {
+      dealWhere.OR = [
+        { assignedUserId: effectiveRepId },
+        { contact: { assignedUserId: effectiveRepId } },
+        { contact: { conversations: { some: { assignedUserId: effectiveRepId } } } }
+      ];
+    }
+    if (startDate) {
+      dealWhere.createdAt = { gte: startDate };
+    }
+    const deals = await prisma.deal.findMany({
+      where: dealWhere,
+      include: {
+        stage: true,
+        contact: {
+          select: {
+            assignedUserId: true,
+            conversations: { select: { assignedUserId: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: "asc" }
+    });
+    let totalWonRevenue = 0;
+    let wonDealsCount = 0;
+    let totalPipelineValue = 0;
+    let openDealsCount = 0;
+    let lostDealsCount = 0;
+    const stageCountMap = /* @__PURE__ */ new Map();
+    stages.forEach((s) => stageCountMap.set(s.id, { count: 0, totalValue: 0 }));
+    const trendMap = /* @__PURE__ */ new Map();
+    for (const deal of deals) {
+      const isWon = deal.stage?.isWon ?? false;
+      const isLost = deal.stage?.isLost ?? false;
+      const val = deal.value || 0;
+      if (isWon) {
+        totalWonRevenue += val;
+        wonDealsCount++;
+        const d = new Date(deal.closedAt || deal.createdAt);
+        const periodKey = timeRange === "7d" || timeRange === "30d" ? d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+        const existingTrend = trendMap.get(periodKey) || { wonRevenue: 0, dealsCount: 0 };
+        existingTrend.wonRevenue += val;
+        existingTrend.dealsCount += 1;
+        trendMap.set(periodKey, existingTrend);
+      } else if (isLost) {
+        lostDealsCount++;
+      } else {
+        totalPipelineValue += val;
+        openDealsCount++;
+      }
+      if (deal.stageId && stageCountMap.has(deal.stageId)) {
+        const stageStat = stageCountMap.get(deal.stageId);
+        stageStat.count += 1;
+        stageStat.totalValue += val;
+      }
+    }
+    const totalClosed = wonDealsCount + lostDealsCount;
+    const winRate = totalClosed > 0 ? Math.round(wonDealsCount / totalClosed * 100) : 0;
+    const averageDealValue = wonDealsCount > 0 ? Math.round(totalWonRevenue / wonDealsCount) : 0;
+    const totalDealsCount = deals.length;
+    const dealsByStage = stages.map((s) => {
+      const stat = stageCountMap.get(s.id) || { count: 0, totalValue: 0 };
+      return {
+        stageId: s.id,
+        stageName: s.name,
+        color: s.color,
+        isWon: s.isWon,
+        isLost: s.isLost,
+        order: s.order,
+        count: stat.count,
+        totalValue: stat.totalValue,
+        percentageOfTotal: totalDealsCount > 0 ? Math.round(stat.count / totalDealsCount * 100) : 0
+      };
+    });
+    const revenueTrend = Array.from(trendMap.entries()).map(([period, data]) => ({
+      period,
+      wonRevenue: data.wonRevenue,
+      dealsCount: data.dealsCount
+    }));
+    const contactWhere = {};
+    if (effectiveRepId) {
+      contactWhere.OR = [
+        { assignedUserId: effectiveRepId },
+        { conversations: { some: { assignedUserId: effectiveRepId } } }
+      ];
+    }
+    if (startDate) {
+      contactWhere.createdAt = { gte: startDate };
+    }
+    const contacts = await prisma.contact.findMany({
+      where: contactWhere,
+      select: {
+        id: true,
+        lifecycleStage: true,
+        leadSource: true,
+        createdAt: true
+      }
+    });
+    const totalContacts = contacts.length;
+    const funnelKeys = ["LEAD", "MQL", "SQL", "OPPORTUNITY", "CUSTOMER"];
+    const funnelLabels = {
+      LEAD: "Lead",
+      MQL: "Marketing Qualified (MQL)",
+      SQL: "Sales Qualified (SQL)",
+      OPPORTUNITY: "Opportunity",
+      CUSTOMER: "Customer",
+      CHURNED: "Churned"
+    };
+    const stageCounts = {
+      LEAD: 0,
+      MQL: 0,
+      SQL: 0,
+      OPPORTUNITY: 0,
+      CUSTOMER: 0,
+      CHURNED: 0
+    };
+    const sourceCounts = {};
+    for (const c of contacts) {
+      if (c.lifecycleStage && stageCounts[c.lifecycleStage] !== void 0) {
+        stageCounts[c.lifecycleStage]++;
+      }
+      const src = c.leadSource || "DIRECT";
+      sourceCounts[src] = (sourceCounts[src] || 0) + 1;
+    }
+    const cumulativeFunnel = [];
+    let previousCount = totalContacts;
+    for (let i = 0; i < funnelKeys.length; i++) {
+      const key = funnelKeys[i];
+      let stageCount = 0;
+      for (let j = i; j < funnelKeys.length; j++) {
+        stageCount += stageCounts[funnelKeys[j]] || 0;
+      }
+      const conversionRate = previousCount > 0 ? Math.round(stageCount / previousCount * 100) : 0;
+      const dropOffRate = 100 - conversionRate;
+      cumulativeFunnel.push({
+        stage: key,
+        label: funnelLabels[key] || key,
+        count: stageCount,
+        conversionRate,
+        dropOffRate: dropOffRate > 0 ? dropOffRate : 0
+      });
+      previousCount = stageCount;
+    }
+    const sourceLabels = {
+      ORGANIC_SEARCH: "Organic Search",
+      PAID_SEARCH: "Paid Search",
+      SOCIAL_MEDIA: "Social Media",
+      REFERRAL: "Referral",
+      DIRECT: "Direct Traffic",
+      OFFLINE: "Offline / Events",
+      OTHER: "Other"
+    };
+    const leadsBySource = Object.entries(sourceCounts).map(([src, count]) => ({
+      source: src,
+      label: sourceLabels[src] || src,
+      count,
+      percentage: totalContacts > 0 ? Math.round(count / totalContacts * 100) : 0
+    }));
+    leadsBySource.sort((a, b) => b.count - a.count);
+    let repPerformance = void 0;
+    if (isAdminOrManager && !effectiveRepId) {
+      const activeUsers = await prisma.user.findMany({
+        where: { status: "ACTIVE" },
+        select: { id: true, name: true, email: true, role: true, avatarUrl: true },
+        orderBy: { name: "asc" }
+      });
+      repPerformance = activeUsers.map((u) => {
+        const uDeals = deals.filter(
+          (d) => d.assignedUserId === u.id || d.contact?.assignedUserId === u.id || d.contact?.conversations?.some((c) => c.assignedUserId === u.id)
+        );
+        let wonRev = 0;
+        let wonCount = 0;
+        let openPipe = 0;
+        let openCount = 0;
+        let lostCount = 0;
+        for (const d of uDeals) {
+          if (d.stage?.isWon) {
+            wonRev += d.value || 0;
+            wonCount++;
+          } else if (d.stage?.isLost) {
+            lostCount++;
+          } else {
+            openPipe += d.value || 0;
+            openCount++;
+          }
+        }
+        const closed = wonCount + lostCount;
+        const repWinRate = closed > 0 ? Math.round(wonCount / closed * 100) : 0;
+        const uContacts = contacts.filter((c) => c.assignedUserId === u.id);
+        return {
+          userId: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          avatarUrl: u.avatarUrl,
+          wonRevenue: wonRev,
+          wonDealsCount: wonCount,
+          pipelineValue: openPipe,
+          openDealsCount: openCount,
+          winRate: repWinRate,
+          totalContacts: uContacts.length
+        };
+      });
+      repPerformance.sort((a, b) => b.wonRevenue - a.wonRevenue || b.pipelineValue - a.pipelineValue);
+    }
+    return {
+      timeRange,
+      isScopedToUser: Boolean(effectiveRepId),
+      scopedUserName,
+      totalWonRevenue,
+      wonDealsCount,
+      totalPipelineValue,
+      openDealsCount,
+      averageDealValue,
+      winRate,
+      revenueTrend,
+      dealsByStage,
+      totalContacts,
+      lifecycleFunnel: cumulativeFunnel,
+      leadsBySource,
+      repPerformance
+    };
+  }
+};
+var reportService = new ReportService();
+
+// src/controllers/report.controller.ts
+var ReportController = class {
+  constructor(reportServ) {
+    this.reportServ = reportServ;
+    this.getReports = async (req, res, next) => {
+      try {
+        if (!req.user) {
+          throw new AppError("Authentication required.", 401);
+        }
+        const timeRange = typeof req.query.timeRange === "string" ? req.query.timeRange : void 0;
+        const repId = typeof req.query.repId === "string" ? req.query.repId : void 0;
+        const reportData = await this.reportServ.getReportAnalytics(
+          { userId: req.user.userId, role: req.user.role },
+          { timeRange, repId }
+        );
+        res.status(200).json({
+          success: true,
+          message: "Report analytics retrieved successfully.",
+          data: reportData,
+          timestamp: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      } catch (error51) {
+        next(error51);
+      }
+    };
+  }
+};
+var reportController = new ReportController(reportService);
+
+// src/routes/report.routes.ts
 var router28 = (0, import_express28.Router)();
-router28.get("/health", (_req, res) => {
+router28.use(authenticate);
+router28.get("/", reportController.getReports);
+var report_routes_default = router28;
+
+// src/routes/index.ts
+var router29 = (0, import_express29.Router)();
+router29.get("/health", (_req, res) => {
   res.status(200).json({
     success: true,
     message: "CRM API server is operational and healthy",
@@ -131064,39 +131360,40 @@ router28.get("/health", (_req, res) => {
     }
   });
 });
-router28.use("/auth", auth_routes_default);
-router28.use("/users", user_routes_default);
-router28.use("/contacts", contact_routes_default);
-router28.use("/companies", company_routes_default);
-router28.use("/leads", lead_routes_default);
-router28.use("/deals", deal_routes_default);
-router28.use("/pipeline", pipeline_routes_default);
-router28.use("/tasks", task_routes_default);
-router28.use("/conversations", conversation_routes_default);
-router28.use("/templates", template_routes_default);
-router28.use("/dashboard", dashboard_routes_default);
-router28.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router28.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
-router28.use("/campaigns", campaign_routes_default);
-router28.use("/", message_routes_default);
-router28.use("/", reply_routes_default);
-router28.use("/", note_routes_default);
-router28.use("/", reply_template_routes_default);
-router28.use("/", conversation_contact_routes_default);
-router28.use("/", campaign_audience_routes_default);
-router28.use("/", campaign_recipient_routes_default);
-router28.use("/", campaign_test_routes_default);
-router28.use("/", campaign_launch_routes_default);
-router28.use("/", campaign_tracking_routes_default);
-router28.use("/", campaign_reply_routes_default);
-router28.use("/", integration_routes_default);
-router28.use("/", hubspot_sync_routes_default);
-router28.use("/", import_routes_default);
-router28.use("/", notification_routes_default);
-var routes_default = router28;
+router29.use("/auth", auth_routes_default);
+router29.use("/users", user_routes_default);
+router29.use("/contacts", contact_routes_default);
+router29.use("/companies", company_routes_default);
+router29.use("/leads", lead_routes_default);
+router29.use("/deals", deal_routes_default);
+router29.use("/pipeline", pipeline_routes_default);
+router29.use("/tasks", task_routes_default);
+router29.use("/conversations", conversation_routes_default);
+router29.use("/templates", template_routes_default);
+router29.use("/dashboard", dashboard_routes_default);
+router29.use("/reports", report_routes_default);
+router29.post("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router29.get("/campaigns/process-scheduled", campaignLaunchController.processScheduled);
+router29.use("/campaigns", campaign_routes_default);
+router29.use("/", message_routes_default);
+router29.use("/", reply_routes_default);
+router29.use("/", note_routes_default);
+router29.use("/", reply_template_routes_default);
+router29.use("/", conversation_contact_routes_default);
+router29.use("/", campaign_audience_routes_default);
+router29.use("/", campaign_recipient_routes_default);
+router29.use("/", campaign_test_routes_default);
+router29.use("/", campaign_launch_routes_default);
+router29.use("/", campaign_tracking_routes_default);
+router29.use("/", campaign_reply_routes_default);
+router29.use("/", integration_routes_default);
+router29.use("/", hubspot_sync_routes_default);
+router29.use("/", import_routes_default);
+router29.use("/", notification_routes_default);
+var routes_default = router29;
 
 // src/routes/webhook.routes.ts
-var import_express29 = __toESM(require_express2());
+var import_express30 = __toESM(require_express2());
 
 // src/controllers/webhook.controller.ts
 var import_svix = __toESM(require_dist5());
@@ -131457,12 +131754,12 @@ var WebhookController = class {
 };
 
 // src/routes/webhook.routes.ts
-var import_express30 = __toESM(require_express2());
-var router29 = (0, import_express29.Router)();
+var import_express31 = __toESM(require_express2());
+var router30 = (0, import_express30.Router)();
 var webhookController = new WebhookController();
-router29.post(
+router30.post(
   "/resend",
-  import_express30.default.raw({ type: "*/*" }),
+  import_express31.default.raw({ type: "*/*" }),
   (req, res, next) => {
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body.toString("utf8");
@@ -131471,7 +131768,7 @@ router29.post(
   },
   webhookController.handleResendWebhook.bind(webhookController)
 );
-var webhook_routes_default = router29;
+var webhook_routes_default = router30;
 
 // src/middleware/error.middleware.ts
 var errorHandler = (err, _req, res, _next) => {
@@ -131486,11 +131783,11 @@ var errorHandler = (err, _req, res, _next) => {
 };
 
 // src/app.ts
-var app = (0, import_express31.default)();
+var app = (0, import_express32.default)();
 app.use((0, import_cors.default)({ origin: config.corsOrigin }));
 app.use("/api/v1/webhooks", webhook_routes_default);
-app.use(import_express31.default.json());
-app.use(import_express31.default.urlencoded({ extended: true }));
+app.use(import_express32.default.json());
+app.use(import_express32.default.urlencoded({ extended: true }));
 app.use("/api/v1", routes_default);
 app.get("/", (_req, res) => {
   res.status(200).json({
