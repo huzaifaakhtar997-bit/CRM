@@ -237,8 +237,8 @@ export class ReportService {
         OR: [
           { createdAt: { gte: startDate } },
           { updatedAt: { gte: startDate } },
-          { lifecycleStage: "CUSTOMER" },
-          { deals: { some: { stage: { isWon: true } } } },
+          { lifecycleStage: { in: ["MQL", "SQL", "OPPORTUNITY", "CUSTOMER"] } },
+          { deals: { some: {} } },
         ],
       });
     }
@@ -249,6 +249,8 @@ export class ReportService {
       select: {
         id: true,
         lifecycleStage: true,
+        status: true,
+        tags: true,
         leadSource: true,
         createdAt: true,
         deals: {
@@ -288,6 +290,10 @@ export class ReportService {
       // If contact has any won deal, ensure they are classified as CUSTOMER
       if (c.deals?.some((d: any) => d.stage?.isWon)) {
         effectiveStage = "CUSTOMER";
+      } else if (c.lifecycleStage === "SQL" || c.status === "SQL" || c.tags?.includes("SQL")) {
+        effectiveStage = "SQL";
+      } else if (c.lifecycleStage === "MQL" || c.status === "MQL" || c.tags?.includes("MQL")) {
+        effectiveStage = "MQL";
       }
 
       if (effectiveStage && stageCounts[effectiveStage] !== undefined) {
@@ -297,20 +303,15 @@ export class ReportService {
       sourceCounts[src] = (sourceCounts[src] || 0) + 1;
     }
 
-    // Build cumulative / progressive conversion funnel
-    // In CRM sales funnel: A Customer also passed through Lead, MQL, SQL, Opportunity
+    // Build discrete lifecycle funnel matching exact CRM contact stages
     const cumulativeFunnel: LifecycleFunnelStep[] = [];
-    let previousCount = totalContacts;
 
     for (let i = 0; i < funnelKeys.length; i++) {
       const key = funnelKeys[i];
-      // Count who reached this stage or beyond
-      let stageCount = 0;
-      for (let j = i; j < funnelKeys.length; j++) {
-        stageCount += stageCounts[funnelKeys[j]] || 0;
-      }
+      const stageCount = stageCounts[key] || 0;
 
-      const conversionRate = previousCount > 0 ? Math.round((stageCount / previousCount) * 100) : 0;
+      // Conversion rate as percentage of total contacts
+      const conversionRate = totalContacts > 0 ? Math.round((stageCount / totalContacts) * 100) : 0;
       const dropOffRate = 100 - conversionRate;
 
       cumulativeFunnel.push({
@@ -320,8 +321,6 @@ export class ReportService {
         conversionRate,
         dropOffRate: dropOffRate > 0 ? dropOffRate : 0,
       });
-
-      previousCount = stageCount;
     }
 
     // Lead Sources breakdown

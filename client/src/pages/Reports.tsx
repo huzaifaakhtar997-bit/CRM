@@ -14,7 +14,7 @@ export const Reports: React.FC = () => {
   const { user } = useAuth();
   const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role || "");
 
-  const [timeRange, setTimeRange] = useState<string>("30d");
+  const [timeRange, setTimeRange] = useState<string>("all");
   const [repId, setRepId] = useState<string>("all");
   const [data, setData] = useState<ReportAnalyticsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

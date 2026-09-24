@@ -82,8 +82,8 @@ export const LeadFunnelAnalytics: React.FC<LeadFunnelAnalyticsProps> = ({
                       <div className="text-xl font-extrabold">{step.count}</div>
                       <div className="text-[10px] opacity-80 mt-0.5">
                         {idx === 0
-                          ? "Initial Volume"
-                          : `${step.conversionRate}% conversion`}
+                          ? `${step.conversionRate}% share`
+                          : `${step.conversionRate}% of contacts`}
                       </div>
                     </div>
                   </div>

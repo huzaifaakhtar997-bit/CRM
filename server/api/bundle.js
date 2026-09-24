@@ -131189,8 +131189,8 @@ var ReportService = class {
         OR: [
           { createdAt: { gte: startDate } },
           { updatedAt: { gte: startDate } },
-          { lifecycleStage: "CUSTOMER" },
-          { deals: { some: { stage: { isWon: true } } } }
+          { lifecycleStage: { in: ["MQL", "SQL", "OPPORTUNITY", "CUSTOMER"] } },
+          { deals: { some: {} } }
         ]
       });
     }
@@ -131200,6 +131200,8 @@ var ReportService = class {
       select: {
         id: true,
         lifecycleStage: true,
+        status: true,
+        tags: true,
         leadSource: true,
         createdAt: true,
         deals: {
@@ -131232,6 +131234,10 @@ var ReportService = class {
       let effectiveStage = c.lifecycleStage;
       if (c.deals?.some((d) => d.stage?.isWon)) {
         effectiveStage = "CUSTOMER";
+      } else if (c.lifecycleStage === "SQL" || c.status === "SQL" || c.tags?.includes("SQL")) {
+        effectiveStage = "SQL";
+      } else if (c.lifecycleStage === "MQL" || c.status === "MQL" || c.tags?.includes("MQL")) {
+        effectiveStage = "MQL";
       }
       if (effectiveStage && stageCounts[effectiveStage] !== void 0) {
         stageCounts[effectiveStage]++;
@@ -131240,14 +131246,10 @@ var ReportService = class {
       sourceCounts[src] = (sourceCounts[src] || 0) + 1;
     }
     const cumulativeFunnel = [];
-    let previousCount = totalContacts;
     for (let i = 0; i < funnelKeys.length; i++) {
       const key = funnelKeys[i];
-      let stageCount = 0;
-      for (let j = i; j < funnelKeys.length; j++) {
-        stageCount += stageCounts[funnelKeys[j]] || 0;
-      }
-      const conversionRate = previousCount > 0 ? Math.round(stageCount / previousCount * 100) : 0;
+      const stageCount = stageCounts[key] || 0;
+      const conversionRate = totalContacts > 0 ? Math.round(stageCount / totalContacts * 100) : 0;
       const dropOffRate = 100 - conversionRate;
       cumulativeFunnel.push({
         stage: key,
@@ -131256,7 +131258,6 @@ var ReportService = class {
         conversionRate,
         dropOffRate: dropOffRate > 0 ? dropOffRate : 0
       });
-      previousCount = stageCount;
     }
     const sourceLabels = {
       ORGANIC_SEARCH: "Organic Search",
