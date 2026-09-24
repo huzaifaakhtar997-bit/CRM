@@ -131085,17 +131085,26 @@ var ReportService = class {
     const stages = await prisma.pipelineStage.findMany({
       orderBy: { order: "asc" }
     });
-    const dealWhere = {};
+    const dealConditions = [];
     if (effectiveRepId) {
-      dealWhere.OR = [
-        { assignedUserId: effectiveRepId },
-        { contact: { assignedUserId: effectiveRepId } },
-        { contact: { conversations: { some: { assignedUserId: effectiveRepId } } } }
-      ];
+      dealConditions.push({
+        OR: [
+          { assignedUserId: effectiveRepId },
+          { contact: { assignedUserId: effectiveRepId } },
+          { contact: { conversations: { some: { assignedUserId: effectiveRepId } } } }
+        ]
+      });
     }
     if (startDate) {
-      dealWhere.createdAt = { gte: startDate };
+      dealConditions.push({
+        OR: [
+          { createdAt: { gte: startDate } },
+          { closedAt: { gte: startDate } },
+          { updatedAt: { gte: startDate } }
+        ]
+      });
     }
+    const dealWhere = dealConditions.length > 0 ? { AND: dealConditions } : {};
     const deals = await prisma.deal.findMany({
       where: dealWhere,
       include: {
@@ -131165,23 +131174,39 @@ var ReportService = class {
       wonRevenue: data.wonRevenue,
       dealsCount: data.dealsCount
     }));
-    const contactWhere = {};
+    const contactConditions = [];
     if (effectiveRepId) {
-      contactWhere.OR = [
-        { assignedUserId: effectiveRepId },
-        { conversations: { some: { assignedUserId: effectiveRepId } } }
-      ];
+      contactConditions.push({
+        OR: [
+          { assignedUserId: effectiveRepId },
+          { conversations: { some: { assignedUserId: effectiveRepId } } },
+          { deals: { some: { assignedUserId: effectiveRepId } } }
+        ]
+      });
     }
     if (startDate) {
-      contactWhere.createdAt = { gte: startDate };
+      contactConditions.push({
+        OR: [
+          { createdAt: { gte: startDate } },
+          { updatedAt: { gte: startDate } },
+          { lifecycleStage: "CUSTOMER" },
+          { deals: { some: { stage: { isWon: true } } } }
+        ]
+      });
     }
+    const contactWhere = contactConditions.length > 0 ? { AND: contactConditions } : {};
     const contacts = await prisma.contact.findMany({
       where: contactWhere,
       select: {
         id: true,
         lifecycleStage: true,
         leadSource: true,
-        createdAt: true
+        createdAt: true,
+        deals: {
+          select: {
+            stage: { select: { isWon: true } }
+          }
+        }
       }
     });
     const totalContacts = contacts.length;
@@ -131204,8 +131229,12 @@ var ReportService = class {
     };
     const sourceCounts = {};
     for (const c of contacts) {
-      if (c.lifecycleStage && stageCounts[c.lifecycleStage] !== void 0) {
-        stageCounts[c.lifecycleStage]++;
+      let effectiveStage = c.lifecycleStage;
+      if (c.deals?.some((d) => d.stage?.isWon)) {
+        effectiveStage = "CUSTOMER";
+      }
+      if (effectiveStage && stageCounts[effectiveStage] !== void 0) {
+        stageCounts[effectiveStage]++;
       }
       const src = c.leadSource || "DIRECT";
       sourceCounts[src] = (sourceCounts[src] || 0) + 1;
