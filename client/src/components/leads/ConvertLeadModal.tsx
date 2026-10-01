@@ -6,7 +6,7 @@ import { dealsApi } from "../../api/deals.api";
 import { Button } from "../ui/button";
 import {
   X, UserCheck, Building2, Briefcase, DollarSign,
-  AlertCircle, CheckCircle2, ArrowRight, Loader2
+  AlertCircle, CheckCircle2, ArrowRight
 } from "lucide-react";
 
 interface ConvertLeadModalProps {
@@ -87,7 +87,15 @@ export const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
     };
 
     fetchMetadata();
-  }, [isOpen, lead]);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen && !converting) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, lead, converting, onClose]);
 
   if (!isOpen || !lead) return null;
 
@@ -123,8 +131,16 @@ export const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <div className="bg-card w-full max-w-lg rounded-xl border shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={() => {
+        if (!converting) onClose();
+      }}
+    >
+      <div
+        className="bg-card w-full max-w-lg rounded-xl border shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b shrink-0">
           <div className="flex items-center gap-2.5 text-foreground font-semibold">
@@ -340,18 +356,11 @@ export const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={converting || loadingInitial}
+                  loading={converting}
+                  disabled={loadingInitial}
                   className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  {converting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Converting...
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="w-4 h-4" /> Convert to Contact
-                    </>
-                  )}
+                  <UserCheck className="w-4 h-4" /> Convert to Contact
                 </Button>
               </div>
             </form>

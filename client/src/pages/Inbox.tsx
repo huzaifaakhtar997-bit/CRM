@@ -263,9 +263,9 @@ export default function Inbox() {
   const selectedConversation = conversations.find((c) => c.id === selectedId) || null;
 
   return (
-    <div className="w-full max-w-full h-[calc(100vh-9rem)] min-h-[600px] flex rounded-xl border border-border overflow-hidden bg-background shadow-sm">
+    <div className="w-full max-w-full h-[calc(100vh-9rem)] min-h-[600px] flex rounded-lg border border-border/80 overflow-hidden bg-background shadow-2xs">
       {/* Left Pane: List */}
-      <div className="w-80 min-w-[260px] max-w-[340px] flex-shrink-0 border-r border-border flex flex-col">
+      <div className="w-80 min-w-[260px] max-w-[340px] flex-shrink-0 border-r border-border/80 flex flex-col">
         <ConversationList
           conversations={conversations}
           loading={loadingList}

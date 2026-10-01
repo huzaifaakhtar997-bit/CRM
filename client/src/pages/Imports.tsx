@@ -51,10 +51,10 @@ export default function Imports() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6 min-w-0">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Data Imports</h1>
-        <p className="text-muted-foreground mt-2">
+    <div className="w-full max-w-6xl space-y-5 min-w-0">
+      <div>
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Data Imports</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">
           Bulk import Contacts and Companies into your CRM from CSV or XLSX files.
         </p>
       </div>
@@ -64,7 +64,7 @@ export default function Imports() {
       )}
 
       <div>
-        <h2 className="text-lg font-bold text-foreground mb-4">Import History</h2>
+        <h2 className="text-sm font-semibold tracking-tight text-foreground uppercase mb-2.5">Import History</h2>
         <ImportHistory
           jobs={jobs}
           loading={loading}

@@ -6,12 +6,16 @@ import { CompanyForm } from "../components/companies/CompanyForm";
 import { CompanyDetails } from "../components/companies/CompanyDetails";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Pagination } from "../components/ui/Pagination";
 import { Plus, Search, AlertCircle } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
 
 export default function Companies() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // RBAC checks
   const canCreate = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
@@ -32,6 +36,8 @@ export default function Companies() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [formMode, setFormMode] = useState<"CREATE" | "EDIT">("CREATE");
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -82,44 +88,60 @@ export default function Companies() {
     setIsDetailsOpen(true);
   };
 
-  const handleDelete = async (company: Company) => {
-    if (window.confirm(`Are you sure you want to delete ${company.name}? This might affect associated contacts and deals.`)) {
-      try {
-        await companiesApi.deleteCompany(company.id);
-        loadCompanies();
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete company.");
-      }
+  const handleDelete = (company: Company) => {
+    setCompanyToDelete(company);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!companyToDelete) return;
+    setDeleting(true);
+    try {
+      await companiesApi.deleteCompany(companyToDelete.id);
+      setIsDetailsOpen(false);
+      toast.success(`Company "${companyToDelete.name}" deleted.`);
+      setCompanyToDelete(null);
+      loadCompanies();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete company.");
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleSaveCompany = async (data: Partial<Company>) => {
-    if (formMode === "CREATE") {
-      await companiesApi.createCompany(data);
-    } else if (selectedCompany) {
-      await companiesApi.updateCompany(selectedCompany.id, data);
+    try {
+      if (formMode === "CREATE") {
+        await companiesApi.createCompany(data);
+        toast.success("Company created successfully");
+      } else if (selectedCompany) {
+        await companiesApi.updateCompany(selectedCompany.id, data);
+        toast.success("Company updated successfully");
+      }
+      loadCompanies();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to save company.");
+      throw err;
     }
-    loadCompanies();
   };
 
   useRefreshListener(loadCompanies);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-bottom duration-500">
+    <div className="space-y-4 animate-in fade-in duration-200">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Companies</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Manage your client organizations and accounts.
+          <h1 className="text-lg font-bold tracking-tight text-foreground font-display">Companies</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage your account directory, corporate hierarchies, and industry sectors.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <RefreshButton onRefresh={loadCompanies} />
           {canCreate && (
             <Button onClick={handleCreateNew} className="flex-shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add Company
             </Button>
           )}
@@ -127,15 +149,15 @@ export default function Companies() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-card p-3 rounded-lg border border-border/80 shadow-2xs">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search by company name..."
+            placeholder="Search company name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full flex h-10 rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full flex h-8 rounded-md border border-border/80 bg-background pl-8 pr-3 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
       </div>
@@ -165,31 +187,12 @@ export default function Companies() {
       </div>
 
       {/* Pagination Controls */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t pt-4">
-          <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        itemName="companies"
+      />
 
       {/* Modals & Drawers */}
       <CompanyForm
@@ -203,6 +206,17 @@ export default function Companies() {
         isOpen={isDetailsOpen}
         onClose={() => setIsDetailsOpen(false)}
         company={selectedCompany}
+      />
+
+      <ConfirmDialog
+        isOpen={!!companyToDelete}
+        title="Delete Company"
+        description={`Are you sure you want to delete ${companyToDelete?.name}? This action cannot be undone and may affect associated contacts and deals.`}
+        confirmText="Delete Company"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setCompanyToDelete(null)}
       />
 
     </div>

@@ -102,16 +102,34 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen && !loading) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, loading, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-lg rounded-xl border shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      onClick={() => {
+        if (!loading) onClose();
+      }}
+    >
+      <div
+        className="bg-card w-full max-w-lg rounded-xl border shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold text-foreground">
             {initialData ? "Edit Contact" : "Add New Contact"}
           </h2>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={loading} className="h-8 w-8 p-0">
             <X className="w-5 h-5" />
           </Button>
         </div>
@@ -267,8 +285,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : initialData ? "Update Contact" : "Create Contact"}
+            <Button type="submit" loading={loading}>
+              {initialData ? "Update Contact" : "Create Contact"}
             </Button>
           </div>
         </form>

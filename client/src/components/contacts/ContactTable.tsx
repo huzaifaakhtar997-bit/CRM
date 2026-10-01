@@ -1,8 +1,11 @@
 import React from "react";
 import { Contact, LifecycleStage } from "../../types/api.types";
-import { Edit, Trash2, Eye, Building2, Mail, Phone, Clock, Lock } from "lucide-react";
+import { Edit, Trash2, Eye, Mail, Phone, Clock, Lock, Users } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/button";
+import { Badge, BadgeVariant } from "../ui/Badge";
+import { TableSkeleton } from "../ui/TableSkeleton";
+import { EmptyState } from "../ui/EmptyState";
 
 interface ContactTableProps {
   contacts: Contact[];
@@ -11,6 +14,7 @@ interface ContactTableProps {
   onEdit: (contact: Contact) => void;
   onDelete: (contact: Contact) => void;
   onSendEmail?: (contact: Contact) => void;
+  onCreateNew?: () => void;
 }
 
 export const ContactTable: React.FC<ContactTableProps> = ({
@@ -20,179 +24,183 @@ export const ContactTable: React.FC<ContactTableProps> = ({
   onEdit,
   onDelete,
   onSendEmail,
+  onCreateNew,
 }) => {
   const { user } = useAuth();
   
   // RBAC checks
   const canEdit = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
 
-  if (loading && contacts.length === 0) {
-    return (
-      <div className="w-full bg-card border rounded-xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-muted-foreground">Loading contacts...</p>
-      </div>
-    );
-  }
-
-  if (contacts.length === 0) {
-    return (
-      <div className="w-full bg-card border rounded-xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
-        <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
-          <Building2 className="h-6 w-6" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">No contacts found</h3>
-        <p className="text-muted-foreground mt-1 max-w-sm">
-          There are no contacts matching your current search or filters. Create a new contact to get started.
-        </p>
-      </div>
-    );
-  }
-
-  const getStageColor = (stage: LifecycleStage | string) => {
-    const colors: Record<string, string> = {
-      LEAD: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
-      MQL: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
-      SQL: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
-      OPPORTUNITY: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-      CUSTOMER: "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
-      CHURNED: "bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800",
-    };
-    return colors[stage] || "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200";
+  const getStageVariant = (stage: LifecycleStage | string): BadgeVariant => {
+    switch (stage) {
+      case "CUSTOMER":
+        return "success";
+      case "OPPORTUNITY":
+        return "warning";
+      case "MQL":
+      case "SQL":
+        return "purple";
+      case "CHURNED":
+        return "destructive";
+      case "LEAD":
+      default:
+        return "info";
+    }
   };
 
+  if (!loading && contacts.length === 0) {
+    return (
+      <EmptyState
+        icon={Users}
+        title="No contacts found"
+        description="There are no contacts matching your current search or filters. Create a new contact to get started."
+        actionLabel={canEdit && onCreateNew ? "Add Contact" : undefined}
+        onAction={onCreateNew}
+      />
+    );
+  }
+
   return (
-    <div className="w-full bg-card border rounded-xl overflow-hidden shadow-sm">
+    <div className="w-full bg-card border border-border/80 rounded-lg overflow-hidden shadow-2xs">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-muted-foreground uppercase bg-accent/30 border-b">
+        <table className="w-full text-xs text-left">
+          <thead className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 border-b border-border/70">
             <tr>
-              <th className="px-6 py-4 font-medium">Contact Details</th>
-              <th className="px-6 py-4 font-medium hidden md:table-cell">Company & Title</th>
-              <th className="px-6 py-4 font-medium hidden lg:table-cell">Lifecycle Stage</th>
-              <th className="px-6 py-4 font-medium hidden xl:table-cell">Owner</th>
-              <th className="px-6 py-4 font-medium hidden sm:table-cell">Created</th>
-              <th className="px-6 py-4 font-medium text-right">Actions</th>
+              <th className="px-4 py-2 font-medium">Contact Details</th>
+              <th className="px-4 py-2 font-medium hidden md:table-cell">Company & Title</th>
+              <th className="px-4 py-2 font-medium hidden lg:table-cell">Lifecycle Stage</th>
+              <th className="px-4 py-2 font-medium hidden xl:table-cell">Owner</th>
+              <th className="px-4 py-2 font-medium hidden sm:table-cell">Created</th>
+              <th className="px-4 py-2 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
-            {contacts.map((contact) => (
-              <tr key={contact.id} className="hover:bg-accent/20 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold border border-primary/20 flex-shrink-0">
-                      {contact.firstName[0]}
-                      {contact.lastName[0]}
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">
-                        {contact.firstName} {contact.lastName}
+          {loading ? (
+            <TableSkeleton columns={6} rows={6} />
+          ) : (
+            <tbody className="divide-y divide-border/60">
+              {contacts.map((contact) => (
+                <tr
+                  key={contact.id}
+                  onClick={() => onView(contact)}
+                  className="hover:bg-muted/40 transition-colors cursor-pointer group"
+                >
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="h-7 w-7 rounded-md bg-secondary text-foreground flex items-center justify-center font-bold border border-border/70 shrink-0 text-xs">
+                        {contact.firstName[0]}
+                        {contact.lastName[0]}
                       </div>
-                      {contact.email && (
-                        <div className="text-xs text-muted-foreground flex items-center mt-0.5">
-                          <Mail className="w-3 h-3 mr-1" /> {contact.email}
+                      <div className="min-w-0">
+                        <div className="font-semibold text-xs text-foreground group-hover:text-foreground transition-colors truncate max-w-[200px]" title={`${contact.firstName} ${contact.lastName}`}>
+                          {contact.firstName} {contact.lastName}
                         </div>
-                      )}
-                      {contact.phone && (
-                        <div className="text-xs text-muted-foreground flex items-center mt-0.5 sm:hidden">
-                          <Phone className="w-3 h-3 mr-1" /> {contact.phone}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 hidden md:table-cell">
-                  <div className="text-foreground font-medium">
-                    {contact.company?.name || contact.companyName || "—"}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {contact.jobTitle || "—"}
-                  </div>
-                </td>
-                <td className="px-6 py-4 hidden lg:table-cell">
-                  <div className="flex flex-col gap-1 items-start">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border ${getStageColor(contact.lifecycleStage)}`}>
-                      {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
-                        <Lock className="w-2.5 h-2.5 shrink-0 opacity-80" />
-                      )}
-                      {contact.lifecycleStage.replace("_", " ")}
-                    </span>
-                    {contact.status && (
-                      <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                        {contact.status}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 hidden xl:table-cell">
-                  {contact.assignedUser ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                        {contact.assignedUser.name?.[0]?.toUpperCase() || "U"}
+                        {contact.email && (
+                          <div className="text-[11px] text-muted-foreground flex items-center mt-0.5 truncate max-w-[200px]" title={contact.email}>
+                            <Mail className="w-3 h-3 mr-1 shrink-0" />
+                            <span className="truncate">{contact.email}</span>
+                          </div>
+                        )}
+                        {contact.phone && (
+                          <div className="text-[11px] text-muted-foreground flex items-center mt-0.5 sm:hidden">
+                            <Phone className="w-3 h-3 mr-1 shrink-0" /> {contact.phone}
+                          </div>
+                        )}
                       </div>
-                      <span className="text-foreground text-xs font-medium truncate max-w-[120px]" title={contact.assignedUser.name}>
-                        {contact.assignedUser.name}
-                      </span>
                     </div>
-                  ) : (
-                    <span className="text-muted-foreground/60 text-xs italic">Unassigned</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 hidden sm:table-cell text-muted-foreground">
-                  <div className="flex items-center">
-                    <Clock className="w-3.5 h-3.5 mr-1" />
-                    {new Date(contact.createdAt).toLocaleDateString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onSendEmail?.(contact)}
-                      title={contact.email ? `Send Email to ${contact.email}` : "No email address"}
-                      disabled={!contact.email}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-primary disabled:opacity-30"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onView(contact)}
-                      title="View Details"
-                      className="h-8 w-8 p-0"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    
-                    {canEdit && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(contact)}
-                          title="Edit"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(contact)}
-                          title="Delete"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </>
+                  </td>
+                  <td className="px-4 py-2.5 hidden md:table-cell">
+                    <div className="text-foreground font-medium text-xs truncate max-w-[180px]" title={contact.company?.name || contact.companyName || "—"}>
+                      {contact.company?.name || contact.companyName || "—"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate max-w-[180px]">
+                      {contact.jobTitle || "—"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 hidden lg:table-cell">
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge variant={getStageVariant(contact.lifecycleStage)}>
+                        {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
+                          <Lock className="w-2.5 h-2.5 shrink-0 opacity-80 mr-0.5" />
+                        )}
+                        {contact.lifecycleStage?.replace("_", " ")}
+                      </Badge>
+                      {contact.status && (
+                        <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[10px] font-mono bg-muted text-muted-foreground border border-border/60">
+                          {contact.status}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 hidden xl:table-cell">
+                    {contact.assignedUser ? (
+                      <div className="flex items-center space-x-1.5">
+                        <div className="h-5 w-5 rounded-md bg-muted text-foreground flex items-center justify-center text-[10px] font-semibold shrink-0 border border-border/60">
+                          {contact.assignedUser.name?.[0]?.toUpperCase() || "U"}
+                        </div>
+                        <span className="text-foreground text-xs font-medium truncate max-w-[120px]" title={contact.assignedUser.name}>
+                          {contact.assignedUser.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/60 text-xs italic">Unassigned</span>
                     )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+                  </td>
+                  <td className="px-4 py-2.5 hidden sm:table-cell text-muted-foreground text-[11px] font-mono tabular-nums">
+                    <div className="flex items-center">
+                      <Clock className="w-3 h-3 mr-1 text-muted-foreground/70" />
+                      {new Date(contact.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end space-x-0.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSendEmail?.(contact)}
+                        title={contact.email ? `Send email to ${contact.email}` : "No email address"}
+                        disabled={!contact.email}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-30 rounded-md"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onView(contact)}
+                        title="View profile"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </Button>
+                      
+                      {canEdit && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(contact)}
+                            title="Edit contact"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(contact)}
+                            title="Delete contact"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          )}
         </table>
       </div>
     </div>

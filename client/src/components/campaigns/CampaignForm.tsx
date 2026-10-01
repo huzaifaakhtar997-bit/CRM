@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Campaign, CampaignStatus } from "../../types/api.types";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface CampaignFormProps {
@@ -48,6 +48,16 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ initialData, isOpen,
     }
     setError(null);
   }, [initialData, isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen && !submitting) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, submitting, onClose]);
 
   if (!isOpen) return null;
 
@@ -110,7 +120,14 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ initialData, isOpen,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !submitting) {
+          onClose();
+        }
+      }}
+    >
       <div className="bg-card border rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-6 border-b">
           <div>
@@ -121,7 +138,12 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ initialData, isOpen,
               All marked (<span className="text-destructive">*</span>) fields must be completed before creating.
             </p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground">
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground"
+            aria-label="Close"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -263,10 +285,10 @@ export const CampaignForm: React.FC<CampaignFormProps> = ({ initialData, isOpen,
             <Button
               type="submit"
               form="campaign-form"
-              disabled={submitting || !isValid}
+              loading={submitting}
+              disabled={!isValid}
               className={!isValid ? "opacity-50 cursor-not-allowed" : ""}
             >
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               {initialData ? "Save Changes" : "Create Campaign"}
             </Button>
           </div>

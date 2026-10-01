@@ -1,56 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Premium light mode - slightly off-white background */
-    --background: 210 20% 98%;
+    /* High-end B2B SaaS Light Mode: Crisp off-white with deep slate contrast */
+    --background: 220 20% 98.5%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    /* Indigo-blue primary - professional CRM feel */
-    --primary: 231 70% 56%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 27% 94%;
+    
+    /* Obsidian / Deep Navy Slate signature primary */
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 220 14% 96%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 215 27% 94%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 215 27% 94%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 220 14% 94%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 231 70% 56%;
+    --border: 220 14% 90%;
+    --input: 220 14% 88%;
+    --ring: 222 47% 11%;
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Deep slate dark mode */
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 231 70% 62%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 14%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 14%;
-    --muted-foreground: 215 20% 60%;
-    --accent: 217 33% 14%;
-    --accent-foreground: 210 40% 98%;
+    /* Obsidian Slate Dark Mode */
+    --background: 224 25% 6%;
+    --foreground: 210 20% 98%;
+    --card: 224 22% 8.5%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 22% 9.5%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 224 16% 14%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 224 16% 14%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 224 16% 14%;
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 63% 45%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 14%;
-    --input: 217 33% 14%;
-    --ring: 231 70% 62%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 224 16% 16%;
+    --input: 224 16% 18%;
+    --ring: 210 20% 98%;
   }
 }
 
@@ -61,29 +61,34 @@
   }
   
   html {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
   }
   
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Custom scrollbar for sidebar */
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.022em;
+  }
+
+  /* Refined minimal scrollbar */
   ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(var(--border) / 0.8);
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.4);
   }
 }

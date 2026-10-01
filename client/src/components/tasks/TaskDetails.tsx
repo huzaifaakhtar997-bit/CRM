@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Task } from "../../types/api.types";
 import { Button } from "../ui/button";
+import { Badge, BadgeVariant } from "../ui/Badge";
 import { X, Calendar, User, FileText, CheckCircle2, Clock, Phone, Mail, Users, Flag, Building2, Briefcase, Megaphone } from "lucide-react";
 
 interface TaskDetailsProps {
@@ -22,32 +23,48 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
   onToggleComplete,
   canEdit = false,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !task) return null;
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string): BadgeVariant => {
     switch (priority) {
-      case "URGENT": return "text-red-600 bg-red-100";
-      case "HIGH": return "text-orange-600 bg-orange-100";
-      case "MEDIUM": return "text-blue-600 bg-blue-100";
-      case "LOW": return "text-gray-600 bg-gray-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "URGENT": return "destructive";
+      case "HIGH": return "warning";
+      case "MEDIUM": return "info";
+      case "LOW": return "neutral";
+      default: return "neutral";
     }
   };
 
   const getTaskIcon = (type: string) => {
     switch (type) {
-      case "CALL": return <Phone className="w-5 h-5 text-emerald-600 mr-2 mt-0.5" />;
-      case "EMAIL": return <Mail className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />;
-      case "MEETING": return <Users className="w-5 h-5 text-purple-600 mr-2 mt-0.5" />;
-      default: return <CheckCircle2 className="w-5 h-5 text-gray-600 mr-2 mt-0.5" />;
+      case "CALL": return <Phone className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-2 mt-0.5" />;
+      case "EMAIL": return <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2 mt-0.5" />;
+      case "MEETING": return <Users className="w-5 h-5 text-purple-600 dark:text-purple-400 mr-2 mt-0.5" />;
+      default: return <CheckCircle2 className="w-5 h-5 text-muted-foreground mr-2 mt-0.5" />;
     }
   };
 
   const isOverdue = task.dueDate ? new Date(task.dueDate) < new Date() && !task.completed : false;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold text-foreground">Task Details</h2>
           <div className="flex items-center space-x-2">
@@ -66,15 +83,15 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
           {/* Header */}
           <div>
             <div className="flex items-center space-x-2 mb-3">
-              <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider ${getPriorityColor(task.priority)}`}>
+              <Badge variant={getPriorityVariant(task.priority)}>
                 <Flag className="w-3 h-3 mr-1" />
                 {task.priority}
-              </span>
-              <span className="inline-flex items-center rounded-md bg-accent px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              </Badge>
+              <Badge variant="neutral">
                 {task.taskType}
-              </span>
+              </Badge>
               {task.isAnnouncement && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 px-2 py-1 text-xs font-semibold uppercase tracking-wider border border-amber-200 dark:border-amber-800">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider border border-amber-200 dark:border-amber-800">
                   <Megaphone className="w-3 h-3" />
                   Announcement
                 </span>

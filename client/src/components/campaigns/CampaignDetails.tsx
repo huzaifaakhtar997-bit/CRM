@@ -3,9 +3,12 @@ import { Campaign, CampaignRecipient, CampaignTrackingSummary } from "../../type
 import { campaignsApi, AudienceFilters } from "../../api/campaigns.api";
 import { X, Loader2, Play, Users, Send, CheckCircle2, AlertCircle, RefreshCw, AlertTriangle, MessageSquare } from "lucide-react";
 import { Button } from "../ui/button";
-import { getCampaignStatusBadge } from "./CampaignTable";
+import { Badge } from "../ui/Badge";
+import { getCampaignStatusVariant } from "./CampaignTable";
 import { RefreshButton } from "../ui/RefreshButton";
 import { useRefreshListener } from "../../hooks/useRefreshListener";
+import { useToast } from "../../context/ToastContext";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 interface CampaignDetailsProps {
   campaignId: string | null;
@@ -15,6 +18,7 @@ interface CampaignDetailsProps {
 }
 
 export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, isOpen, onClose, canWrite }) => {
+  const { toast } = useToast();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +39,12 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
   // Recipients data
   const [recipients, setRecipients] = useState<CampaignRecipient[]>([]);
   const [loadingRecipients, setLoadingRecipients] = useState(false);
+
+  // Dialogs
+  const [confirmLaunchOpen, setConfirmLaunchOpen] = useState(false);
+  const [confirmApplyOpen, setConfirmApplyOpen] = useState(false);
+  const [recipientToDelete, setRecipientToDelete] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen && campaignId) {
@@ -93,6 +103,26 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "Escape" &&
+        isOpen &&
+        !launching &&
+        !previewing &&
+        !applying &&
+        !actionLoading &&
+        !confirmLaunchOpen &&
+        !confirmApplyOpen &&
+        !recipientToDelete
+      ) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, launching, previewing, applying, actionLoading, confirmLaunchOpen, confirmApplyOpen, recipientToDelete, onClose]);
+
   const loadRecipients = async () => {
     setLoadingRecipients(true);
     try {
@@ -105,29 +135,20 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
     }
   };
 
-  const handleLaunch = async () => {
-    if (recipients.length === 0) {
-      const autoTarget = window.confirm(
-        "No specific audience has been added to this campaign yet.\n\nClick OK to automatically send to ALL contacts with email addresses, or Cancel to customize your audience first."
-      );
-      if (!autoTarget) {
-        setActiveTab("audience");
-        return;
-      }
-    } else {
-      if (!window.confirm(`Are you sure you want to launch this campaign to ${recipients.length} recipient(s)? This cannot be undone.`)) {
-        return;
-      }
-    }
+  const handleLaunchClick = () => {
+    setConfirmLaunchOpen(true);
+  };
 
+  const handleLaunchConfirm = async () => {
+    setConfirmLaunchOpen(false);
     setLaunching(true);
     try {
       await campaignsApi.launchCampaign(campaignId!);
       await loadCampaignData();
       await loadRecipients();
-      alert("Campaign launched successfully!");
+      toast.success("Campaign launched successfully!");
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message || "Failed to launch campaign.");
+      toast.error(err.response?.data?.message || err.message || "Failed to launch campaign.");
     } finally {
       setLaunching(false);
     }
@@ -139,33 +160,47 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
       const res = await campaignsApi.previewAudience(campaignId!, audienceFilters);
       setPreviewData(res.data);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to preview audience.");
+      toast.error(err.response?.data?.message || "Failed to preview audience.");
     } finally {
       setPreviewing(false);
     }
   };
 
-  const handleApplyAudience = async () => {
-    if (!window.confirm("This will add all matching contacts to the campaign. Proceed?")) return;
+  const handleApplyAudienceClick = () => {
+    setConfirmApplyOpen(true);
+  };
+
+  const handleApplyAudienceConfirm = async () => {
+    setConfirmApplyOpen(false);
     setApplying(true);
     try {
       const res = await campaignsApi.applyAudience(campaignId!, audienceFilters);
-      alert(`Successfully added ${res.data.addedCount} new recipients.`);
+      toast.success(`Successfully added ${res.data.addedCount} new recipients.`);
       setPreviewData(null);
+      await loadRecipients();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to apply audience.");
+      toast.error(err.response?.data?.message || "Failed to apply audience.");
     } finally {
       setApplying(false);
     }
   };
 
-  const handleRemoveRecipient = async (recipientId: string) => {
-    if (!window.confirm("Remove this recipient?")) return;
+  const handleRemoveRecipientClick = (recipientId: string) => {
+    setRecipientToDelete(recipientId);
+  };
+
+  const handleRemoveRecipientConfirm = async () => {
+    if (!recipientToDelete) return;
+    setActionLoading(true);
     try {
-      await campaignsApi.removeRecipient(campaignId!, recipientId);
-      loadRecipients();
+      await campaignsApi.removeRecipient(campaignId!, recipientToDelete);
+      toast.success("Recipient removed from campaign.");
+      setRecipientToDelete(null);
+      await loadRecipients();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to remove recipient.");
+      toast.error(err.response?.data?.message || "Failed to remove recipient.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -188,9 +223,9 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold text-foreground">Campaign Details</h2>
             {campaign && (
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getCampaignStatusBadge(campaign.status)}`}>
+              <Badge variant={getCampaignStatusVariant(campaign.status)}>
                 {campaign.status}
-              </span>
+              </Badge>
             )}
           </div>
           <div className="flex items-center gap-2.5">
@@ -202,12 +237,12 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
               variant="header"
             />
             {campaign && (campaign.status === "DRAFT" || campaign.status === "SCHEDULED") && canWrite && (
-              <Button onClick={handleLaunch} disabled={launching} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
-                {launching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+              <Button onClick={handleLaunchClick} loading={launching} className="gap-2">
+                <Play className="w-4 h-4" />
                 Launch Campaign
               </Button>
             )}
-            <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground">
+            <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground" aria-label="Close">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -386,8 +421,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                           Preview Results <span className="text-muted-foreground font-normal">({previewData.total} matching)</span>
                         </h3>
                         {canWrite && campaign.status !== "ACTIVE" && campaign.status !== "COMPLETED" && (
-                          <Button onClick={handleApplyAudience} disabled={applying || previewData.total === 0} size="sm" className="gap-2">
-                            {applying && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                          <Button onClick={handleApplyAudienceClick} loading={applying} disabled={previewData.total === 0} size="sm" className="gap-2">
                             Apply Audience
                           </Button>
                         )}
@@ -474,7 +508,7 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
                               <td className="px-4 py-3 text-right">
                                 {canWrite && campaign.status !== "ACTIVE" && campaign.status !== "COMPLETED" && (
                                   <button
-                                    onClick={() => handleRemoveRecipient(r.id)}
+                                    onClick={() => handleRemoveRecipientClick(r.id)}
                                     className="text-xs text-destructive hover:underline"
                                   >
                                     Remove
@@ -498,6 +532,41 @@ export const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaignId, is
           ) : null}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmLaunchOpen}
+        onClose={() => setConfirmLaunchOpen(false)}
+        onConfirm={handleLaunchConfirm}
+        title="Launch Campaign"
+        message={
+          recipients.length === 0
+            ? "No specific audience has been added to this campaign yet. Launching now will automatically send to all contacts with email addresses. Continue?"
+            : `Are you sure you want to launch this campaign to ${recipients.length} recipient(s)? This action cannot be undone.`
+        }
+        confirmText="Launch Now"
+        loading={launching}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmApplyOpen}
+        onClose={() => setConfirmApplyOpen(false)}
+        onConfirm={handleApplyAudienceConfirm}
+        title="Apply Audience"
+        message="This will add all matching contacts to the campaign audience. Proceed?"
+        confirmText="Apply"
+        loading={applying}
+      />
+
+      <ConfirmDialog
+        isOpen={!!recipientToDelete}
+        onClose={() => setRecipientToDelete(null)}
+        onConfirm={handleRemoveRecipientConfirm}
+        title="Remove Recipient"
+        message="Are you sure you want to remove this recipient from the campaign?"
+        confirmText="Remove"
+        variant="destructive"
+        loading={actionLoading}
+      />
     </>
   );
 };

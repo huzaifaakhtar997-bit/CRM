@@ -52,71 +52,71 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
       {/* Top Personal Performance Bar */}
       {personal && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-4 bg-card border rounded-xl shadow-xs flex items-center justify-between">
+          <div className="p-3.5 bg-card border border-border/80 rounded-lg shadow-2xs flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Won Revenue
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <DollarSign className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Won Revenue
               </div>
-              <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+              <div className="text-lg font-bold font-mono tabular-nums text-foreground mt-0.5">
                 ${personal.wonRevenue.toLocaleString()}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                 {personal.wonDealsCount} {personal.wonDealsCount === 1 ? "deal" : "deals"} won
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <DollarSign className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-md bg-muted/60 border border-border/60 flex items-center justify-center text-foreground">
+              <DollarSign className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="p-4 bg-card border rounded-xl shadow-xs flex items-center justify-between">
+          <div className="p-3.5 bg-card border border-border/80 rounded-lg shadow-2xs flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 text-blue-500" /> My Active Pipeline
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-foreground" /> My Pipeline
               </div>
-              <div className="text-xl font-bold text-foreground mt-1">
+              <div className="text-lg font-bold font-mono tabular-nums text-foreground mt-0.5">
                 ${personal.pipelineValue.toLocaleString()}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
                 {personal.openDealsCount} open {personal.openDealsCount === 1 ? "deal" : "deals"}
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-md bg-muted/60 border border-border/60 flex items-center justify-center text-foreground">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="p-4 bg-card border rounded-xl shadow-xs flex items-center justify-between">
+          <div className="p-3.5 bg-card border border-border/80 rounded-lg shadow-2xs flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                <Target className="w-3.5 h-3.5 text-purple-500" /> My Win Rate
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Target className="w-3 h-3 text-foreground" /> Win Rate
               </div>
-              <div className="text-xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+              <div className="text-lg font-bold font-mono tabular-nums text-foreground mt-0.5">
                 {personal.winRate}%
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[10px] text-muted-foreground mt-0.5">
                 closing efficiency
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-              <Target className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-md bg-muted/60 border border-border/60 flex items-center justify-center text-foreground">
+              <Target className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="p-4 bg-card border rounded-xl shadow-xs flex items-center justify-between">
+          <div className="p-3.5 bg-card border border-border/80 rounded-lg shadow-2xs flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Overdue Tasks
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Overdue Tasks
               </div>
-              <div className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+              <div className="text-lg font-bold font-mono tabular-nums text-amber-700 dark:text-amber-400 mt-0.5">
                 {personal.overdueTasksCount}
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[10px] text-muted-foreground mt-0.5">
                 {personal.pendingTasksCount} total to-dos
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-              <AlertTriangle className="w-5 h-5" />
+            <div className="w-8 h-8 rounded-md bg-muted/60 border border-border/60 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
         </div>
@@ -125,57 +125,57 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
       {/* Two Column Action Hub: Urgent Tasks & Awaiting Conversations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 1. Priority & Overdue Follow-ups */}
-        <div className="bg-card border rounded-xl shadow-xs p-5 flex flex-col justify-between">
+        <div className="bg-card border border-border/80 rounded-lg shadow-2xs p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+            <div className="flex items-center justify-between pb-3 border-b border-border/70">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">
-                  <Calendar className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-muted/70 text-foreground flex items-center justify-center border border-border/60">
+                  <Calendar className="w-3.5 h-3.5" />
                 </div>
-                <h3 className="font-semibold text-sm text-foreground">Priority Follow-up Tasks</h3>
+                <h3 className="font-semibold text-xs text-foreground tracking-tight">Priority Follow-up Tasks</h3>
               </div>
               <button
                 onClick={() => navigate("/tasks")}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
+                className="text-[11px] font-semibold text-foreground hover:text-muted-foreground flex items-center gap-1 transition-colors"
               >
                 View all <ArrowRight className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="divide-y divide-border/60 mt-2">
+            <div className="divide-y divide-border/60 mt-1">
               {focusTasks.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground text-xs italic">
-                  ?? You are all caught up! No overdue tasks pending.
+                  All caught up! No overdue tasks pending.
                 </div>
               ) : (
                 focusTasks.map((task) => (
                   <div
                     key={task.id}
                     onClick={() => navigate("/tasks")}
-                    className="py-3 flex items-start justify-between gap-3 hover:bg-accent/20 px-2 rounded-lg cursor-pointer transition-colors"
+                    className="py-2.5 flex items-start justify-between gap-3 hover:bg-muted/40 px-2 rounded-md cursor-pointer transition-colors"
                   >
                     <div className="flex items-start gap-2.5 min-w-0">
                       <button
                         onClick={(e) => handleQuickCompleteTask(task.id, e)}
                         disabled={completingTaskId === task.id}
-                        className="mt-0.5 text-muted-foreground hover:text-green-500 transition-colors shrink-0"
+                        className="mt-0.5 text-muted-foreground hover:text-foreground transition-colors shrink-0"
                         title="Mark complete"
                       >
-                        <CheckCircle2 className={`w-4 h-4 ${completingTaskId === task.id ? "animate-spin" : ""}`} />
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${completingTaskId === task.id ? "animate-spin" : ""}`} />
                       </button>
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-foreground truncate">
                           {task.title}
                         </div>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground flex-wrap">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
                           {task.contactName && (
                             <span className="font-medium text-foreground/80 truncate max-w-[120px]">
-                              ?? {task.contactName}
+                              {task.contactName}
                             </span>
                           )}
                           {task.dealTitle && (
-                            <span className="truncate max-w-[120px]">
-                              ?? {task.dealTitle}
+                            <span className="truncate max-w-[120px] text-muted-foreground/70">
+                              {task.dealTitle}
                             </span>
                           )}
                         </div>
@@ -184,9 +184,9 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
 
                     <div className="text-right shrink-0">
                       <div
-                        className={`text-[11px] font-semibold ${
+                        className={`text-[11px] font-mono tabular-nums font-semibold ${
                           task.isOverdue
-                            ? "text-red-600 dark:text-red-400"
+                            ? "text-rose-600 dark:text-rose-400"
                             : "text-muted-foreground"
                         }`}
                       >
@@ -195,10 +195,10 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
                       <span
                         className={`inline-block mt-0.5 text-[9px] uppercase font-bold px-1.5 py-0.2 rounded border ${
                           task.priority === "URGENT"
-                            ? "bg-red-500/10 text-red-600 border-red-500/20"
+                            ? "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20"
                             : task.priority === "HIGH"
-                            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                            : "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
+                            : "bg-muted text-muted-foreground border-border"
                         }`}
                       >
                         {task.priority}
@@ -213,48 +213,48 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
           <div className="pt-3 mt-2 border-t border-border/60">
             <button
               onClick={() => navigate("/deals")}
-              className="w-full py-2 bg-muted/60 hover:bg-muted text-xs font-medium rounded-lg text-foreground flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full py-1.5 bg-muted/60 hover:bg-muted text-xs font-semibold rounded-md text-foreground flex items-center justify-center gap-1.5 transition-colors border border-border/60"
             >
-              <Briefcase className="w-3.5 h-3.5 text-primary" /> Open My Deals Pipeline
+              <Briefcase className="w-3.5 h-3.5" /> Open My Deals Pipeline
             </button>
           </div>
         </div>
 
         {/* 2. Customer Conversations Awaiting Reply */}
-        <div className="bg-card border rounded-xl shadow-xs p-5 flex flex-col justify-between">
+        <div className="bg-card border border-border/80 rounded-lg shadow-2xs p-4 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-border">
+            <div className="flex items-center justify-between pb-3 border-b border-border/70">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                  <MessageSquare className="w-4 h-4" />
+                <div className="w-6 h-6 rounded bg-muted/70 text-foreground flex items-center justify-center border border-border/60">
+                  <MessageSquare className="w-3.5 h-3.5" />
                 </div>
-                <h3 className="font-semibold text-sm text-foreground">Conversations Requiring Response</h3>
+                <h3 className="font-semibold text-xs text-foreground tracking-tight">Conversations Requiring Response</h3>
               </div>
               <button
                 onClick={() => navigate("/inbox")}
-                className="text-xs text-primary hover:underline flex items-center gap-1"
+                className="text-[11px] font-semibold text-foreground hover:text-muted-foreground flex items-center gap-1 transition-colors"
               >
                 Open Inbox <ArrowRight className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="divide-y divide-border/60 mt-2">
+            <div className="divide-y divide-border/60 mt-1">
               {focusConversations.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground text-xs italic">
-                  ? No active customer chats waiting on your reply!
+                  No active customer chats waiting on your reply!
                 </div>
               ) : (
                 focusConversations.map((chat) => (
                   <div
                     key={chat.id}
                     onClick={() => navigate("/inbox")}
-                    className="py-3 flex items-start justify-between gap-3 hover:bg-accent/20 px-2 rounded-lg cursor-pointer transition-colors"
+                    className="py-2.5 flex items-start justify-between gap-3 hover:bg-muted/40 px-2 rounded-md cursor-pointer transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-xs font-semibold text-foreground truncate">
                         {chat.subject || "Customer Inquiry"}
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground flex-wrap">
+                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
                         {chat.contactName && (
                           <span className="font-medium text-foreground/90">
                             {chat.contactName}
@@ -269,11 +269,11 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-1 justify-end">
+                      <div className="text-[11px] text-muted-foreground font-mono tabular-nums flex items-center gap-1 justify-end">
                         <Clock className="w-3 h-3" />
                         {new Date(chat.lastMessageAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                       </div>
-                      <span className="inline-block mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="inline-block mt-0.5 text-[10px] font-mono px-1.5 py-0.2 rounded border bg-muted text-muted-foreground border-border/60">
                         {chat.status}
                       </span>
                     </div>
@@ -286,7 +286,7 @@ export const RepDailyFocus: React.FC<RepDailyFocusProps> = ({
           <div className="pt-3 mt-2 border-t border-border/60">
             <button
               onClick={() => navigate("/inbox")}
-              className="w-full py-2 bg-primary/10 hover:bg-primary/20 text-xs font-semibold rounded-lg text-primary flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full py-1.5 bg-muted/60 hover:bg-muted text-xs font-semibold rounded-md text-foreground flex items-center justify-center gap-1.5 transition-colors border border-border/60"
             >
               <MessageSquare className="w-3.5 h-3.5" /> Launch Unified Inbox
             </button>

@@ -37,48 +37,45 @@ export const SalesLeaderboard: React.FC<SalesLeaderboardProps> = ({
   }
 
   const getRankBadge = (index: number) => {
-    switch (index) {
-      case 0:
-        return <span className="text-xl" title="1st Place">??</span>;
-      case 1:
-        return <span className="text-xl" title="2nd Place">??</span>;
-      case 2:
-        return <span className="text-xl" title="3rd Place">??</span>;
-      default:
-        return (
-          <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
-            {index + 1}
-          </span>
-        );
-    }
+    const rankColors = [
+      "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+      "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30",
+      "bg-amber-700/10 text-amber-800 dark:text-amber-300 border-amber-700/30",
+    ];
+    const badgeClass = rankColors[index] || "bg-muted/70 text-muted-foreground border-border/70";
+    return (
+      <span className={`w-6 h-6 rounded font-mono text-[11px] font-bold flex items-center justify-center border mx-auto ${badgeClass}`}>
+        #{index + 1}
+      </span>
+    );
   };
 
   return (
-    <div className="bg-card border rounded-xl shadow-xs overflow-hidden">
+    <div className="bg-card border border-border/80 rounded-lg shadow-2xs overflow-hidden">
       {/* Header & KPI Summary */}
-      <div className="p-6 border-b border-border bg-gradient-to-r from-accent/30 via-transparent to-transparent">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-              <Trophy className="w-5 h-5" />
+      <div className="p-4 sm:p-5 border-b border-border/70 bg-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-md bg-muted/70 border border-border/70 flex items-center justify-center text-foreground shrink-0">
+              <Trophy className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <h2 className="text-sm font-bold text-foreground tracking-tight font-display">
                 Sales Rep Performance Leaderboard
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Live rankings across closed revenue, deal flow, and customer responsiveness
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Live rankings across closed revenue, deal flow, and responsiveness
               </p>
             </div>
           </div>
 
           {/* Quick Sort Options */}
-          <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg text-xs self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-md text-xs self-start sm:self-auto border border-border/50">
             <button
               onClick={() => setSortBy("wonRevenue")}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
                 sortBy === "wonRevenue"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -86,9 +83,9 @@ export const SalesLeaderboard: React.FC<SalesLeaderboardProps> = ({
             </button>
             <button
               onClick={() => setSortBy("pipelineValue")}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
                 sortBy === "pipelineValue"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -96,9 +93,9 @@ export const SalesLeaderboard: React.FC<SalesLeaderboardProps> = ({
             </button>
             <button
               onClick={() => setSortBy("wonDealsCount")}
-              className={`px-3 py-1.5 rounded-md font-medium transition-all ${
+              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-all ${
                 sortBy === "wonDealsCount"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -109,51 +106,51 @@ export const SalesLeaderboard: React.FC<SalesLeaderboardProps> = ({
 
         {/* Company Quick Glance KPIs */}
         {companyKPIs && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-4 border-t border-border/60">
-            <div className="p-3 bg-background/60 border rounded-lg">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-                <DollarSign className="w-3 h-3 text-emerald-500" /> Total Won Revenue
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 pt-3 border-t border-border/60">
+            <div className="p-3 bg-muted/30 border border-border/70 rounded-md">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <DollarSign className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Won Revenue
               </div>
-              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <div className="text-base font-bold font-mono tabular-nums text-foreground mt-1">
                 ${companyKPIs.totalWonRevenue.toLocaleString()}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                {companyKPIs.totalWonDeals} deals closed
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                {companyKPIs.totalWonDeals} closed deals
               </div>
             </div>
 
-            <div className="p-3 bg-background/60 border rounded-lg">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-blue-500" /> Active Pipeline
+            <div className="p-3 bg-muted/30 border border-border/70 rounded-md">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-foreground" /> Pipeline
               </div>
-              <div className="text-lg font-bold text-foreground mt-0.5">
+              <div className="text-base font-bold font-mono tabular-nums text-foreground mt-1">
                 ${companyKPIs.totalPipelineValue.toLocaleString()}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                {companyKPIs.totalOpenDeals} in-flight deals
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                {companyKPIs.totalOpenDeals} open deals
               </div>
             </div>
 
-            <div className="p-3 bg-background/60 border rounded-lg">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-                <Target className="w-3 h-3 text-purple-500" /> Team Win Rate
+            <div className="p-3 bg-muted/30 border border-border/70 rounded-md">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <Target className="w-3 h-3 text-foreground" /> Win Rate
               </div>
-              <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+              <div className="text-base font-bold font-mono tabular-nums text-foreground mt-1">
                 {companyKPIs.companyWinRate}%
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
-                of closed opportunities
+              <div className="text-[10px] text-muted-foreground mt-0.5">
+                of closed deals
               </div>
             </div>
 
-            <div className="p-3 bg-background/60 border rounded-lg">
-              <div className="text-[11px] font-medium text-muted-foreground uppercase flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-amber-500" /> Action Required
+            <div className="p-3 bg-muted/30 border border-border/70 rounded-md">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-amber-600 dark:text-amber-400" /> Attention
               </div>
-              <div className="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+              <div className="text-base font-bold font-mono tabular-nums text-amber-700 dark:text-amber-400 mt-1">
                 {companyKPIs.overdueTasksCount} Overdue
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">
+              <div className="text-[10px] text-muted-foreground mt-0.5">
                 {companyKPIs.unassignedChatsCount} unassigned chats
               </div>
             </div>
@@ -163,101 +160,101 @@ export const SalesLeaderboard: React.FC<SalesLeaderboardProps> = ({
 
       {/* Leaderboard Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold border-b border-border">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-muted/30 text-muted-foreground text-[11px] uppercase font-semibold tracking-wider border-b border-border/70">
             <tr>
-              <th className="py-3 px-4 w-12 text-center">Rank</th>
-              <th className="py-3 px-4">Sales Rep</th>
-              <th className="py-3 px-4 text-right">Won Revenue</th>
-              <th className="py-3 px-4 text-right">Active Pipeline</th>
-              <th className="py-3 px-4 text-center">Win Rate</th>
-              <th className="py-3 px-4 text-center">Tasks Done</th>
-              <th className="py-3 px-4 text-center">Active Chats</th>
-              <th className="py-3 px-4 text-right">Action</th>
+              <th className="py-2.5 px-4 w-12 text-center">Rank</th>
+              <th className="py-2.5 px-4">Sales Rep</th>
+              <th className="py-2.5 px-4 text-right">Won Revenue</th>
+              <th className="py-2.5 px-4 text-right">Active Pipeline</th>
+              <th className="py-2.5 px-4 text-center">Win Rate</th>
+              <th className="py-2.5 px-4 text-center">Tasks Done</th>
+              <th className="py-2.5 px-4 text-center">Active Chats</th>
+              <th className="py-2.5 px-4 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border/60">
             {sortedLeaderboard.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-8 text-center text-muted-foreground italic">
+                <td colSpan={8} className="py-8 text-center text-muted-foreground italic text-xs">
                   No active team members found.
                 </td>
               </tr>
             ) : (
               sortedLeaderboard.map((rep, idx) => (
-                <tr key={rep.userId} className="hover:bg-accent/20 transition-colors">
-                  <td className="py-3.5 px-4 text-center font-bold">
+                <tr key={rep.userId} className="hover:bg-muted/40 transition-colors">
+                  <td className="py-2.5 px-4 text-center font-bold">
                     {getRankBadge(idx)}
                   </td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
+                  <td className="py-2.5 px-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-md bg-secondary border border-border/70 flex items-center justify-center text-foreground font-bold text-xs shrink-0">
                         {rep.avatarUrl ? (
-                          <img src={rep.avatarUrl} alt={rep.name} className="w-full h-full rounded-full object-cover" />
+                          <img src={rep.avatarUrl} alt={rep.name} className="w-full h-full rounded-md object-cover" />
                         ) : (
                           rep.name.charAt(0).toUpperCase()
                         )}
                       </div>
                       <div>
-                        <div className="font-semibold text-foreground flex items-center gap-2">
+                        <div className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
                           {rep.name}
-                          <span className="text-[10px] px-1.5 py-0.2 rounded font-medium bg-muted text-muted-foreground">
+                          <span className="text-[10px] font-mono px-1 py-0.2 rounded font-medium bg-muted text-muted-foreground border border-border/60">
                             {rep.role}
                           </span>
                         </div>
-                        <div className="text-xs text-muted-foreground truncate max-w-[180px]">
+                        <div className="text-[11px] text-muted-foreground truncate max-w-[160px]">
                           {rep.email}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="font-bold text-emerald-600 dark:text-emerald-400">
+                  <td className="py-2.5 px-4 text-right">
+                    <div className="font-bold text-foreground font-mono tabular-nums">
                       ${rep.wonRevenue.toLocaleString()}
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[10px] font-mono text-muted-foreground">
                       {rep.wonDealsCount} {rep.wonDealsCount === 1 ? "deal" : "deals"} won
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <div className="font-semibold text-foreground">
+                  <td className="py-2.5 px-4 text-right">
+                    <div className="font-semibold text-foreground font-mono tabular-nums">
                       ${rep.pipelineValue.toLocaleString()}
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[10px] font-mono text-muted-foreground">
                       {rep.openDealsCount} in progress
                     </div>
                   </td>
-                  <td className="py-3.5 px-4">
-                    <div className="w-24 mx-auto">
-                      <div className="flex justify-between text-[11px] font-medium text-foreground mb-1">
+                  <td className="py-2.5 px-4">
+                    <div className="w-20 mx-auto">
+                      <div className="flex justify-between text-[10px] font-mono font-medium text-foreground mb-1">
                         <span>{rep.winRate}%</span>
                       </div>
-                      <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-purple-500 rounded-full"
+                          className="h-full bg-foreground/70 rounded-full"
                           style={{ width: `${Math.min(100, rep.winRate)}%` }}
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                      <CheckCircle2 className="w-3 h-3" />
+                  <td className="py-2.5 px-4 text-center">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-muted/70 text-foreground border border-border/60">
+                      <CheckCircle2 className="w-3 h-3 text-muted-foreground" />
                       {rep.completedTasksCount}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      <MessageSquare className="w-3 h-3" />
+                  <td className="py-2.5 px-4 text-center">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-muted/70 text-foreground border border-border/60">
+                      <MessageSquare className="w-3 h-3 text-muted-foreground" />
                       {rep.activeChatsCount}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-2.5 px-4 text-right">
                     <button
                       onClick={() => navigate("/deals")}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground hover:text-muted-foreground transition-colors cursor-pointer"
                     >
-                      View Deals <ChevronRight className="w-3.5 h-3.5" />
+                      Deals <ChevronRight className="w-3 h-3" />
                     </button>
                   </td>
                 </tr>

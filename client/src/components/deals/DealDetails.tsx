@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Deal } from "../../types/api.types";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/Badge";
 import { X, DollarSign, Calendar, Building2, User, FileText, CheckCircle2, Clock, Flag } from "lucide-react";
 
 interface DealDetailsProps {
@@ -20,21 +21,37 @@ export const DealDetails: React.FC<DealDetailsProps> = ({
   onDelete,
   canEdit = false,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !deal) return null;
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityVariant = (priority: string): "destructive" | "warning" | "info" | "neutral" => {
     switch (priority) {
-      case "URGENT": return "text-red-600 bg-red-100";
-      case "HIGH": return "text-orange-600 bg-orange-100";
-      case "MEDIUM": return "text-blue-600 bg-blue-100";
-      case "LOW": return "text-gray-600 bg-gray-100";
-      default: return "text-gray-600 bg-gray-100";
+      case "URGENT": return "destructive";
+      case "HIGH": return "warning";
+      case "MEDIUM": return "info";
+      case "LOW": return "neutral";
+      default: return "neutral";
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold text-foreground">Deal Details</h2>
           <div className="flex items-center space-x-2">
@@ -53,12 +70,12 @@ export const DealDetails: React.FC<DealDetailsProps> = ({
           {/* Header Profile */}
           <div>
             <div className="flex items-center space-x-2 mb-2">
-              <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider ${getPriorityColor(deal.priority)}`}>
+              <Badge variant={getPriorityVariant(deal.priority)}>
                 <Flag className="w-3 h-3 mr-1" />
                 {deal.priority}
-              </span>
+              </Badge>
               <span 
-                className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold tracking-wider text-white"
+                className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold tracking-wider text-white"
                 style={{ backgroundColor: deal.stage?.color || '#94a3b8' }}
               >
                 {deal.stage?.name}

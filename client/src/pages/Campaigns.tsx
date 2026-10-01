@@ -7,12 +7,17 @@ import { CampaignForm } from "../components/campaigns/CampaignForm";
 import { CampaignDetails } from "../components/campaigns/CampaignDetails";
 import { CampaignFilters } from "../components/campaigns/CampaignFilters";
 import { Button } from "../components/ui/button";
-import { Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
+import { useToast } from "../context/ToastContext";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Pagination } from "../components/ui/Pagination";
+import { TableSkeleton } from "../components/ui/TableSkeleton";
 
 export const Campaigns: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // State
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -33,6 +38,8 @@ export const Campaigns: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [viewingCampaignId, setViewingCampaignId] = useState<string | null>(null);
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
+  const [deleting, setDeleting] = useState(false);
   
   // RBAC
   const canWrite = user?.role === "ADMIN" || user?.role === "MANAGER" || user?.role === "MARKETING";
@@ -85,21 +92,34 @@ export const Campaigns: React.FC = () => {
   );
 
   const handleCreateOrUpdate = async (data: Partial<Campaign>) => {
-    if (editingCampaign) {
-      await campaignsApi.updateCampaign(editingCampaign.id, data);
-    } else {
-      await campaignsApi.createCampaign(data);
-    }
-    fetchCampaigns();
-  };
-
-  const handleDelete = async (id: string) => {
     try {
-      await campaignsApi.deleteCampaign(id);
-      if (viewingCampaignId === id) setViewingCampaignId(null);
+      if (editingCampaign) {
+        await campaignsApi.updateCampaign(editingCampaign.id, data);
+        toast.success("Campaign updated successfully.");
+      } else {
+        await campaignsApi.createCampaign(data);
+        toast.success("Campaign created successfully.");
+      }
       fetchCampaigns();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete campaign");
+      toast.error(err.response?.data?.message || "Failed to save campaign.");
+      throw err;
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!campaignToDelete) return;
+    setDeleting(true);
+    try {
+      await campaignsApi.deleteCampaign(campaignToDelete.id);
+      if (viewingCampaignId === campaignToDelete.id) setViewingCampaignId(null);
+      toast.success(`Campaign "${campaignToDelete.name}" deleted.`);
+      setCampaignToDelete(null);
+      fetchCampaigns();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete campaign");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -108,18 +128,23 @@ export const Campaigns: React.FC = () => {
   return (
     <div className="space-y-6 max-w-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Campaigns</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your marketing campaigns and targeted email blasts.
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Campaigns</h1>
+            <span className="text-xs font-mono tabular-nums text-muted-foreground bg-muted/60 px-2 py-0.5 rounded border border-border/60">
+              {total}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage marketing email blasts and targeted customer outreach.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <RefreshButton onRefresh={fetchCampaigns} />
           {canWrite && (
-            <Button onClick={() => { setEditingCampaign(null); setIsFormOpen(true); }} className="gap-2">
-              <Plus className="w-4 h-4" />
+            <Button onClick={() => { setEditingCampaign(null); setIsFormOpen(true); }} className="gap-1.5 h-8 px-3 text-xs font-semibold">
+              <Plus className="w-3.5 h-3.5" />
               Create Campaign
             </Button>
           )}
@@ -137,10 +162,7 @@ export const Campaigns: React.FC = () => {
           <Button variant="outline" onClick={fetchCampaigns}>Try Again</Button>
         </div>
       ) : loading && campaigns.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-24 text-muted-foreground border rounded-xl bg-card">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-          <p>Loading campaigns...</p>
-        </div>
+        <TableSkeleton rows={5} cols={5} />
       ) : (
         <div className="space-y-4">
           <CampaignTable
@@ -150,39 +172,19 @@ export const Campaigns: React.FC = () => {
               setEditingCampaign(campaign);
               setIsFormOpen(true);
             }}
-            onDelete={handleDelete}
+            onDelete={(campaign) => setCampaignToDelete(campaign)}
             onView={(campaign) => setViewingCampaignId(campaign.id)}
           />
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t pt-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} results
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="text-sm font-medium px-2">
-                  Page {page} of {totalPages}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={setPage}
+            itemName="campaigns"
+          />
         </div>
       )}
 
@@ -202,6 +204,17 @@ export const Campaigns: React.FC = () => {
         campaignId={viewingCampaignId}
         onClose={() => setViewingCampaignId(null)}
         canWrite={canWrite}
+      />
+
+      <ConfirmDialog
+        isOpen={!!campaignToDelete}
+        onClose={() => setCampaignToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Campaign"
+        message={`Are you sure you want to delete "${campaignToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+        loading={deleting}
       />
     </div>
   );

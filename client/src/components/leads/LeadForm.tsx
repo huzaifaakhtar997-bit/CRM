@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Lead, LeadStatus, LeadSource } from "../../types/api.types";
-import { X, Loader2 } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface LeadFormProps {
@@ -55,6 +55,16 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, isOpen, onClose
     setError(null);
   }, [initialData, isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen && !submitting) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, submitting, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,15 +86,23 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, isOpen, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card border rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      onClick={() => {
+        if (!submitting) onClose();
+      }}
+    >
+      <div
+        className="bg-card border rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-bold text-foreground">
             {initialData ? "Edit Lead" : "Add New Lead"}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={submitting} className="h-8 w-8 p-0">
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
@@ -206,12 +224,11 @@ export const LeadForm: React.FC<LeadFormProps> = ({ initialData, isOpen, onClose
           </form>
         </div>
 
-        <div className="p-6 border-t bg-accent/30 flex justify-end gap-3 rounded-b-xl">
+        <div className="p-6 border-t bg-muted/20 flex justify-end gap-3 rounded-b-xl">
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button type="submit" form="lead-form" disabled={submitting}>
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+          <Button type="submit" form="lead-form" loading={submitting}>
             {initialData ? "Save Changes" : "Create Lead"}
           </Button>
         </div>

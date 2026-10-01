@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Contact } from "../../types/api.types";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/Badge";
 import { X, Mail, Phone, Building2, UserCircle, Briefcase, Calendar, Tag, FileText, Lock, Award } from "lucide-react";
 
 interface ContactDetailsProps {
@@ -16,11 +17,27 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
   isOpen,
   onSendEmail,
 }) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !contact) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm">
-      <div className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card w-full max-w-md h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold text-foreground">Contact Details</h2>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
@@ -118,15 +135,21 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
                 <Tag className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />
                 <div>
                   <div className="text-sm font-medium text-foreground">Lifecycle Stage</div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-foreground">
-                      {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
-                        <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      )}
-                      {contact.lifecycleStage.replace("_", " ")}
-                    </span>
+                  <div className="mt-1 flex items-center gap-2">
+                    {contact.lifecycleStage === "CUSTOMER" && (
+                      <Badge variant="success">
+                        {Boolean(contact.hasWonDeal || contact.deals?.length) && (
+                          <Lock className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+                        )}
+                        Customer
+                      </Badge>
+                    )}
+                    {contact.lifecycleStage === "OPPORTUNITY" && <Badge variant="purple">Opportunity</Badge>}
+                    {contact.lifecycleStage === "SQL" && <Badge variant="info">SQL</Badge>}
+                    {contact.lifecycleStage === "MQL" && <Badge variant="warning">MQL</Badge>}
+                    {contact.lifecycleStage === "LEAD" && <Badge variant="neutral">Lead</Badge>}
                     {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         (Locked by Won Deal)
                       </span>
                     )}
@@ -139,10 +162,10 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
                   <Award className="w-5 h-5 text-muted-foreground mr-3 mt-0.5" />
                   <div>
                     <div className="text-sm font-medium text-foreground">Qualification Tag</div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      <span className="inline-flex items-center rounded px-2.5 py-0.5 text-xs font-semibold bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                    <div className="mt-1">
+                      <Badge variant="purple">
                         {contact.status}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -177,19 +200,19 @@ export const ContactDetails: React.FC<ContactDetailsProps> = ({
               </h4>
               
               {contact.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {contact.tags.map(tag => (
-                    <span key={tag} className="inline-flex items-center rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground">
+                    <Badge key={tag} variant="neutral">
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
 
               {contact.notes && (
-                <div className="flex items-start bg-accent/30 p-3 rounded-lg">
-                  <FileText className="w-4 h-4 text-muted-foreground mr-2 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                <div className="flex items-start bg-muted/40 p-3.5 rounded-lg border text-sm">
+                  <FileText className="w-4 h-4 text-muted-foreground mr-2.5 mt-0.5 flex-shrink-0" />
+                  <p className="text-foreground whitespace-pre-wrap leading-relaxed">
                     {contact.notes}
                   </p>
                 </div>

@@ -7,6 +7,9 @@ import { TaskDetails } from "../components/tasks/TaskDetails";
 import { TaskFilters, TaskStatusFilter } from "../components/tasks/TaskFilters";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Pagination } from "../components/ui/Pagination";
 import { Plus, AlertCircle } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
@@ -14,6 +17,7 @@ import { usersApi, CRMUser } from "../api/users.api";
 
 export default function Tasks() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // RBAC
   const canWrite = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
@@ -38,6 +42,8 @@ export default function Tasks() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (user?.role === "SALES_REP") {
@@ -122,25 +128,40 @@ export default function Tasks() {
     setIsDetailsOpen(true);
   };
 
-  const handleDelete = async (task: Task) => {
-    if (window.confirm(`Are you sure you want to delete "${task.title}"?`)) {
-      try {
-        await tasksApi.deleteTask(task.id);
-        setIsDetailsOpen(false);
-        loadTasks();
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete task.");
-      }
+  const handleDelete = (task: Task) => {
+    setTaskToDelete(task);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
+    setDeleting(true);
+    try {
+      await tasksApi.deleteTask(taskToDelete.id);
+      setIsDetailsOpen(false);
+      toast.success(`Task "${taskToDelete.title}" deleted.`);
+      setTaskToDelete(null);
+      loadTasks();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete task.");
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleSaveTask = async (data: Partial<Task>) => {
-    if (selectedTask) {
-      await tasksApi.updateTask(selectedTask.id, data);
-    } else {
-      await tasksApi.createTask(data);
+    try {
+      if (selectedTask) {
+        await tasksApi.updateTask(selectedTask.id, data);
+        toast.success("Task updated successfully");
+      } else {
+        await tasksApi.createTask(data);
+        toast.success("Task created successfully");
+      }
+      loadTasks();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to save task.");
+      throw err;
     }
-    loadTasks();
   };
 
   const handleToggleComplete = async (task: Task) => {
@@ -153,10 +174,10 @@ export default function Tasks() {
 
     try {
       await tasksApi.updateTask(task.id, { completed: isCompleted });
-      // Depending on filters, the task might disappear, so we should reload
+      toast.success(isCompleted ? "Task marked as completed" : "Task reopened");
       loadTasks();
     } catch (err: any) {
-      alert("Failed to update task status.");
+      toast.error("Failed to update task status.");
       // Rollback
       setTasks(prev => prev.map(t => 
         t.id === task.id ? { ...t, completed: task.completed } : t
@@ -167,21 +188,21 @@ export default function Tasks() {
   useRefreshListener(loadTasks);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-bottom duration-500">
+    <div className="space-y-4 animate-in fade-in duration-200">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Tasks</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Manage your daily action items, calls, and meetings.
+          <h1 className="text-lg font-bold tracking-tight text-foreground font-display">Tasks</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Operational action items, follow-ups, and calendar milestones.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <RefreshButton onRefresh={loadTasks} />
           {canWrite && (
             <Button onClick={handleCreateNew} className="flex-shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add Task
             </Button>
           )}
@@ -228,31 +249,12 @@ export default function Tasks() {
       </div>
 
       {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t pt-4">
-          <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        itemName="tasks"
+      />
 
       {/* Modals & Drawers */}
       <TaskForm
@@ -270,6 +272,17 @@ export default function Tasks() {
         onDelete={canWrite ? handleDelete : undefined}
         onToggleComplete={canWrite ? handleToggleComplete : undefined}
         canEdit={canWrite}
+      />
+
+      <ConfirmDialog
+        isOpen={!!taskToDelete}
+        title="Delete Task"
+        description={`Are you sure you want to delete "${taskToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete Task"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setTaskToDelete(null)}
       />
 
     </div>

@@ -23,65 +23,70 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "ADMIN":
-        return "bg-destructive/10 text-destructive border-destructive/20";
+        return "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20";
       case "MANAGER":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20";
       case "SALES_REP":
-        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+        return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20";
       default:
-        return "bg-muted text-muted-foreground border-muted-foreground/20";
+        return "bg-muted text-muted-foreground border-border";
     }
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-card/85 backdrop-blur-md px-6 shadow-sm">
-      <div className="flex items-center space-x-4">
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b border-border/70 bg-card/90 backdrop-blur-md px-5 shadow-2xs">
+      <div className="flex items-center space-x-3">
         <button
           onClick={onMenuToggle}
-          className="p-1.5 rounded-lg border hover:bg-accent hover:text-accent-foreground lg:hidden"
+          className="p-1.5 rounded-md border border-border/80 hover:bg-accent text-muted-foreground hover:text-foreground lg:hidden"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-4 h-4" />
         </button>
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-foreground">{getPageTitle()}</h2>
+        <div className="flex items-center space-x-2">
+          <span className="text-xs font-medium text-muted-foreground">Workspace</span>
+          <span className="text-muted-foreground/40 text-xs">/</span>
+          <h2 className="text-xs font-semibold text-foreground tracking-tight">{getPageTitle()}</h2>
         </div>
       </div>
 
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2">
         <RefreshButton variant="header" />
         <NotificationBell />
 
-        <div className="relative">
+        <div className="relative ml-1">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center space-x-3 p-1.5 rounded-lg hover:bg-accent text-left transition-colors"
+            className="flex items-center space-x-2 p-1 rounded-md hover:bg-accent/60 text-left transition-colors border border-transparent hover:border-border/60"
           >
-            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20">
+            <div className="w-7 h-7 rounded-md bg-secondary text-foreground flex items-center justify-center font-bold text-xs border border-border/70">
               {user?.name.charAt(0).toUpperCase()}
             </div>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block text-left pr-1">
               <p className="text-xs font-semibold text-foreground leading-none">{user?.name}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5 leading-none">{user?.email}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5 leading-none">{user?.role?.toLowerCase()}</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
 
           {dropdownOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-lg border bg-popover text-popover-foreground shadow-lg z-20 p-1">
-                <div className="px-3 py-2 border-b">
-                  <p className="text-xs font-medium text-muted-foreground">Signed in as</p>
-                  <p className="text-sm font-semibold truncate text-foreground mt-0.5">{user?.name}</p>
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold mt-1.5 ${getRoleBadgeColor(user?.role || "")}`}>
-                    {user?.role}
-                  </span>
+              <div className="absolute right-0 mt-1.5 w-56 origin-top-right rounded-lg border border-border/80 bg-popover text-popover-foreground shadow-elevation z-20 p-1">
+                <div className="px-3 py-2 border-b border-border/60">
+                  <p className="text-[11px] font-medium text-muted-foreground">Signed in as</p>
+                  <p className="text-xs font-semibold truncate text-foreground mt-0.5">{user?.name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+                  <div className="mt-1.5">
+                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono uppercase tracking-wider border ${getRoleBadgeColor(user?.role || "")}`}>
+                      {user?.role}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => { setDropdownOpen(false); logout(); }}
-                  className="flex w-full items-center space-x-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                  className="flex w-full items-center space-x-2 rounded-md px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors mt-0.5 font-medium"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                   <span>Log out</span>
                 </button>
               </div>

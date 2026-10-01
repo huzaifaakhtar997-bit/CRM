@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { IntegrationStatus } from "../../types/api.types";
 import {
-  CheckCircle2,
-  XCircle,
-  Loader2,
   Plug,
   Unplug,
   AlertCircle,
@@ -12,6 +9,8 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/Badge";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 
 interface HubSpotConnectionCardProps {
   status: IntegrationStatus | null;
@@ -33,6 +32,7 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
   const [showToken, setShowToken] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isConnected = status?.status === "CONNECTED";
@@ -55,8 +55,8 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
     }
   };
 
-  const handleDisconnect = async () => {
-    if (!window.confirm("Are you sure you want to disconnect HubSpot? All sync functionality will be unavailable.")) return;
+  const handleDisconnectConfirm = async () => {
+    setConfirmDisconnect(false);
     setDisconnecting(true);
     setError(null);
     try {
@@ -83,22 +83,11 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
           </div>
 
           {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+            <Badge variant="neutral">Checking...</Badge>
           ) : (
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border ${
-                isConnected
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-gray-100 text-gray-600 border-gray-200"
-              }`}
-            >
-              {isConnected ? (
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              ) : (
-                <XCircle className="w-3.5 h-3.5" />
-              )}
+            <Badge variant={isConnected ? "success" : "neutral"} dot>
               {isConnected ? "Connected" : "Disconnected"}
-            </span>
+            </Badge>
           )}
         </div>
       </div>
@@ -140,15 +129,11 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDisconnect}
-                disabled={disconnecting}
-                className="text-destructive border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+                onClick={() => setConfirmDisconnect(true)}
+                loading={disconnecting}
+                className="text-destructive border-destructive/30 hover:bg-destructive/10"
               >
-                {disconnecting ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Unplug className="w-4 h-4 mr-2" />
-                )}
+                <Unplug className="w-4 h-4 mr-2" />
                 Disconnect HubSpot
               </Button>
             )}
@@ -201,13 +186,10 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
                       <Button
                         size="sm"
                         onClick={handleConnect}
-                        disabled={connecting || !token.trim()}
+                        loading={connecting}
+                        disabled={!token.trim()}
                       >
-                        {connecting ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Plug className="w-4 h-4 mr-2" />
-                        )}
+                        <Plug className="w-4 h-4 mr-2" />
                         Connect
                       </Button>
                       <Button
@@ -232,6 +214,17 @@ export const HubSpotConnectionCard: React.FC<HubSpotConnectionCardProps> = ({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDisconnect}
+        onClose={() => setConfirmDisconnect(false)}
+        onConfirm={handleDisconnectConfirm}
+        title="Disconnect HubSpot"
+        message="Are you sure you want to disconnect HubSpot? All synchronization functionality will be paused."
+        confirmText="Disconnect"
+        variant="destructive"
+        loading={disconnecting}
+      />
     </div>
   );
 };

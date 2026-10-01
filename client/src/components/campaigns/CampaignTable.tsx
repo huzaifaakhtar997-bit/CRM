@@ -1,109 +1,125 @@
 import React from "react";
 import { Campaign, CampaignStatus } from "../../types/api.types";
-import { Edit, Trash2, Calendar, LayoutTemplate } from "lucide-react";
+import { Edit, Trash2, Calendar, LayoutTemplate, Megaphone } from "lucide-react";
+import { Badge, BadgeVariant } from "../ui/Badge";
+import { EmptyState } from "../ui/EmptyState";
 
 interface CampaignTableProps {
   campaigns: Campaign[];
   onEdit: (campaign: Campaign) => void;
-  onDelete: (id: string) => void;
+  onDelete: (campaign: Campaign) => void;
   onView: (campaign: Campaign) => void;
   canWrite: boolean;
 }
 
-export const getCampaignStatusBadge = (status: CampaignStatus) => {
+export const getCampaignStatusVariant = (status: CampaignStatus): BadgeVariant => {
   switch (status) {
     case "DRAFT":
-      return "bg-gray-100 text-gray-700 border-gray-200";
+      return "neutral";
     case "SCHEDULED":
-      return "bg-amber-100 text-amber-700 border-amber-200";
+      return "warning";
     case "ACTIVE":
-      return "bg-blue-100 text-blue-700 border-blue-200";
+      return "info";
     case "COMPLETED":
-      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      return "success";
     case "PAUSED":
-      return "bg-orange-100 text-orange-700 border-orange-200";
+      return "warning";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "neutral";
   }
 };
 
-export const CampaignTable: React.FC<CampaignTableProps> = ({ campaigns, onEdit, onDelete, onView, canWrite }) => {
+export const CampaignTable: React.FC<CampaignTableProps> = ({
+  campaigns,
+  onEdit,
+  onDelete,
+  onView,
+  canWrite,
+}) => {
+  if (campaigns.length === 0) {
+    return (
+      <EmptyState
+        icon={Megaphone}
+        title="No campaigns found"
+        description="Create your first campaign to engage your contacts with marketing emails."
+      />
+    );
+  }
+
   return (
-    <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-card border border-border/80 rounded-lg overflow-hidden shadow-2xs">
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-accent/50 text-muted-foreground border-b uppercase text-xs">
+          <thead className="bg-muted/40 text-muted-foreground border-b border-border/80 uppercase text-[11px] tracking-wider">
             <tr>
-              <th className="px-6 py-4 font-semibold tracking-wider">Campaign Name</th>
-              <th className="px-6 py-4 font-semibold tracking-wider">Status</th>
-              <th className="px-6 py-4 font-semibold tracking-wider hidden md:table-cell">Objective</th>
-              <th className="px-6 py-4 font-semibold tracking-wider hidden lg:table-cell">Schedule/Sent</th>
-              <th className="px-6 py-4 font-semibold tracking-wider text-right">Actions</th>
+              <th className="px-4 py-2.5 font-semibold">Campaign Name</th>
+              <th className="px-4 py-2.5 font-semibold">Status</th>
+              <th className="px-4 py-2.5 font-semibold hidden md:table-cell">Objective</th>
+              <th className="px-4 py-2.5 font-semibold hidden lg:table-cell">Schedule / Sent</th>
+              <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-border/60">
             {campaigns.map((campaign) => (
-              <tr 
-                key={campaign.id} 
-                className="hover:bg-accent/20 transition-colors cursor-pointer"
+              <tr
+                key={campaign.id}
+                className="hover:bg-muted/40 transition-colors cursor-pointer group"
                 onClick={() => onView(campaign)}
               >
-                <td className="px-6 py-4">
-                  <div className="font-semibold text-foreground flex items-center gap-2">
-                    <LayoutTemplate className="w-4 h-4 text-muted-foreground" />
-                    {campaign.name}
+                <td className="px-4 py-2.5">
+                  <div className="font-semibold text-xs text-foreground flex items-center gap-2">
+                    <LayoutTemplate className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="truncate max-w-[280px]">{campaign.name}</span>
                   </div>
                   {campaign.subject && (
-                    <div className="text-xs text-muted-foreground mt-1 truncate max-w-[250px]" title={campaign.subject}>
+                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[280px]" title={campaign.subject}>
                       Subj: {campaign.subject}
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border uppercase tracking-wider ${getCampaignStatusBadge(campaign.status)}`}>
+                <td className="px-4 py-2.5">
+                  <Badge variant={getCampaignStatusVariant(campaign.status)}>
                     {campaign.status}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">
+                <td className="px-4 py-2.5 hidden md:table-cell text-muted-foreground text-xs">
                   <span className="truncate max-w-[200px] block" title={campaign.objective || ""}>
                     {campaign.objective || "—"}
                   </span>
                 </td>
-                <td className="px-6 py-4 hidden lg:table-cell">
+                <td className="px-4 py-2.5 hidden lg:table-cell">
                   {campaign.sentAt ? (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span className="text-xs">Sent: {new Date(campaign.sentAt).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-1.5 text-muted-foreground font-mono tabular-nums text-xs">
+                      <Calendar className="w-3 h-3 shrink-0" />
+                      <span>Sent: {new Date(campaign.sentAt).toLocaleDateString()}</span>
                     </div>
                   ) : campaign.scheduledAt ? (
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span className="text-xs">Sch: {new Date(campaign.scheduledAt).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-1.5 text-muted-foreground font-mono tabular-nums text-xs">
+                      <Calendar className="w-3 h-3 shrink-0" />
+                      <span>Sch: {new Date(campaign.scheduledAt).toLocaleDateString()}</span>
                     </div>
                   ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
+                    <span className="text-muted-foreground/60 text-xs">—</span>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-4 py-2.5 text-right">
                   {canWrite && (
-                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => onEdit(campaign)}
-                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                        className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                         title="Edit Campaign"
+                        aria-label="Edit Campaign"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm("Are you sure you want to delete this campaign?")) {
-                            onDelete(campaign.id);
-                          }
-                        }}
-                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                        onClick={() => onDelete(campaign)}
+                        className="h-7 w-7 flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                         title="Delete Campaign"
+                        aria-label="Delete Campaign"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -112,11 +128,6 @@ export const CampaignTable: React.FC<CampaignTableProps> = ({ campaigns, onEdit,
             ))}
           </tbody>
         </table>
-        {campaigns.length === 0 && (
-          <div className="p-12 text-center text-muted-foreground">
-            No campaigns found.
-          </div>
-        )}
       </div>
     </div>
   );

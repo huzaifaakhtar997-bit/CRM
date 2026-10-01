@@ -155,24 +155,35 @@ export default function Dashboard() {
 
   useRefreshListener(fetchDashboardData);
 
+  const todayFormatted = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(new Date());
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-bottom duration-500">
+    <div className="space-y-5 animate-in fade-in duration-200">
       
       {/* Header Area */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
-            {greeting}, {user?.name?.split(' ')[0] || "User"}. Here's what's happening with your CRM today.
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg font-bold tracking-tight text-foreground font-display">Dashboard</h1>
+            <span className="font-mono text-[11px] text-muted-foreground bg-muted/70 px-2 py-0.5 rounded border border-border/60">
+              {todayFormatted}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {greeting}, {user?.name?.split(' ')[0] || "User"}. Operational overview of your sales pipeline and tasks.
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <RefreshButton onRefresh={fetchDashboardData} />
         </div>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard 
           title="Total Contacts" 
           value={metrics.contacts.value} 
@@ -230,7 +241,7 @@ export default function Dashboard() {
       )}
 
       {/* Recent Data Sections */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
         {/* Contacts takes 1 column on XL */}
         <div className="xl:col-span-1 h-[400px]">
           <RecentContacts 

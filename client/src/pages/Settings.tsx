@@ -14,25 +14,25 @@ export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>("users");
 
   return (
-    <div className="max-w-6xl space-y-6">
+    <div className="max-w-6xl space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage users, roles, and reusable templates.</p>
+        <h1 className="text-xl font-bold tracking-tight text-foreground">Settings</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Manage team access permissions, sales roles, and reusable email templates.</p>
       </div>
 
       {/* Tab navigation */}
-      <div className="flex items-center border-b">
+      <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-md border border-border/60 w-fit">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
               activeTab === id
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-3.5 h-3.5" />
             {label}
           </button>
         ))}

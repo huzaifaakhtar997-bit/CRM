@@ -32,7 +32,14 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
       setError(null);
       setSentSuccess(false);
     }
-  }, [isOpen]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen && !sending) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, sending, onClose]);
 
   if (!isOpen || !contact) return null;
 
@@ -87,8 +94,16 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-      <div className="bg-card w-full max-w-lg rounded-xl border shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={() => {
+        if (!sending) onClose();
+      }}
+    >
+      <div
+        className="bg-card w-full max-w-lg rounded-xl border shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-2 text-foreground font-semibold">
@@ -185,16 +200,11 @@ export const SendEmailModal: React.FC<SendEmailModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={sending || !contact.email || !subject.trim() || !content.trim()}
+                loading={sending}
+                disabled={!contact.email || !subject.trim() || !content.trim()}
                 className="gap-2"
               >
-                {sending ? (
-                  "Sending..."
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" /> Send Email
-                  </>
-                )}
+                <Send className="w-4 h-4" /> Send Email
               </Button>
             </div>
           </form>

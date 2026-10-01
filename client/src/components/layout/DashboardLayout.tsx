@@ -11,13 +11,13 @@ export const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ child
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col lg:pl-64 min-h-screen min-w-0 overflow-x-hidden">
+      <div className="flex-1 flex flex-col lg:pl-60 min-h-screen min-w-0 overflow-x-hidden">
         {/* Top Header */}
         <Header onMenuToggle={() => setSidebarOpen(true)} />
 
         {/* Content Section */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden min-w-0">
-          <div className="max-w-7xl w-full mx-auto space-y-6 min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <main className="flex-1 p-4 sm:p-5 md:p-6 overflow-y-auto overflow-x-hidden min-w-0">
+          <div className="max-w-[1400px] w-full mx-auto space-y-5 min-w-0 animate-in fade-in duration-200">
             {children}
           </div>
         </main>

@@ -78,6 +78,16 @@ export const CompanyDetails: React.FC<CompanyDetailsProps> = ({
     return () => { cancelled = true; };
   }, [isOpen, company?.id]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !company) return null;
 
   const totalPipeline = deals.reduce((sum, d) => sum + (d.value ?? 0), 0);
@@ -89,8 +99,14 @@ export const CompanyDetails: React.FC<CompanyDetailsProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm">
-        <div className="bg-card w-full max-w-xl h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-end bg-background/80 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div
+          className="bg-card w-full max-w-xl h-full border-l shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b shrink-0">
             <h2 className="text-lg font-semibold text-foreground">Company Details</h2>

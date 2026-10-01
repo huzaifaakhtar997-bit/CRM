@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { integrationsApi } from "../api/integrations.api";
 import {
   IntegrationStatus,
@@ -15,6 +16,7 @@ import { Button } from "../components/ui/button";
 
 export default function Integrations() {
   const { user } = useAuth();
+  const { toast } = useToast();
 
   // RBAC: read = ADMIN, MANAGER, SUPPORT; write = ADMIN, MANAGER
   const canRead = ["ADMIN", "MANAGER", "SUPPORT"].includes(user?.role || "");
@@ -94,6 +96,7 @@ export default function Integrations() {
   const handleConnect = async (token: string) => {
     const updated = await integrationsApi.connectHubspot(token);
     setStatus(updated);
+    toast.success("HubSpot connected successfully.");
   };
 
   const handleDisconnect = async () => {
@@ -103,11 +106,13 @@ export default function Integrations() {
     setCompanySync(null);
     setDealSync(null);
     setMappings(null);
+    toast.info("HubSpot disconnected.");
   };
 
   const handleSaveMappings = async (payload: HubSpotMappings) => {
     const updated = await integrationsApi.updateMappings(payload);
     setMappings(updated);
+    toast.success("HubSpot mappings updated successfully.");
   };
 
   // Refresh sync status after a sync action completes
@@ -131,11 +136,11 @@ export default function Integrations() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-4xl space-y-5">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Integrations</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Integrations</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Manage external service connections and data synchronization.
           </p>
         </div>
@@ -144,8 +149,9 @@ export default function Integrations() {
           size="sm"
           onClick={() => { loadStatus(); if (isConnected) { loadSyncStatuses(); loadMappings(); } }}
           disabled={statusLoading}
+          className="h-8 px-2.5 text-xs font-medium"
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${statusLoading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${statusLoading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>

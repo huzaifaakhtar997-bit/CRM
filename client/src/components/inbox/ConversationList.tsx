@@ -37,22 +37,27 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   isAdminOrManager = false,
 }) => {
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border">
-      <div className="p-4 border-b border-border space-y-3">
+    <div className="flex flex-col h-full bg-card border-r border-border/80">
+      <div className="p-3 border-b border-border/80 space-y-2.5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-foreground">Inbox</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold tracking-tight text-foreground uppercase">Inbox</h2>
+            <span className="text-[11px] font-mono tabular-nums text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded border border-border/60">
+              {conversations.length}
+            </span>
+          </div>
           <RefreshButton onRefresh={onRefresh} variant="header" label="Refresh" />
         </div>
 
         {/* Ownership Scope Tabs */}
-        <div className="flex bg-muted/60 p-1 rounded-lg gap-1 text-xs">
+        <div className="flex bg-muted/50 p-0.5 rounded-md border border-border/60 gap-0.5 text-xs">
           {isAdminOrManager && (
             <button
               type="button"
               onClick={() => onAssigneeFilterChange("all")}
-              className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+              className={`flex-1 py-1 px-2 rounded font-medium text-center transition-all text-xs ${
                 assigneeFilter === "all"
-                  ? "bg-background text-foreground shadow-xs"
+                  ? "bg-background text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -62,9 +67,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           <button
             type="button"
             onClick={() => onAssigneeFilterChange("mine")}
-            className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+            className={`flex-1 py-1 px-2 rounded font-medium text-center transition-all text-xs ${
               assigneeFilter === "mine"
-                ? "bg-background text-foreground shadow-xs"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -73,9 +78,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           <button
             type="button"
             onClick={() => onAssigneeFilterChange("unassigned")}
-            className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+            className={`flex-1 py-1 px-2 rounded font-medium text-center transition-all text-xs ${
               assigneeFilter === "unassigned"
-                ? "bg-background text-foreground shadow-xs"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -92,12 +97,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               onChange={(e) => {
                 if (e.target.value) onAssigneeFilterChange(e.target.value);
               }}
-              className="w-full text-xs h-7 px-2 rounded border border-input bg-background text-foreground"
+              className="w-full text-xs h-7 px-2 rounded-md border border-input bg-background text-foreground"
             >
               <option value="">Select Rep...</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.name} ({u.role})
+                  {u.name} ({u.role.replace("_", " ")})
                 </option>
               ))}
             </select>
@@ -106,26 +111,26 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-accent/50 border border-input rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="w-full bg-background border border-input rounded-md pl-8 pr-3 h-8 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
 
         {/* Status Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-hide">
           {(["ALL", ...Object.values(ConversationStatus)] as Array<ConversationStatus | "ALL">).map((status) => (
             <button
               key={status}
               onClick={() => onStatusChange(status)}
-              className={`px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+              className={`px-2 py-0.5 text-[11px] font-medium rounded border transition-colors whitespace-nowrap ${
                 statusFilter === status
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-accent text-accent-foreground hover:bg-accent/80"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/70"
               }`}
             >
               {status}

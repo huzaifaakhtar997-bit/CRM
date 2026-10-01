@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Lead } from "../../types/api.types";
 import { X, Building2, Mail, Phone, Calendar, Loader2, Edit, Trash2, UserCircle, UserCheck, CheckCircle2 } from "lucide-react";
-import { getLeadStatusBadge, getLeadSourceLabel } from "./LeadTable";
+import { getLeadStatusVariant, getLeadSourceLabel } from "./LeadTable";
+import { Badge } from "../ui/Badge";
+import { Button } from "../ui/button";
 import { leadsApi } from "../../api/leads.api";
 import { ConvertLeadModal } from "./ConvertLeadModal";
 import { SendLeadEmailModal } from "./SendLeadEmailModal";
@@ -11,7 +13,7 @@ interface LeadDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (lead: Lead) => void;
-  onDelete: (id: string) => void;
+  onDelete: (lead: Lead) => void;
   onConverted?: () => void;
   canWrite: boolean;
 }
@@ -30,6 +32,16 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
   const [isConvertOpen, setIsConvertOpen] = useState(false);
   const [isSendEmailOpen, setIsSendEmailOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen && leadId) {
@@ -90,13 +102,13 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
                     {lead.firstName} {lead.lastName}
                   </h3>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase tracking-wider ${getLeadStatusBadge(lead.status)}`}>
+                    <Badge variant={getLeadStatusVariant(lead.status)}>
                       {lead.status}
-                    </span>
+                    </Badge>
                     {lead.source && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-accent text-muted-foreground uppercase tracking-wider">
+                      <Badge variant="neutral">
                         {getLeadSourceLabel(lead.source)}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -106,46 +118,47 @@ export const LeadDetails: React.FC<LeadDetailsProps> = ({
               {canWrite && (
                 <div className="space-y-2">
                   {lead.status !== "CONVERTED" ? (
-                    <button
+                    <Button
                       onClick={() => setIsConvertOpen(true)}
-                      className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white h-10 rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors shadow-sm"
+                      className="w-full gap-2 bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs"
                     >
                       <UserCheck className="w-4 h-4" />
                       Convert to Contact
-                    </button>
+                    </Button>
                   ) : (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 rounded-lg text-xs flex items-center gap-2 font-medium">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-xs flex items-center gap-2 font-medium">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                       <span>This lead has been successfully converted into a Contact.</span>
                     </div>
                   )}
 
-                  <button
+                  <Button
                     onClick={() => setIsSendEmailOpen(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white h-10 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+                    variant="outline"
+                    className="w-full gap-2"
                   >
-                    <Mail className="w-4 h-4" />
+                    <Mail className="w-4 h-4 text-primary" />
                     Send Email
-                  </button>
+                  </Button>
 
                   <div className="flex gap-2">
-                    <button
+                    <Button
                       onClick={() => onEdit(lead)}
-                      className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground h-10 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+                      variant="outline"
+                      className="flex-1 gap-2"
                     >
                       <Edit className="w-4 h-4" />
                       Edit Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (window.confirm("Are you sure you want to delete this lead?")) {
-                          onDelete(lead.id);
-                        }
-                      }}
-                      className="flex items-center justify-center w-10 h-10 border border-destructive/30 text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
+                    </Button>
+                    <Button
+                      onClick={() => onDelete(lead)}
+                      variant="destructive"
+                      size="sm"
+                      title="Delete Lead"
+                      aria-label="Delete Lead"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}

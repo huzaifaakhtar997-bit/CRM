@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { usersApi, CRMUser } from "../../api/users.api";
 import { invitationsApi, UserInvitation } from "../../api/invitations.api";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import {
   Loader2,
   Shield,
@@ -14,7 +16,6 @@ import {
   Trash2,
   Clock,
   X,
-  Send,
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
@@ -42,6 +43,7 @@ const getRoleBadge = (role: string) => {
 
 export const UsersSettings: React.FC = () => {
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   const isAdmin = currentUser?.role === "ADMIN";
   const isManagerOrAdmin = isAdmin || currentUser?.role === "MANAGER";
 
@@ -61,6 +63,8 @@ export const UsersSettings: React.FC = () => {
   const [createdInviteLink, setCreatedInviteLink] = useState<string | null>(null);
   const [emailSentStatus, setEmailSentStatus] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [invitationToRevoke, setInvitationToRevoke] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   // Password reset state
   const [resetModalOpen, setResetModalOpen] = useState(false);
@@ -97,14 +101,43 @@ export const UsersSettings: React.FC = () => {
     fetchInvitations();
   }, [fetchUsers, fetchInvitations]);
 
+  const closeInviteModal = () => {
+    setInviteModalOpen(false);
+    setInviteEmail("");
+    setInviteRole("SALES_REP");
+    setCreatedInviteLink(null);
+    setEmailSentStatus(false);
+    setInviteError(null);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (inviteModalOpen && !inviteSubmitting) {
+          closeInviteModal();
+        }
+        if (resetModalOpen && updatingId === null) {
+          setResetModalOpen(false);
+          setResetTargetUser(null);
+          setNewPassword("");
+          setConfirmPassword("");
+          setResetError(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [inviteModalOpen, inviteSubmitting, resetModalOpen, updatingId]);
+
   const handleRoleChange = async (userId: string, newRole: string) => {
     if (!isAdmin) return;
     setUpdatingId(userId);
     try {
       const updated = await usersApi.updateUserRole(userId, newRole);
       setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+      toast.success("User role updated successfully.");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update role.");
+      toast.error(err.response?.data?.message || "Failed to update role.");
     } finally {
       setUpdatingId(null);
     }
@@ -116,8 +149,9 @@ export const UsersSettings: React.FC = () => {
     try {
       const updated = await usersApi.updateUserStatus(userId, newStatus);
       setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+      toast.success(`User status changed to ${newStatus.toLowerCase()}.`);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update status.");
+      toast.error(err.response?.data?.message || "Failed to update status.");
     } finally {
       setUpdatingId(null);
     }
@@ -143,7 +177,7 @@ export const UsersSettings: React.FC = () => {
       setNewPassword("");
       setConfirmPassword("");
       setResetTargetUser(null);
-      alert("Password updated successfully.");
+      toast.success("Password updated successfully.");
     } catch (err: any) {
       setResetError(err.response?.data?.message || "Failed to reset password.");
     } finally {
@@ -170,6 +204,7 @@ export const UsersSettings: React.FC = () => {
 
       setCreatedInviteLink(result.inviteUrl);
       setEmailSentStatus(result.emailSent);
+      toast.success("Invitation created successfully.");
       fetchInvitations();
     } catch (err: any) {
       setInviteError(err.response?.data?.message || err.message || "Failed to create invitation.");
@@ -179,15 +214,18 @@ export const UsersSettings: React.FC = () => {
   };
 
   // Revoke Invitation
-  const handleRevokeInvitation = async (id: string) => {
-    if (!window.confirm("Are you sure you want to revoke this invitation? The invite link will become invalid.")) {
-      return;
-    }
+  const handleRevokeConfirm = async () => {
+    if (!invitationToRevoke) return;
+    setRevoking(true);
     try {
-      await invitationsApi.revokeInvitation(id);
+      await invitationsApi.revokeInvitation(invitationToRevoke);
+      toast.success("Invitation revoked successfully.");
+      setInvitationToRevoke(null);
       fetchInvitations();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to revoke invitation.");
+      toast.error(err.response?.data?.message || "Failed to revoke invitation.");
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -195,15 +233,8 @@ export const UsersSettings: React.FC = () => {
   const handleCopy = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
+    toast.success("Invitation link copied to clipboard.");
     setTimeout(() => setCopiedId(null), 2500);
-  };
-
-  const closeInviteModal = () => {
-    setInviteModalOpen(false);
-    setInviteEmail("");
-    setInviteRole("SALES_REP");
-    setCreatedInviteLink(null);
-    setInviteError(null);
   };
 
   const pendingInvitations = invitations.filter((i) => !i.isAccepted && new Date(i.expiresAt) > new Date());
@@ -294,9 +325,10 @@ export const UsersSettings: React.FC = () => {
                             <span>{isCopied ? "Copied" : "Copy Link"}</span>
                           </button>
                           <button
-                            onClick={() => handleRevokeInvitation(inv.id)}
+                            onClick={() => setInvitationToRevoke(inv.id)}
                             className="p-1 text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                             title="Revoke invitation"
+                            aria-label="Revoke invitation"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -427,7 +459,14 @@ export const UsersSettings: React.FC = () => {
 
       {/* 3. Invite User Modal */}
       {inviteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !inviteSubmitting) {
+              closeInviteModal();
+            }
+          }}
+        >
           <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border overflow-hidden">
             <div className="p-5 border-b flex items-center justify-between">
               <div>
@@ -438,7 +477,12 @@ export const UsersSettings: React.FC = () => {
                   Generate a secure registration link with a locked pre-assigned role.
                 </p>
               </div>
-              <button onClick={closeInviteModal} className="p-1 hover:bg-accent rounded-full transition-colors text-muted-foreground">
+              <button
+                onClick={closeInviteModal}
+                disabled={inviteSubmitting}
+                className="p-1 hover:bg-accent rounded-full transition-colors text-muted-foreground"
+                aria-label="Close"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -548,16 +592,8 @@ export const UsersSettings: React.FC = () => {
                     <Button type="button" variant="outline" onClick={closeInviteModal} disabled={inviteSubmitting}>
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={inviteSubmitting}>
-                      {inviteSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" /> Create & Send Invite
-                        </>
-                      )}
+                    <Button type="submit" loading={inviteSubmitting}>
+                      Create & Send Invite
                     </Button>
                   </div>
                 </form>
@@ -569,7 +605,18 @@ export const UsersSettings: React.FC = () => {
 
       {/* 4. Password Reset Modal */}
       {resetModalOpen && resetTargetUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && updatingId === null) {
+              setResetModalOpen(false);
+              setResetTargetUser(null);
+              setNewPassword("");
+              setConfirmPassword("");
+              setResetError(null);
+            }
+          }}
+        >
           <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border overflow-hidden">
             <div className="p-5 border-b">
               <h3 className="text-base font-bold text-foreground">Reset Password</h3>
@@ -622,15 +669,28 @@ export const UsersSettings: React.FC = () => {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={updatingId !== null || newPassword.length < 6 || newPassword !== confirmPassword}
+                  loading={updatingId !== null}
+                  disabled={newPassword.length < 6 || newPassword !== confirmPassword}
                 >
-                  {updatingId ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Password"}
+                  Save Password
                 </Button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Revoke Invitation Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={!!invitationToRevoke}
+        onClose={() => setInvitationToRevoke(null)}
+        onConfirm={handleRevokeConfirm}
+        title="Revoke Invitation"
+        message="Are you sure you want to revoke this invitation? The invite link will immediately become invalid."
+        confirmText="Revoke"
+        variant="destructive"
+        loading={revoking}
+      />
     </div>
   );
 };

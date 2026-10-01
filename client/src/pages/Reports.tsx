@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { reportsApi } from "../api/reports.api";
 import { usersApi, CRMUser } from "../api/users.api";
 import { ReportAnalyticsData } from "../types/api.types";
@@ -12,6 +13,7 @@ import { AlertCircle } from "lucide-react";
 
 export const Reports: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isAdminOrManager = ["ADMIN", "MANAGER"].includes(user?.role || "");
 
   const [timeRange, setTimeRange] = useState<string>("all");
@@ -110,6 +112,7 @@ export const Reports: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast.success("Reports exported to CSV.");
   };
 
   return (

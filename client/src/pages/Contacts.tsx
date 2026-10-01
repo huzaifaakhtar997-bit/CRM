@@ -11,9 +11,13 @@ import { Plus, Search, AlertCircle, Download } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
 import { usersApi, CRMUser } from "../api/users.api";
+import { useToast } from "../context/ToastContext";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Pagination } from "../components/ui/Pagination";
 
 export default function Contacts() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // RBAC checks
   const canCreate = ["ADMIN", "MANAGER", "SALES_REP"].includes(user?.role || "");
@@ -49,6 +53,8 @@ export default function Contacts() {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [emailTargetContact, setEmailTargetContact] = useState<Contact | null>(null);
   const [formMode, setFormMode] = useState<"CREATE" | "EDIT">("CREATE");
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -117,8 +123,9 @@ export default function Contacts() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast.success("Contacts exported successfully");
     } catch (err: any) {
-      setError("Failed to export contacts. Please try again.");
+      toast.error("Failed to export contacts. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -140,22 +147,32 @@ export default function Contacts() {
     setIsSendEmailOpen(true);
   };
 
-  const handleDelete = async (contact: Contact) => {
-    if (window.confirm(`Are you sure you want to delete ${contact.firstName} ${contact.lastName}?`)) {
-      try {
-        await contactsApi.deleteContact(contact.id);
-        loadContacts();
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete contact.");
-      }
+  const handleDelete = (contact: Contact) => {
+    setContactToDelete(contact);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!contactToDelete) return;
+    setDeleting(true);
+    try {
+      await contactsApi.deleteContact(contactToDelete.id);
+      toast.success(`Contact "${contactToDelete.firstName} ${contactToDelete.lastName}" deleted.`);
+      setContactToDelete(null);
+      loadContacts();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete contact.");
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleSaveContact = async (data: Partial<Contact>) => {
     if (formMode === "CREATE") {
       await contactsApi.createContact(data);
+      toast.success("Contact created successfully");
     } else if (selectedContact) {
       await contactsApi.updateContact(selectedContact.id, data);
+      toast.success("Contact updated successfully");
     }
     loadContacts();
   };
@@ -163,14 +180,14 @@ export default function Contacts() {
   useRefreshListener(loadContacts);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-bottom duration-500">
+    <div className="space-y-4 animate-in fade-in duration-200">
       
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/60">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Contacts</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Manage your CRM contacts, customers, and leads.
+          <h1 className="text-lg font-bold tracking-tight text-foreground font-display">Contacts</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage your customer database, lifecycle stages, and relationship ownership.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -181,12 +198,12 @@ export default function Contacts() {
             disabled={isExporting}
             className="flex-shrink-0"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-3.5 h-3.5 mr-1.5" />
             {isExporting ? "Exporting..." : "Export CSV"}
           </Button>
           {canCreate && (
             <Button onClick={handleCreateNew} className="flex-shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add Contact
             </Button>
           )}
@@ -204,15 +221,15 @@ export default function Contacts() {
           { label: "Customers", value: "CUSTOMER" },
         ];
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {stages.map((s) => (
               <button
                 key={s.value}
                 onClick={() => handleStageFilter(s.value)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-2.5 py-1 rounded text-xs font-medium border transition-colors cursor-pointer ${
                   activeStage === s.value
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-muted-foreground border-input hover:border-primary hover:text-foreground"
+                    ? "bg-secondary text-foreground font-semibold border-border/80 shadow-2xs"
+                    : "bg-card text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/40"
                 }`}
               >
                 {s.label}
@@ -223,15 +240,15 @@ export default function Contacts() {
       })()}
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-card p-3 rounded-lg border border-border/80 shadow-2xs">
+        <div className="relative w-full sm:max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full flex h-10 rounded-md border border-input bg-background pl-10 pr-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="w-full flex h-8 rounded-md border border-border/80 bg-background pl-8 pr-3 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
         </div>
 
@@ -245,7 +262,7 @@ export default function Contacts() {
                   setOwnerFilter(e.target.value);
                   setPage(1);
                 }}
-                className="h-10 pl-3 pr-8 text-xs font-medium rounded-md border border-input bg-background text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary shadow-2xs w-full sm:w-auto"
+                className="h-8 pl-2.5 pr-7 text-xs font-medium rounded-md border border-border/80 bg-background text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring shadow-2xs w-full sm:w-auto"
               >
                 <option value="all">All Contacts</option>
                 <option value="mine">My Contacts</option>
@@ -258,16 +275,16 @@ export default function Contacts() {
               </select>
             </div>
           ) : (
-            <div className="flex bg-muted/60 p-0.5 rounded-lg text-xs">
+            <div className="flex bg-muted/60 p-0.5 rounded-md text-xs border border-border/50">
               <button
                 type="button"
                 onClick={() => {
                   setOwnerFilter("mine");
                   setPage(1);
                 }}
-                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                className={`py-1 px-2.5 rounded text-[11px] font-medium transition-all ${
                   ownerFilter === "mine"
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-background text-foreground shadow-2xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -279,9 +296,9 @@ export default function Contacts() {
                   setOwnerFilter("unassigned");
                   setPage(1);
                 }}
-                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                className={`py-1 px-2.5 rounded text-[11px] font-medium transition-all ${
                   ownerFilter === "unassigned"
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-background text-foreground shadow-2xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -293,9 +310,9 @@ export default function Contacts() {
                   setOwnerFilter("all");
                   setPage(1);
                 }}
-                className={`py-1.5 px-3 rounded-md font-medium transition-all ${
+                className={`py-1 px-2.5 rounded text-[11px] font-medium transition-all ${
                   ownerFilter === "all"
-                    ? "bg-background text-foreground shadow-xs"
+                    ? "bg-background text-foreground shadow-2xs font-semibold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -332,31 +349,11 @@ export default function Contacts() {
       </div>
 
       {/* Pagination Controls */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between border-t pt-4">
-          <div className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </div>
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
 
       {/* Modals & Drawers */}
       <ContactForm
@@ -377,6 +374,17 @@ export default function Contacts() {
         isOpen={isSendEmailOpen}
         onClose={() => setIsSendEmailOpen(false)}
         contact={emailTargetContact}
+      />
+
+      <ConfirmDialog
+        isOpen={!!contactToDelete}
+        title="Delete Contact"
+        description={`Are you sure you want to delete ${contactToDelete ? `${contactToDelete.firstName} ${contactToDelete.lastName}` : "this contact"}? This action cannot be undone.`}
+        confirmText="Delete Contact"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setContactToDelete(null)}
       />
 
     </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { invitationsApi, ValidateTokenResponse } from "../api/invitations.api";
-import { Lock, Mail, User, Phone, AlertCircle, CheckCircle2, Shield, Loader2, ArrowRight } from "lucide-react";
+import { Lock, Mail, User, Phone, AlertCircle, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export const Register: React.FC = () => {
@@ -130,10 +130,10 @@ export const Register: React.FC = () => {
   // State 2: Validating Token
   if (loadingValidation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground font-medium">Validating invitation token...</p>
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground font-medium">Validating invitation token...</p>
         </div>
       </div>
     );
@@ -142,22 +142,22 @@ export const Register: React.FC = () => {
   // State 3: Invalid or Expired Token
   if (validationError || !validationData?.valid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-6">
-        <div className="w-full max-w-md border bg-card/70 backdrop-blur-md rounded-2xl p-8 shadow-xl text-center space-y-6">
-          <div className="inline-flex items-center justify-center p-4 bg-destructive/10 text-destructive rounded-2xl">
-            <AlertCircle className="w-8 h-8" />
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
+        <div className="w-full max-w-sm border border-border/80 bg-card rounded-xl p-6 sm:p-8 shadow-subtle text-center space-y-5">
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-destructive/10 text-destructive rounded-lg mx-auto">
+            <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-lg font-bold tracking-tight text-foreground">
               Invitation Invalid or Expired
             </h1>
-            <p className="text-sm text-destructive mt-2">
+            <p className="text-xs text-destructive mt-1.5 leading-relaxed">
               {validationError || "This invitation link is invalid or has already been used."}
             </p>
           </div>
           <div className="pt-2">
             <Link to="/login">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full h-8.5 text-xs font-medium">
                 Return to Sign In
               </Button>
             </Link>
@@ -169,18 +169,14 @@ export const Register: React.FC = () => {
 
   // State 4: Valid Token — Registration Form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-card to-background p-6">
-      <div className="w-full max-w-lg border bg-card/60 backdrop-blur-md rounded-2xl p-8 shadow-2xl space-y-6 relative overflow-hidden">
-        {/* Subtle decorative gradients */}
-        <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6">
+      <div className="w-full max-w-md border border-border/80 bg-card rounded-xl p-6 sm:p-8 shadow-subtle space-y-5 relative">
         {/* Header */}
         <div className="text-center space-y-1.5 relative">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 text-primary rounded-xl mb-1">
-            <Shield className="w-7 h-7" />
+          <div className="inline-flex items-center justify-center w-10 h-10 bg-primary text-primary-foreground font-mono font-bold text-base rounded-lg mb-1 shadow-2xs">
+            P
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
             Accept Invitation & Join Team
           </h1>
           <p className="text-xs text-muted-foreground">
@@ -190,13 +186,13 @@ export const Register: React.FC = () => {
 
         {/* Error Alert */}
         {formError && (
-          <div className="flex items-start space-x-2.5 p-3.5 rounded-lg border border-destructive/20 bg-destructive/10 text-destructive text-sm font-medium animate-in fade-in">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start space-x-2 p-3 rounded-md border border-destructive/20 bg-destructive/10 text-destructive text-xs font-medium animate-in fade-in">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <p className="leading-tight">{formError}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 relative">
+        <form onSubmit={handleSubmit} className="space-y-3.5 relative">
           {/* Pre-assigned Email (Locked) */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
@@ -206,36 +202,36 @@ export const Register: React.FC = () => {
               </span>
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="email"
                 disabled
                 value={validationData.email}
-                className="w-full bg-muted/60 border border-input rounded-lg pl-10 pr-4 py-2 text-sm text-foreground font-medium opacity-80 cursor-not-allowed select-none"
+                className="w-full bg-muted/60 border border-input rounded-md pl-8 pr-3 h-8.5 text-xs text-foreground font-medium opacity-80 cursor-not-allowed select-none"
               />
             </div>
           </div>
 
           {/* Assigned Role Badge (Locked) */}
-          <div className="p-3 rounded-lg border bg-accent/30 flex items-center justify-between text-xs">
+          <div className="p-2.5 rounded-md border border-border/80 bg-muted/30 flex items-center justify-between text-xs">
             <div>
-              <span className="text-muted-foreground font-medium block">Pre-Assigned Role:</span>
-              <strong className="text-foreground text-sm font-bold">
+              <span className="text-muted-foreground text-[11px] font-medium block">Pre-Assigned Role:</span>
+              <strong className="text-foreground text-xs font-semibold">
                 {getRoleDisplayName(validationData.role)}
               </strong>
             </div>
-            <span className="px-2.5 py-1 bg-primary/10 text-primary font-semibold rounded-md border border-primary/20 text-[11px] uppercase tracking-wider">
+            <span className="px-2 py-0.5 bg-primary/10 text-primary font-semibold rounded border border-primary/20 text-[10px] uppercase tracking-wider">
               {validationData.role}
             </span>
           </div>
 
           {/* Full Name */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Full Name *
             </label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="text"
                 required
@@ -243,19 +239,19 @@ export const Register: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Jane Smith"
-                className="w-full bg-accent/40 border border-input rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50"
+                className="w-full bg-background border border-input rounded-md pl-8 pr-3 h-8.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
               />
             </div>
           </div>
 
           {/* Password */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Password *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   type="password"
                   required
@@ -263,17 +259,17 @@ export const Register: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-accent/40 border border-input rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50"
+                  className="w-full bg-background border border-input rounded-md pl-8 pr-3 h-8.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Confirm Password *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   type="password"
                   required
@@ -281,7 +277,7 @@ export const Register: React.FC = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-accent/40 border border-input rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50"
+                  className="w-full bg-background border border-input rounded-md pl-8 pr-3 h-8.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                 />
               </div>
             </div>
@@ -289,18 +285,18 @@ export const Register: React.FC = () => {
 
           {/* Phone (Optional) */}
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Phone Number (Optional)
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
               <input
                 type="tel"
                 disabled={isSubmitting}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+1 (555) 000-0000"
-                className="w-full bg-accent/40 border border-input rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50"
+                className="w-full bg-background border border-input rounded-md pl-8 pr-3 h-8.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
               />
             </div>
           </div>
@@ -308,21 +304,21 @@ export const Register: React.FC = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-11 text-sm font-semibold rounded-lg shadow-sm mt-2"
+            className="w-full h-8.5 text-xs font-semibold rounded-md shadow-2xs mt-2"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" /> Activating Account...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Activating Account...
               </span>
             ) : (
               <span className="flex items-center gap-1.5">
-                Complete Registration & Join <ArrowRight className="w-4 h-4" />
+                Complete Registration & Join <ArrowRight className="w-3.5 h-3.5" />
               </span>
             )}
           </Button>
         </form>
 
-        <div className="pt-2 text-center text-xs text-muted-foreground border-t border-border">
+        <div className="pt-2 text-center text-xs text-muted-foreground border-t border-border/80">
           Already have an active account?{" "}
           <Link to="/login" className="font-semibold text-primary hover:underline">
             Sign In

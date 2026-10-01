@@ -20,13 +20,15 @@ import Reports from "./pages/Reports";
 import Integrations from "./pages/Integrations";
 import Imports from "./pages/Imports";
 import Settings from "./pages/Settings";
+import { ToastProvider } from "./context/ToastContext";
 
 export function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-      <BrowserRouter>
-        <Routes>
+        <ToastProvider>
+          <BrowserRouter>
+            <Routes>
           {/* Public Routes */}
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<Login />} />
@@ -145,6 +147,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
       </SocketProvider>
     </AuthProvider>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { leadsApi, GetLeadsParams } from "../api/leads.api";
 import { Lead, LeadStatus, LeadSource } from "../types/api.types";
 import { LeadTable } from "../components/leads/LeadTable";
@@ -8,12 +9,15 @@ import { LeadDetails } from "../components/leads/LeadDetails";
 import { LeadFilters } from "../components/leads/LeadFilters";
 import { SendLeadEmailModal } from "../components/leads/SendLeadEmailModal";
 import { Button } from "../components/ui/button";
-import { Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RefreshButton } from "../components/ui/RefreshButton";
 import { useRefreshListener } from "../hooks/useRefreshListener";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { Pagination } from "../components/ui/Pagination";
 
 export const Leads: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // State
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -36,6 +40,8 @@ export const Leads: React.FC = () => {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [viewingLeadId, setViewingLeadId] = useState<string | null>(null);
   const [emailingLead, setEmailingLead] = useState<Lead | null>(null);
+  const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
+  const [deleting, setDeleting] = useState(false);
   
   // RBAC
   const canWrite = user?.role === "ADMIN" || user?.role === "MANAGER" || user?.role === "SALES_REP";
@@ -76,32 +82,49 @@ export const Leads: React.FC = () => {
   );
 
   const handleCreateOrUpdate = async (data: Partial<Lead>) => {
-    if (editingLead) {
-      await leadsApi.updateLead(editingLead.id, data);
-    } else {
-      await leadsApi.createLead(data);
-    }
-    fetchLeads();
-  };
-
-  const handleDelete = async (id: string) => {
     try {
-      await leadsApi.deleteLead(id);
-      if (viewingLeadId === id) setViewingLeadId(null);
+      if (editingLead) {
+        await leadsApi.updateLead(editingLead.id, data);
+        toast.success("Lead updated successfully");
+      } else {
+        await leadsApi.createLead(data);
+        toast.success("Lead created successfully");
+      }
       fetchLeads();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete lead");
+      toast.error(err.response?.data?.message || "Failed to save lead");
+      throw err;
+    }
+  };
+
+  const handleDelete = (lead: Lead) => {
+    setLeadToDelete(lead);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!leadToDelete) return;
+    setDeleting(true);
+    try {
+      await leadsApi.deleteLead(leadToDelete.id);
+      if (viewingLeadId === leadToDelete.id) setViewingLeadId(null);
+      toast.success(`Lead "${leadToDelete.firstName} ${leadToDelete.lastName}" deleted.`);
+      setLeadToDelete(null);
+      fetchLeads();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to delete lead");
+    } finally {
+      setDeleting(false);
     }
   };
 
   useRefreshListener(fetchLeads);
 
   return (
-    <div className="space-y-6 max-w-full">
+    <div className="space-y-6 max-w-full animate-in fade-in slide-in-bottom duration-500">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Leads</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Leads</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Raw inbound prospects — qualify and convert them into Contacts &amp; Deals.
           </p>
@@ -127,15 +150,11 @@ export const Leads: React.FC = () => {
           <p className="text-sm opacity-90 mb-4">{error}</p>
           <Button variant="outline" onClick={fetchLeads}>Try Again</Button>
         </div>
-      ) : loading && leads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-24 text-muted-foreground border rounded-xl bg-card">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-          <p>Loading leads...</p>
-        </div>
       ) : (
         <div className="space-y-4">
           <LeadTable
             leads={leads}
+            loading={loading}
             canWrite={canWrite}
             onEdit={(lead) => {
               setEditingLead(lead);
@@ -147,34 +166,14 @@ export const Leads: React.FC = () => {
           />
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t pt-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} results
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="text-sm font-medium px-2">
-                  Page {page} of {totalPages}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            limit={limit}
+            onPageChange={setPage}
+            itemName="leads"
+          />
         </div>
       )}
 
@@ -207,6 +206,17 @@ export const Leads: React.FC = () => {
         isOpen={!!emailingLead}
         onClose={() => setEmailingLead(null)}
         onSuccess={fetchLeads}
+      />
+
+      <ConfirmDialog
+        isOpen={!!leadToDelete}
+        title="Delete Lead"
+        description={`Are you sure you want to delete ${leadToDelete ? `${leadToDelete.firstName} ${leadToDelete.lastName}` : "this lead"}? This action cannot be undone.`}
+        confirmText="Delete Lead"
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setLeadToDelete(null)}
       />
     </div>
   );
