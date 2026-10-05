@@ -120056,7 +120056,7 @@ router9.patch(
 );
 router9.delete(
   "/:id",
-  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SUPPORT),
+  authorize(import_client25.UserRole.ADMIN, import_client25.UserRole.MANAGER, import_client25.UserRole.SALES_REP, import_client25.UserRole.SUPPORT),
   conversationController.deleteConversation
 );
 var conversation_routes_default = router9;

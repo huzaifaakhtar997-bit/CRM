@@ -10,6 +10,7 @@ interface ConversationListProps {
   loading: boolean;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onDelete?: (conversation: Conversation) => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   statusFilter: ConversationStatus | "ALL";
@@ -26,6 +27,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   loading,
   selectedId,
   onSelect,
+  onDelete,
   searchQuery,
   onSearchChange,
   statusFilter,
@@ -156,6 +158,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                 conversation={convo}
                 isSelected={convo.id === selectedId}
                 onClick={() => onSelect(convo.id)}
+                onDelete={onDelete}
               />
             ))}
           </div>

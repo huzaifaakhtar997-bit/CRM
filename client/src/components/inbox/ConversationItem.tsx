@@ -1,6 +1,6 @@
 import React from "react";
 import { Conversation, ConversationStatus } from "../../types/api.types";
-import { User, Mail, MessageSquare, Clock, Megaphone, UserCheck } from "lucide-react";
+import { User, Mail, MessageSquare, Clock, Megaphone, UserCheck, Trash2 } from "lucide-react";
 import { Badge } from "../ui/Badge";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -13,12 +13,14 @@ interface ConversationItemProps {
   conversation: Conversation;
   isSelected: boolean;
   onClick: () => void;
+  onDelete?: (conversation: Conversation) => void;
 }
 
 export const ConversationItem: React.FC<ConversationItemProps> = ({
   conversation,
   isSelected,
   onClick,
+  onDelete,
 }) => {
   const contactName = conversation.contact
     ? `${conversation.contact.firstName} ${conversation.contact.lastName}`
@@ -36,10 +38,18 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   };
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn(
-        "w-full text-left p-3 border-b border-border/60 transition-colors hover:bg-muted/40 focus:outline-none",
+        "w-full text-left p-3 border-b border-border/60 transition-colors hover:bg-muted/40 focus:outline-none cursor-pointer group relative",
         isSelected ? "bg-muted/60 border-l-2 border-l-primary" : "border-l-2 border-l-transparent"
       )}
     >
@@ -107,15 +117,30 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
               </span>
             )}
           </div>
-          <span title={conversation.channel === "EMAIL" ? "Email channel" : "Chat channel"}>
-            {conversation.channel === "EMAIL" ? (
-              <Mail className="w-3 h-3 text-muted-foreground/70 shrink-0" />
-            ) : (
-              <MessageSquare className="w-3 h-3 text-muted-foreground/70 shrink-0" />
+          <div className="flex items-center gap-1 shrink-0">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(conversation);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-all focus:opacity-100"
+                title="Delete conversation"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
             )}
-          </span>
+            <span title={conversation.channel === "EMAIL" ? "Email channel" : "Chat channel"}>
+              {conversation.channel === "EMAIL" ? (
+                <Mail className="w-3 h-3 text-muted-foreground/70 shrink-0" />
+              ) : (
+                <MessageSquare className="w-3 h-3 text-muted-foreground/70 shrink-0" />
+              )}
+            </span>
+          </div>
         </div>
       </div>
-    </button>
+    </div>
   );
 };

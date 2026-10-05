@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useSocket } from "../context/SocketContext";
+import { useToast } from "../context/ToastContext";
 import { conversationsApi } from "../api/conversations.api";
 import { usersApi, CRMUser } from "../api/users.api";
 import { Conversation, Message, ConversationStatus, SenderType } from "../types/api.types";
@@ -8,11 +9,13 @@ import { ConversationList } from "../components/inbox/ConversationList";
 import { ConversationThread } from "../components/inbox/ConversationThread";
 import { MessageComposer } from "../components/inbox/MessageComposer";
 import { ConversationDetails } from "../components/inbox/ConversationDetails";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { useRefreshListener, triggerGlobalRefresh } from "../hooks/useRefreshListener";
-import { ChevronDown, UserCheck } from "lucide-react";
+import { ChevronDown, UserCheck, Trash2 } from "lucide-react";
 
 export default function Inbox() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const canSend = ["ADMIN", "MANAGER", "SUPPORT", "SALES_REP"].includes(user?.role || "");
 
@@ -23,6 +26,8 @@ export default function Inbox() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Users & Status/Assignee management
   const [users, setUsers] = useState<CRMUser[]>([]);
@@ -260,6 +265,27 @@ export default function Inbox() {
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!conversationToDelete) return;
+    setDeleting(true);
+    try {
+      await conversationsApi.deleteConversation(conversationToDelete.id);
+      toast.success("Conversation deleted successfully");
+      if (selectedId === conversationToDelete.id) {
+        setSelectedId(null);
+        setMessages([]);
+      }
+      setConversations((prev) => prev.filter((c) => c.id !== conversationToDelete.id));
+      setConversationToDelete(null);
+      triggerGlobalRefresh();
+    } catch (err: any) {
+      console.error("Failed to delete conversation", err);
+      toast.error(err.response?.data?.message || "Failed to delete conversation");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const selectedConversation = conversations.find((c) => c.id === selectedId) || null;
 
   return (
@@ -271,6 +297,7 @@ export default function Inbox() {
           loading={loadingList}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          onDelete={setConversationToDelete}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           statusFilter={statusFilter}
@@ -347,6 +374,19 @@ export default function Inbox() {
                   <UserCheck className="w-3.5 h-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
+
+                {/* Delete Chat Button */}
+                {canSend && (
+                  <button
+                    type="button"
+                    onClick={() => setConversationToDelete(selectedConversation)}
+                    className="h-8 px-2.5 text-xs font-semibold rounded-md border border-input text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors flex items-center gap-1.5 shadow-2xs"
+                    title="Delete conversation"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </button>
+                )}
               </div>
             </div>
             <ConversationThread
@@ -389,8 +429,27 @@ export default function Inbox() {
           onStatusChange={handleStatusChange}
           onAssigneeChange={handleAssigneeChange}
           onConversationUpdated={loadConversations}
+          onDelete={setConversationToDelete}
         />
       </div>
+
+      {/* Confirm Deletion Dialog */}
+      <ConfirmDialog
+        isOpen={!!conversationToDelete}
+        title="Delete Conversation"
+        message={`Are you sure you want to delete this conversation with ${
+          conversationToDelete?.contact
+            ? `${conversationToDelete.contact.firstName} ${conversationToDelete.contact.lastName}`
+            : conversationToDelete?.lead
+            ? `${conversationToDelete.lead.firstName} ${conversationToDelete.lead.lastName || ""}`.trim()
+            : "Unknown Sender"
+        }? All messages and thread history will be permanently deleted. The associated contact/lead profile will remain intact.`}
+        confirmText={deleting ? "Deleting..." : "Delete Chat"}
+        variant="destructive"
+        loading={deleting}
+        onConfirm={handleDeleteConversation}
+        onClose={() => setConversationToDelete(null)}
+      />
     </div>
   );
 }

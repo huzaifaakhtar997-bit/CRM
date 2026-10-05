@@ -33,6 +33,7 @@ import {
   CheckCircle2,
   Lock,
   UserCheck,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { CRMUser, usersApi } from "../../api/users.api";
@@ -45,6 +46,7 @@ interface ConversationDetailsProps {
   onStatusChange?: (status: ConversationStatus) => void;
   onAssigneeChange?: (userId: string) => void;
   onConversationUpdated?: () => void;
+  onDelete?: (conversation: Conversation) => void;
 }
 
 const LIFECYCLE_STAGES = [
@@ -82,6 +84,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   onStatusChange,
   onAssigneeChange,
   onConversationUpdated,
+  onDelete,
 }) => {
   const [userList, setUserList] = useState<CRMUser[]>(users || []);
 
@@ -658,6 +661,21 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
             <div className="flex justify-between"><span>Last Activity:</span><span className="font-medium text-foreground">{new Date(conversation.lastMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></div>
           </div>
         </div>
+
+        {onDelete && conversation && (
+          <div className="pt-2 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full text-xs gap-1.5 h-8 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+              onClick={() => onDelete(conversation)}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Conversation
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* ===== MODALS ===== */}

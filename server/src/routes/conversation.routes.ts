@@ -36,7 +36,7 @@ router.patch(
 
 router.delete(
   "/:id",
-  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPORT),
+  authorize(UserRole.ADMIN, UserRole.MANAGER, UserRole.SALES_REP, UserRole.SUPPORT),
   conversationController.deleteConversation
 );
 
