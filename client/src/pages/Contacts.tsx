@@ -14,6 +14,7 @@ import { usersApi, CRMUser } from "../api/users.api";
 import { useToast } from "../context/ToastContext";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { Pagination } from "../components/ui/Pagination";
+import { Link } from "react-router-dom";
 
 export default function Contacts() {
   const { user } = useAuth();
@@ -238,6 +239,23 @@ export default function Contacts() {
           </div>
         );
       })()}
+
+      {/* Info Banner when viewing Leads in Contacts */}
+      {activeStage === "LEAD" && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 px-3 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/60 rounded-lg text-xs text-blue-950 dark:text-blue-100">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-blue-700 dark:text-blue-300">Lead Stage Contacts:</span>
+            <span>Showing contacts currently in the Lead lifecycle stage or converted from prospect leads.</span>
+          </div>
+          <Link
+            to="/leads"
+            className="font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>View Unconverted Inbound Leads</span>
+            <span>&rarr;</span>
+          </Link>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-card p-3 rounded-lg border border-border/80 shadow-2xs">

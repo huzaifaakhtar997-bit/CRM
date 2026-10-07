@@ -25,6 +25,9 @@ export class ContactRepository {
           where: { stage: { isWon: true } },
           select: { id: true },
         },
+        lead: {
+          select: { id: true, status: true, source: true },
+        },
       },
     });
   }
@@ -58,6 +61,11 @@ export class ContactRepository {
           { lifecycleStage: query.lifecycleStage },
           { status: query.lifecycleStage },
           { tags: { has: query.lifecycleStage } },
+        ];
+      } else if (query.lifecycleStage === "LEAD") {
+        where.OR = [
+          { lifecycleStage: "LEAD" },
+          { lead: { isNot: null } },
         ];
       } else {
         where.lifecycleStage = query.lifecycleStage;
@@ -112,6 +120,9 @@ export class ContactRepository {
             where: { stage: { isWon: true } },
             select: { id: true },
           },
+          lead: {
+            select: { id: true, status: true, source: true },
+          },
         },
       }),
       prisma.contact.count({ where }),
@@ -136,7 +147,22 @@ export class ContactRepository {
         { email: { contains: query.search, mode: "insensitive" } },
       ];
     }
-    if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
+    if (query.lifecycleStage) {
+      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
+        where.OR = [
+          { lifecycleStage: query.lifecycleStage },
+          { status: query.lifecycleStage },
+          { tags: { has: query.lifecycleStage } },
+        ];
+      } else if (query.lifecycleStage === "LEAD") {
+        where.OR = [
+          { lifecycleStage: "LEAD" },
+          { lead: { isNot: null } },
+        ];
+      } else {
+        where.lifecycleStage = query.lifecycleStage;
+      }
+    }
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
         where.assignedUserId = null;

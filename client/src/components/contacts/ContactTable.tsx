@@ -118,12 +118,19 @@ export const ContactTable: React.FC<ContactTableProps> = ({
                   </td>
                   <td className="px-4 py-2.5 hidden lg:table-cell">
                     <div className="flex flex-col gap-1 items-start">
-                      <Badge variant={getStageVariant(contact.lifecycleStage)}>
-                        {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
-                          <Lock className="w-2.5 h-2.5 shrink-0 opacity-80 mr-0.5" />
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <Badge variant={getStageVariant(contact.lifecycleStage)}>
+                          {contact.lifecycleStage === "CUSTOMER" && Boolean(contact.hasWonDeal || contact.deals?.length) && (
+                            <Lock className="w-2.5 h-2.5 shrink-0 opacity-80 mr-0.5" />
+                          )}
+                          {contact.lifecycleStage?.replace("_", " ")}
+                        </Badge>
+                        {contact.lead && (
+                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title={`Converted from inbound lead (${contact.lead.status || 'CONVERTED'})`}>
+                            From Lead
+                          </span>
                         )}
-                        {contact.lifecycleStage?.replace("_", " ")}
-                      </Badge>
+                      </div>
                       {contact.status && (
                         <span className="inline-flex items-center rounded px-1.5 py-0.2 text-[10px] font-mono bg-muted text-muted-foreground border border-border/60">
                           {contact.status}

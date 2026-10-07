@@ -116683,6 +116683,9 @@ var ContactRepository = class {
         deals: {
           where: { stage: { isWon: true } },
           select: { id: true }
+        },
+        lead: {
+          select: { id: true, status: true, source: true }
         }
       }
     });
@@ -116710,6 +116713,11 @@ var ContactRepository = class {
           { lifecycleStage: query.lifecycleStage },
           { status: query.lifecycleStage },
           { tags: { has: query.lifecycleStage } }
+        ];
+      } else if (query.lifecycleStage === "LEAD") {
+        where.OR = [
+          { lifecycleStage: "LEAD" },
+          { lead: { isNot: null } }
         ];
       } else {
         where.lifecycleStage = query.lifecycleStage;
@@ -116762,6 +116770,9 @@ var ContactRepository = class {
           deals: {
             where: { stage: { isWon: true } },
             select: { id: true }
+          },
+          lead: {
+            select: { id: true, status: true, source: true }
           }
         }
       }),
@@ -116784,7 +116795,22 @@ var ContactRepository = class {
         { email: { contains: query.search, mode: "insensitive" } }
       ];
     }
-    if (query.lifecycleStage) where.lifecycleStage = query.lifecycleStage;
+    if (query.lifecycleStage) {
+      if (query.lifecycleStage === "MQL" || query.lifecycleStage === "SQL") {
+        where.OR = [
+          { lifecycleStage: query.lifecycleStage },
+          { status: query.lifecycleStage },
+          { tags: { has: query.lifecycleStage } }
+        ];
+      } else if (query.lifecycleStage === "LEAD") {
+        where.OR = [
+          { lifecycleStage: "LEAD" },
+          { lead: { isNot: null } }
+        ];
+      } else {
+        where.lifecycleStage = query.lifecycleStage;
+      }
+    }
     if (query.assignedUserId) {
       if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
         where.assignedUserId = null;

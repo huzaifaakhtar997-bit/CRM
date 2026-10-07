@@ -45,6 +45,11 @@ export interface Contact {
   tags: string[];
   hasWonDeal?: boolean;
   deals?: Array<{ id: string; stage?: { isWon: boolean } }>;
+  lead?: {
+    id: string;
+    status?: LeadStatus | string;
+    source?: LeadSource | string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
