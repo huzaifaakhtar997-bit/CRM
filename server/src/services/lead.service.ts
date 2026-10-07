@@ -3,6 +3,8 @@ import { leadRepository, LeadRepository, LeadListResult } from "../repositories/
 import { prisma } from "../config/database";
 import { CreateLeadInput, UpdateLeadInput, QueryLeadInput, ConvertLeadInput } from "../validators/lead.validator";
 import { AppError } from "../types/auth.types";
+import { socketService } from "./socket.service";
+import { conversationInclude, enrichConversation } from "../repositories/conversation.repository";
 
 export class LeadService {
   constructor(private leadRepo: LeadRepository) {}
@@ -166,7 +168,7 @@ export class LeadService {
       throw new AppError("This lead has already been converted.", 400);
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Resolve Company
       let companyId: string | null = input.companyId || null;
 
@@ -261,15 +263,20 @@ export class LeadService {
         },
       });
 
-      // 5. Link any existing unlinked Conversations from this email to the new Contact
+      // 5. Link any existing unlinked Conversations from this lead or email to the new Contact
       await tx.conversation.updateMany({
         where: {
-          contactId: null,
-          messages: {
-            some: {
-              senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" },
+          OR: [
+            { leadId: lead.id },
+            {
+              contactId: null,
+              messages: {
+                some: {
+                  senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" },
+                },
+              },
             },
-          },
+          ],
         },
         data: {
           contactId: contact.id,
@@ -300,6 +307,23 @@ export class LeadService {
         deal,
       };
     });
+
+    // Notify connected clients about updated conversations
+    try {
+      const affectedConvos = await prisma.conversation.findMany({
+        where: { contactId: result.contact.id },
+        include: conversationInclude,
+      });
+      for (const convo of affectedConvos) {
+        socketService.emitToAll("conversation:updated", {
+          conversation: enrichConversation(convo),
+        });
+      }
+    } catch (sockErr) {
+      console.warn("[LeadService] Failed to emit conversation updates:", sockErr);
+    }
+
+    return result;
   }
 
   async deleteLead(id: string): Promise<{ id: string }> {

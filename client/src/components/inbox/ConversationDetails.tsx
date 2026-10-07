@@ -38,6 +38,7 @@ import {
 import { Link } from "react-router-dom";
 import { CRMUser, usersApi } from "../../api/users.api";
 import { ConversationStatus } from "../../types/api.types";
+import { ConvertLeadModal } from "../leads/ConvertLeadModal";
 
 interface ConversationDetailsProps {
   conversation: Conversation | null;
@@ -99,6 +100,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showConvertLeadModal, setShowConvertLeadModal] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -137,7 +139,8 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
   const [creatingTask, setCreatingTask] = useState(false);
   const [taskError, setTaskError] = useState<string | null>(null);
 
-  const effectiveContactId = conversation?.contactId || conversation?.contact?.id || null;
+  const contact = conversation?.contact || (conversation?.lead as any)?.convertedContact || null;
+  const effectiveContactId = conversation?.contactId || contact?.id || (conversation?.lead as any)?.convertedContactId || null;
 
   const customerMsg = messages.find(
     (m) => m.senderType === SenderType.CUSTOMER && m.senderEmail
@@ -212,7 +215,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
     );
   }
 
-  const { contact, assignedUser } = conversation;
+  const assignedUser = conversation.assignedUser;
   const hasWonDeal = deals.some((d) => d.stage?.isWon) || Boolean((contact as any)?.deals?.length);
 
   const handleCreateContact = async (e: React.FormEvent) => {
@@ -451,7 +454,7 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                 </div>
               </div>
             </div>
-          ) : conversation?.lead ? (
+          ) : conversation?.lead && conversation.lead.status !== "CONVERTED" ? (
             <div className="p-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
@@ -472,12 +475,13 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                 )}
               </div>
               <div className="space-y-1.5 pt-1">
-                <Link
-                  to="/leads"
-                  className="w-full flex items-center justify-center gap-1.5 text-xs h-8 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors shadow-xs"
+                <Button
+                  size="sm"
+                  className="w-full text-xs h-8 gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-xs"
+                  onClick={() => setShowConvertLeadModal(true)}
                 >
-                  <UserCheck className="w-3.5 h-3.5" /> View / Convert in Leads
-                </Link>
+                  <UserCheck className="w-3.5 h-3.5" /> Convert to Contact
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -486,6 +490,32 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
                 >
                   <LinkIcon className="w-3.5 h-3.5" /> Link to Existing Contact
                 </Button>
+              </div>
+            </div>
+          ) : conversation?.lead && conversation.lead.status === "CONVERTED" ? (
+            <div className="p-3 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Converted Contact</span>
+                </div>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                  CONVERTED
+                </span>
+              </div>
+              <div>
+                <div className="font-medium text-sm text-foreground">
+                  {conversation.lead.firstName} {conversation.lead.lastName || ""}
+                </div>
+                <div className="text-xs text-muted-foreground break-all">{conversation.lead.email}</div>
+              </div>
+              <div className="pt-1">
+                <Link
+                  to="/contacts"
+                  className="w-full flex items-center justify-center gap-1.5 text-xs h-8 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors shadow-xs"
+                >
+                  <User className="w-3.5 h-3.5" /> View in Contacts
+                </Link>
               </div>
             </div>
           ) : (
@@ -810,6 +840,21 @@ export const ConversationDetails: React.FC<ConversationDetailsProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {showConvertLeadModal && conversation?.lead && (
+        <ConvertLeadModal
+          isOpen={showConvertLeadModal}
+          lead={conversation.lead as any}
+          onClose={() => setShowConvertLeadModal(false)}
+          onSuccess={() => {
+            setShowConvertLeadModal(false);
+            triggerGlobalRefresh();
+            if (onConversationUpdated) {
+              onConversationUpdated();
+            }
+          }}
+        />
       )}
     </div>
   );

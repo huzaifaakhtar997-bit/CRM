@@ -117872,6 +117872,172 @@ var LeadRepository = class {
 };
 var leadRepository = new LeadRepository();
 
+// src/repositories/conversation.repository.ts
+var conversationInclude = {
+  assignedUser: {
+    select: { id: true, name: true, email: true, avatarUrl: true }
+  },
+  contact: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      avatarUrl: true,
+      lifecycleStage: true,
+      status: true,
+      deals: {
+        where: { stage: { isWon: true } },
+        select: { id: true }
+      }
+    }
+  },
+  lead: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      company: true,
+      status: true,
+      source: true,
+      convertedContactId: true,
+      convertedContact: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatarUrl: true,
+          lifecycleStage: true,
+          status: true,
+          deals: {
+            where: { stage: { isWon: true } },
+            select: { id: true }
+          }
+        }
+      }
+    }
+  },
+  campaign: {
+    select: { id: true, name: true, subject: true }
+  },
+  messages: {
+    take: 1,
+    orderBy: { createdAt: "desc" },
+    select: { content: true, senderName: true, isInternalNote: true, createdAt: true }
+  }
+};
+function enrichConversation(conv) {
+  if (!conv) return null;
+  const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
+  const lastMsg = conv.messages?.[0];
+  const contact = conv.contact || conv.lead?.convertedContact || null;
+  const contactId = conv.contactId || conv.lead?.convertedContactId || (contact ? contact.id : null);
+  return {
+    ...conv,
+    contact,
+    contactId,
+    isFromCampaign,
+    campaignName: isFromCampaign ? conv.campaign?.name || null : null,
+    campaignId: isFromCampaign ? conv.campaignId || null : null,
+    snippet: lastMsg?.content || null
+  };
+}
+var ConversationRepository = class {
+  async findById(id) {
+    const conversation = await prisma.conversation.findUnique({
+      where: { id },
+      include: conversationInclude
+    });
+    return enrichConversation(conversation);
+  }
+  async findAll(query) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+    const where = {};
+    if (query.search) {
+      where.OR = [
+        { subject: { contains: query.search, mode: "insensitive" } },
+        {
+          contact: {
+            OR: [
+              { firstName: { contains: query.search, mode: "insensitive" } },
+              { lastName: { contains: query.search, mode: "insensitive" } },
+              { email: { contains: query.search, mode: "insensitive" } }
+            ]
+          }
+        },
+        {
+          lead: {
+            OR: [
+              { firstName: { contains: query.search, mode: "insensitive" } },
+              { lastName: { contains: query.search, mode: "insensitive" } },
+              { email: { contains: query.search, mode: "insensitive" } }
+            ]
+          }
+        }
+      ];
+    }
+    if (query.status) {
+      where.status = query.status;
+    }
+    if (query.channel) {
+      where.channel = query.channel;
+    }
+    if (query.assignedUserId) {
+      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
+        where.assignedUserId = null;
+      } else {
+        where.assignedUserId = query.assignedUserId;
+      }
+    }
+    if (query.contactId) {
+      where.contactId = query.contactId;
+    }
+    if (query.leadId) {
+      where.leadId = query.leadId;
+    }
+    const [conversations, total] = await Promise.all([
+      prisma.conversation.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+        include: conversationInclude
+      }),
+      prisma.conversation.count({ where })
+    ]);
+    return {
+      conversations: conversations.map(enrichConversation),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1
+    };
+  }
+  async create(data) {
+    return prisma.conversation.create({
+      data,
+      include: conversationInclude
+    });
+  }
+  async update(id, data) {
+    return prisma.conversation.update({
+      where: { id },
+      data,
+      include: conversationInclude
+    });
+  }
+  async delete(id) {
+    return prisma.conversation.delete({
+      where: { id }
+    });
+  }
+};
+var conversationRepository = new ConversationRepository();
+
 // src/services/lead.service.ts
 var LeadService = class {
   constructor(leadRepo) {
@@ -118010,7 +118176,7 @@ var LeadService = class {
     if (lead.status === import_client12.LeadStatus.CONVERTED) {
       throw new AppError("This lead has already been converted.", 400);
     }
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       let companyId = input.companyId || null;
       if (!companyId && input.createCompany) {
         const companyName = (input.companyName || lead.company || "").trim();
@@ -118096,12 +118262,17 @@ var LeadService = class {
       });
       await tx.conversation.updateMany({
         where: {
-          contactId: null,
-          messages: {
-            some: {
-              senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" }
+          OR: [
+            { leadId: lead.id },
+            {
+              contactId: null,
+              messages: {
+                some: {
+                  senderEmail: { equals: lead.email.toLowerCase(), mode: "insensitive" }
+                }
+              }
             }
-          }
+          ]
         },
         data: {
           contactId: contact.id
@@ -118129,6 +118300,20 @@ var LeadService = class {
         deal
       };
     });
+    try {
+      const affectedConvos = await prisma.conversation.findMany({
+        where: { contactId: result.contact.id },
+        include: conversationInclude
+      });
+      for (const convo of affectedConvos) {
+        socketService.emitToAll("conversation:updated", {
+          conversation: enrichConversation(convo)
+        });
+      }
+    } catch (sockErr) {
+      console.warn("[LeadService] Failed to emit conversation updates:", sockErr);
+    }
+    return result;
   }
   async deleteLead(id) {
     const existing = await this.leadRepo.findById(id);
@@ -119567,154 +119752,6 @@ var import_express9 = __toESM(require_express2());
 
 // src/services/conversation.service.ts
 var import_client23 = require("@prisma/client");
-
-// src/repositories/conversation.repository.ts
-var conversationInclude = {
-  assignedUser: {
-    select: { id: true, name: true, email: true, avatarUrl: true }
-  },
-  contact: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      avatarUrl: true,
-      lifecycleStage: true,
-      status: true,
-      deals: {
-        where: { stage: { isWon: true } },
-        select: { id: true }
-      }
-    }
-  },
-  lead: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      company: true,
-      status: true,
-      source: true
-    }
-  },
-  campaign: {
-    select: { id: true, name: true, subject: true }
-  },
-  messages: {
-    take: 1,
-    orderBy: { createdAt: "desc" },
-    select: { content: true, senderName: true, isInternalNote: true, createdAt: true }
-  }
-};
-function enrichConversation(conv) {
-  if (!conv) return null;
-  const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
-  const lastMsg = conv.messages?.[0];
-  return {
-    ...conv,
-    isFromCampaign,
-    campaignName: isFromCampaign ? conv.campaign?.name || null : null,
-    campaignId: isFromCampaign ? conv.campaignId || null : null,
-    snippet: lastMsg?.content || null
-  };
-}
-var ConversationRepository = class {
-  async findById(id) {
-    const conversation = await prisma.conversation.findUnique({
-      where: { id },
-      include: conversationInclude
-    });
-    return enrichConversation(conversation);
-  }
-  async findAll(query) {
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    const skip = (page - 1) * limit;
-    const where = {};
-    if (query.search) {
-      where.OR = [
-        { subject: { contains: query.search, mode: "insensitive" } },
-        {
-          contact: {
-            OR: [
-              { firstName: { contains: query.search, mode: "insensitive" } },
-              { lastName: { contains: query.search, mode: "insensitive" } },
-              { email: { contains: query.search, mode: "insensitive" } }
-            ]
-          }
-        },
-        {
-          lead: {
-            OR: [
-              { firstName: { contains: query.search, mode: "insensitive" } },
-              { lastName: { contains: query.search, mode: "insensitive" } },
-              { email: { contains: query.search, mode: "insensitive" } }
-            ]
-          }
-        }
-      ];
-    }
-    if (query.status) {
-      where.status = query.status;
-    }
-    if (query.channel) {
-      where.channel = query.channel;
-    }
-    if (query.assignedUserId) {
-      if (query.assignedUserId === "unassigned" || query.assignedUserId === "none") {
-        where.assignedUserId = null;
-      } else {
-        where.assignedUserId = query.assignedUserId;
-      }
-    }
-    if (query.contactId) {
-      where.contactId = query.contactId;
-    }
-    if (query.leadId) {
-      where.leadId = query.leadId;
-    }
-    const [conversations, total] = await Promise.all([
-      prisma.conversation.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { updatedAt: "desc" },
-        include: conversationInclude
-      }),
-      prisma.conversation.count({ where })
-    ]);
-    return {
-      conversations: conversations.map(enrichConversation),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit) || 1
-    };
-  }
-  async create(data) {
-    return prisma.conversation.create({
-      data,
-      include: conversationInclude
-    });
-  }
-  async update(id, data) {
-    return prisma.conversation.update({
-      where: { id },
-      data,
-      include: conversationInclude
-    });
-  }
-  async delete(id) {
-    return prisma.conversation.delete({
-      where: { id }
-    });
-  }
-};
-var conversationRepository = new ConversationRepository();
-
-// src/services/conversation.service.ts
 var ConversationService = class {
   constructor(convoRepo) {
     this.convoRepo = convoRepo;

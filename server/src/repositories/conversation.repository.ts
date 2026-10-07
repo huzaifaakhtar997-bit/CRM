@@ -10,7 +10,7 @@ export interface ConversationListResult {
   totalPages: number;
 }
 
-const conversationInclude: Prisma.ConversationInclude = {
+export const conversationInclude: Prisma.ConversationInclude = {
   assignedUser: {
     select: { id: true, name: true, email: true, avatarUrl: true },
   },
@@ -38,6 +38,22 @@ const conversationInclude: Prisma.ConversationInclude = {
       company: true,
       status: true,
       source: true,
+      convertedContactId: true,
+      convertedContact: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatarUrl: true,
+          lifecycleStage: true,
+          status: true,
+          deals: {
+            where: { stage: { isWon: true } },
+            select: { id: true },
+          },
+        },
+      },
     },
   },
   campaign: {
@@ -50,12 +66,16 @@ const conversationInclude: Prisma.ConversationInclude = {
   },
 };
 
-function enrichConversation(conv: any) {
+export function enrichConversation(conv: any) {
   if (!conv) return null;
   const isFromCampaign = Boolean(conv.campaignId && conv.campaign);
   const lastMsg = conv.messages?.[0];
+  const contact = conv.contact || conv.lead?.convertedContact || null;
+  const contactId = conv.contactId || conv.lead?.convertedContactId || (contact ? contact.id : null);
   return {
     ...conv,
+    contact,
+    contactId,
     isFromCampaign,
     campaignName: isFromCampaign ? (conv.campaign?.name || null) : null,
     campaignId: isFromCampaign ? (conv.campaignId || null) : null,

@@ -287,6 +287,12 @@ export default function Inbox() {
   };
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) || null;
+  const selectedEffectiveContact = selectedConversation?.contact || selectedConversation?.lead?.convertedContact || null;
+  const selectedContactName = selectedEffectiveContact
+    ? `${selectedEffectiveContact.firstName} ${selectedEffectiveContact.lastName}`
+    : selectedConversation?.lead
+    ? `${selectedConversation.lead.firstName} ${selectedConversation.lead.lastName || ""}`.trim()
+    : "Unregistered Sender";
 
   return (
     <div className="w-full max-w-full h-[calc(100vh-9rem)] min-h-[600px] flex rounded-lg border border-border/80 overflow-hidden bg-background shadow-2xs">
@@ -320,9 +326,7 @@ export default function Inbox() {
                   {selectedConversation?.subject || "Conversation"}
                 </h3>
                 <p className="text-xs text-muted-foreground truncate">
-                  {selectedConversation?.contact
-                    ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
-                    : "Unregistered Sender"}
+                  {selectedContactName}
                 </p>
               </div>
 
@@ -392,12 +396,8 @@ export default function Inbox() {
             <ConversationThread
               messages={messages}
               loading={loadingThread}
-              contactName={
-                selectedConversation?.contact
-                  ? `${selectedConversation.contact.firstName} ${selectedConversation.contact.lastName}`
-                  : "Customer"
-              }
-              contactAvatar={selectedConversation?.contact?.avatarUrl || null}
+              contactName={selectedContactName}
+              contactAvatar={selectedEffectiveContact?.avatarUrl || null}
             />
             {canSend ? (
               <MessageComposer onSend={handleSendMessage} disabled={loadingThread} />
@@ -440,6 +440,8 @@ export default function Inbox() {
         message={`Are you sure you want to delete this conversation with ${
           conversationToDelete?.contact
             ? `${conversationToDelete.contact.firstName} ${conversationToDelete.contact.lastName}`
+            : (conversationToDelete?.lead as any)?.convertedContact
+            ? `${(conversationToDelete?.lead as any).convertedContact.firstName} ${(conversationToDelete?.lead as any).convertedContact.lastName}`
             : conversationToDelete?.lead
             ? `${conversationToDelete.lead.firstName} ${conversationToDelete.lead.lastName || ""}`.trim()
             : "Unknown Sender"

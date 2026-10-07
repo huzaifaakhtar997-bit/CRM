@@ -22,8 +22,9 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
   onClick,
   onDelete,
 }) => {
-  const contactName = conversation.contact
-    ? `${conversation.contact.firstName} ${conversation.contact.lastName}`
+  const effectiveContact = conversation.contact || conversation.lead?.convertedContact || null;
+  const contactName = effectiveContact
+    ? `${effectiveContact.firstName} ${effectiveContact.lastName}`
     : conversation.lead
     ? `${conversation.lead.firstName} ${conversation.lead.lastName || ""}`.trim()
     : "Unknown Contact";
@@ -98,7 +99,7 @@ export const ConversationItem: React.FC<ConversationItemProps> = ({
             >
               {conversation.status}
             </Badge>
-            {conversation.lead && !conversation.contact && (
+            {conversation.lead && !effectiveContact && conversation.lead.status !== "CONVERTED" && (
               <Badge variant="info">Lead</Badge>
             )}
             {(conversation.isFromCampaign || (conversation as any).campaignName) && (

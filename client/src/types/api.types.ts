@@ -222,6 +222,16 @@ export interface Conversation {
     company?: string | null;
     status?: LeadStatus;
     source?: LeadSource | null;
+    convertedContactId?: string | null;
+    convertedContact?: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      email: string | null;
+      avatarUrl: string | null;
+      lifecycleStage?: string | null;
+      status?: string | null;
+    } | null;
   } | null;
   assignedUser?: {
     id: string;
