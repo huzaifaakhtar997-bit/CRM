@@ -118076,6 +118076,24 @@ var LeadService = class {
     }
     const assignedUserId = input.assignedUserId || currentUserId;
     const lead = await prisma.$transaction(async (tx) => {
+      let contact = await tx.contact.findFirst({
+        where: { email: { equals: input.email.toLowerCase(), mode: "insensitive" } }
+      });
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            firstName: input.firstName,
+            lastName: input.lastName || "",
+            email: input.email.toLowerCase(),
+            phone: input.phone || null,
+            jobTitle: input.jobTitle || null,
+            leadSource: input.source || null,
+            lifecycleStage: import_client12.LifecycleStage.LEAD,
+            assignedUserId,
+            notes: input.notes || null
+          }
+        });
+      }
       const newLead = await tx.lead.create({
         data: {
           firstName: input.firstName,
@@ -118087,12 +118105,14 @@ var LeadService = class {
           source: input.source,
           status: input.status,
           notes: input.notes,
-          assignedUserId
+          assignedUserId,
+          convertedContactId: contact.id
         },
         include: {
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true }
-          }
+          },
+          convertedContact: true
         }
       });
       await tx.activity.create({
@@ -118102,11 +118122,13 @@ var LeadService = class {
           content: `Created lead ${newLead.firstName} ${newLead.lastName || ""}`.trim() + ` (${newLead.email})`,
           userId: currentUserId,
           leadId: newLead.id,
+          contactId: contact.id,
           metadata: {
             status: newLead.status,
             source: newLead.source,
             company: newLead.company,
-            assignedUserId: newLead.assignedUserId
+            assignedUserId: newLead.assignedUserId,
+            contactId: contact.id
           }
         }
       });
@@ -132038,6 +132060,17 @@ var WebhookController = class {
                   const parts = cleanSenderName.split(/\s+/).filter(Boolean);
                   const firstName = parts[0] || "Inbound";
                   const lastName = parts.slice(1).join(" ") || void 0;
+                  const newContact = await prisma.contact.create({
+                    data: {
+                      firstName,
+                      lastName: lastName || "",
+                      email: senderEmail.toLowerCase(),
+                      leadSource: import_client70.LeadSource.OTHER,
+                      lifecycleStage: LifecycleStage.LEAD,
+                      notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`
+                    }
+                  });
+                  matchedContactId = newContact.id;
                   const newLead = await prisma.lead.create({
                     data: {
                       firstName,
@@ -132045,11 +132078,12 @@ var WebhookController = class {
                       email: senderEmail.toLowerCase(),
                       source: import_client70.LeadSource.OTHER,
                       status: import_client70.LeadStatus.NEW,
-                      notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`
+                      notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || "No Subject"}"`,
+                      convertedContactId: newContact.id
                     }
                   });
                   matchedLeadId = newLead.id;
-                  console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
+                  console.log(`[Webhook] Auto-created inbound lead ${newLead.id} and contact ${newContact.id} (${newLead.email})`);
                 } catch (leadErr) {
                   console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
                 }

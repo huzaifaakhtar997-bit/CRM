@@ -226,6 +226,19 @@ export class WebhookController {
                   const firstName = parts[0] || "Inbound";
                   const lastName = parts.slice(1).join(" ") || undefined;
 
+                  // Auto-create Contact in LEAD lifecycle stage alongside Lead
+                  const newContact = await prisma.contact.create({
+                    data: {
+                      firstName,
+                      lastName: lastName || "",
+                      email: senderEmail.toLowerCase(),
+                      leadSource: LeadSource.OTHER,
+                      lifecycleStage: LifecycleStage.LEAD,
+                      notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
+                    },
+                  });
+                  matchedContactId = newContact.id;
+
                   const newLead = await prisma.lead.create({
                     data: {
                       firstName,
@@ -234,10 +247,11 @@ export class WebhookController {
                       source: LeadSource.OTHER,
                       status: LeadStatus.NEW,
                       notes: `Auto-captured from inbound email in Unified Inbox. Subject: "${subject || 'No Subject'}"`,
+                      convertedContactId: newContact.id,
                     },
                   });
                   matchedLeadId = newLead.id;
-                  console.log(`[Webhook] Auto-created inbound lead ${newLead.id} (${newLead.email})`);
+                  console.log(`[Webhook] Auto-created inbound lead ${newLead.id} and contact ${newContact.id} (${newLead.email})`);
                 } catch (leadErr: any) {
                   console.warn("[Webhook] Auto-create lead skipped:", leadErr?.message || leadErr);
                 }

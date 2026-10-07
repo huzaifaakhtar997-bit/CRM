@@ -19,6 +19,27 @@ export class LeadService {
 
     // Execute Lead creation and Activity log inside Prisma transaction
     const lead = await prisma.$transaction(async (tx) => {
+      // Auto-create or resolve a Contact in LEAD lifecycle stage for data consistency
+      let contact = await tx.contact.findFirst({
+        where: { email: { equals: input.email.toLowerCase(), mode: "insensitive" } },
+      });
+
+      if (!contact) {
+        contact = await tx.contact.create({
+          data: {
+            firstName: input.firstName,
+            lastName: input.lastName || "",
+            email: input.email.toLowerCase(),
+            phone: input.phone || null,
+            jobTitle: input.jobTitle || null,
+            leadSource: input.source || null,
+            lifecycleStage: LifecycleStage.LEAD,
+            assignedUserId,
+            notes: input.notes || null,
+          },
+        });
+      }
+
       const newLead = await tx.lead.create({
         data: {
           firstName: input.firstName,
@@ -31,11 +52,13 @@ export class LeadService {
           status: input.status,
           notes: input.notes,
           assignedUserId,
+          convertedContactId: contact.id,
         },
         include: {
           assignedUser: {
             select: { id: true, name: true, email: true, avatarUrl: true },
           },
+          convertedContact: true,
         },
       });
 
@@ -47,11 +70,13 @@ export class LeadService {
           content: `Created lead ${newLead.firstName} ${newLead.lastName || ""}`.trim() + ` (${newLead.email})`,
           userId: currentUserId,
           leadId: newLead.id,
+          contactId: contact.id,
           metadata: {
             status: newLead.status,
             source: newLead.source,
             company: newLead.company,
             assignedUserId: newLead.assignedUserId,
+            contactId: contact.id,
           },
         },
       });
